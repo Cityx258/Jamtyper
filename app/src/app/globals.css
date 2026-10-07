@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #061a1d;
+  --bg-raised: #0b2529;
+  --ink: #e6faf7;
+  --muted: #86b4b0;
+  --teal: #39c5bb;
+  --teal-bright: #7cf0e6;
+  --teal-deep: #1b8a84;
+  --line: rgb(57 197 187 / 0.26);
+  --staff-gap: 16px;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-raised: var(--bg-raised);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-teal: var(--teal);
+  --color-teal-bright: var(--teal-bright);
+  --color-teal-deep: var(--teal-deep);
+  --color-line: var(--line);
+  --font-sans: var(--f-body);
+  --font-display: var(--f-display);
+  --font-mono: var(--f-mono);
+  --font-music: var(--f-music);
+}
+
+html {
+  background: var(--bg);
+}
+
+body {
+  background:
+    radial-gradient(60rem 30rem at 85% -10%, rgb(57 197 187 / 0.13), transparent 70%),
+    var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body), system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+::selection {
+  background: var(--teal);
+  color: var(--bg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--teal-bright);
+  outline-offset: 3px;
+}
+
+/* Five-line staff, drawn with a repeating gradient so it scales with --staff-gap. */
+.staff {
+  --staff-h: calc(var(--staff-gap) * 4 + 1px);
+  height: var(--staff-h);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--line) 0 1px,
+    transparent 1px var(--staff-gap)
+  );
+}
+
+@keyframes drift {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(var(--tilt-a));
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--alpha);
+  }
+  50% {
+    transform: translate3d(var(--sway), -55vh, 0) rotate(var(--tilt-b));
+  }
+  90% {
+    opacity: var(--alpha);
+  }
+  100% {
+    transform: translate3d(calc(var(--sway) * -0.4), -115vh, 0)
+      rotate(var(--tilt-a));
+    opacity: 0;
+  }
+}
+
+.note {
+  position: absolute;
+  bottom: -60px;
+  animation: drift var(--dur) linear var(--delay) infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .note {
+    animation: none;
+    bottom: auto;
+    top: var(--rest-top);
+    opacity: var(--alpha);
+  }
+}

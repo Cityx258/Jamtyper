@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: typeracer
+    name: JamTyper
     runtime: docker
     dockerfilePath: ./app/Dockerfile
     dockerContext: ./app

@@ -2,7 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { Dict } from "@/i18n/en";
 import { authClient } from "@/lib/auth-client";
+
+type T = Dict["login"];
 
 type Mode = "signin" | "signup";
 
@@ -16,22 +19,22 @@ const USERNAME_RE = /^[a-zA-Z0-9_.]{3,20}$/;
 const field =
   "w-full rounded-lg border border-line bg-bg/70 px-4 py-3 text-ink placeholder:text-muted/60 focus:border-teal focus:outline-none";
 
-function ProviderButton({ name }: { name: string }) {
+function ProviderButton({ name, t }: { name: string; t: T }) {
   return (
     <button
       type="button"
       disabled
       className="flex w-full items-center justify-between rounded-lg border border-line px-4 py-3 text-left font-medium text-ink/80 disabled:cursor-not-allowed"
     >
-      <span>Continue with {name}</span>
+      <span>{t.continueWith.replace("{name}", name)}</span>
       <span className="font-mono text-[10px] uppercase tracking-wider text-muted">
-        Soon
+        {t.soon}
       </span>
     </button>
   );
 }
 
-export default function LoginForm() {
+export default function LoginForm({ t }: { t: T }) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("signin");
   const [showPasswordSignup, setShowPasswordSignup] = useState(false);
@@ -53,7 +56,11 @@ export default function LoginForm() {
     const password = String(data.get("password") ?? "");
 
     if (mode === "signup" && !USERNAME_RE.test(username)) {
-      setError("Username must be 3-20 characters: letters, numbers, _ or .");
+      setError(t.errors.usernameFormat);
+      return;
+    }
+    if (mode === "signup" && password.length < 8) {
+      setError(t.errors.passwordShort);
       return;
     }
 
@@ -70,10 +77,13 @@ export default function LoginForm() {
     setPending(false);
 
     if (res.error) {
+      const code = res.error.code ?? "";
       setError(
         mode === "signin"
-          ? "Wrong username or password."
-          : (res.error.message ?? "Could not create the account."),
+          ? t.errors.badCredentials
+          : /TAKEN|EXISTS/.test(code)
+            ? t.errors.taken
+            : t.errors.generic,
       );
       return;
     }
@@ -85,13 +95,13 @@ export default function LoginForm() {
     <div className="w-full max-w-md">
       <div
         role="tablist"
-        aria-label="Sign in or create an account"
+        aria-label={t.tablistLabel}
         className="mb-8 flex gap-6 border-b border-line"
       >
         {(
           [
-            ["signin", "Sign in"],
-            ["signup", "Create account"],
+            ["signin", t.tabSignIn],
+            ["signup", t.tabSignUp],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -112,19 +122,19 @@ export default function LoginForm() {
       </div>
 
       <div className="space-y-3">
-        <ProviderButton name="Discord" />
-        <ProviderButton name="GitHub" />
+        <ProviderButton name="Discord" t={t} />
+        <ProviderButton name="GitHub" t={t} />
       </div>
 
       {mode === "signup" && !showPasswordSignup && (
         <p className="mt-6 text-sm text-muted">
-          Discord and GitHub are the quickest and safest way in.{" "}
+          {t.nudge}{" "}
           <button
             type="button"
             onClick={() => setShowPasswordSignup(true)}
             className="text-teal underline underline-offset-4 hover:text-teal-bright"
           >
-            Use a username and password instead
+            {t.usePassword}
           </button>
         </p>
       )}
@@ -133,13 +143,13 @@ export default function LoginForm() {
         <>
           <div className="my-6 flex items-center gap-4 text-xs uppercase tracking-[0.25em] text-muted">
             <span className="h-px flex-1 bg-line" />
-            or
+            {t.or}
             <span className="h-px flex-1 bg-line" />
           </div>
 
           <form onSubmit={onSubmit} className="space-y-4" noValidate>
             <label className="block">
-              <span className="mb-1.5 block text-sm text-muted">Username</span>
+              <span className="mb-1.5 block text-sm text-muted">{t.username}</span>
               <input
                 name="username"
                 autoComplete="username"
@@ -148,7 +158,7 @@ export default function LoginForm() {
               />
             </label>
             <label className="block">
-              <span className="mb-1.5 block text-sm text-muted">Password</span>
+              <span className="mb-1.5 block text-sm text-muted">{t.password}</span>
               <input
                 name="password"
                 type="password"
@@ -161,13 +171,13 @@ export default function LoginForm() {
               />
               {mode === "signup" && (
                 <span className="mt-1.5 block text-xs text-muted">
-                  At least 8 characters.
+                  {t.passwordHint}
                 </span>
               )}
             </label>
 
             {error && (
-              <p role="alert" className="text-sm text-[#ff8f8f]">
+              <p role="alert" className="text-sm text-danger">
                 {error}
               </p>
             )}
@@ -175,13 +185,13 @@ export default function LoginForm() {
             <button
               type="submit"
               disabled={pending}
-              className="w-full rounded-full bg-teal px-6 py-3 font-bold text-bg transition-colors hover:bg-teal-bright disabled:opacity-60"
+              className="w-full rounded-full bg-teal px-6 py-3 font-bold text-on-teal transition-colors hover:bg-teal-bright disabled:opacity-60"
             >
               {pending
-                ? "One moment..."
+                ? t.pending
                 : mode === "signin"
-                  ? "Sign in"
-                  : "Create account"}
+                  ? t.submitSignIn
+                  : t.submitSignUp}
             </button>
           </form>
         </>

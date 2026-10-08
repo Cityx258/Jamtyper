@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: typeracer
+    runtime: docker
+    dockerfilePath: ./app/Dockerfile
+    dockerContext: ./app
+    plan: free
+    healthCheckPath: /api/auth/ok
+    envVars:
+      # Paste the Postgres connection string in the Render dashboard.
+      - key: DATABASE_URL
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        generateValue: true

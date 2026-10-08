@@ -4,13 +4,17 @@ import { redirect } from "next/navigation";
 import Clef from "@/components/Clef";
 import Header from "@/components/Header";
 import LoginForm from "@/components/LoginForm";
+import { getDict } from "@/i18n";
 import { auth } from "@/lib/auth";
 
-export const metadata = { title: "Sign in | Name" };
+export async function generateMetadata() {
+  return { title: `${(await getDict()).meta.loginTitle} | JamTyper` };
+}
 
 export default async function LoginPage() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (session) redirect("/");
+  const t = await getDict();
 
   return (
     <>
@@ -20,18 +24,19 @@ export default async function LoginPage() {
           <div className="staff absolute inset-x-0 top-[calc(var(--staff-gap)*1.5)] -right-8" />
           <Clef className="relative -mt-[calc(var(--staff-gap)*1.7)] block" />
           <p className="relative mt-24 max-w-[16rem] font-display text-3xl leading-tight">
-            Welcome <span className="text-teal">back</span> to the stage.
+            {t.login.welcomeA} <span className="text-teal">{t.login.welcomeB}</span>{" "}
+            {t.login.welcomeC}
           </p>
         </div>
         <div className="flex w-full flex-col items-center md:items-start">
-          <LoginForm />
+          <LoginForm t={t.login} />
           <p className="mt-8 text-sm text-muted">
-            Just looking around?{" "}
+            {t.login.guestPrompt}{" "}
             <Link
               href="/"
               className="text-teal underline underline-offset-4 hover:text-teal-bright"
             >
-              Continue as a guest
+              {t.login.guestLink}
             </Link>
           </p>
         </div>

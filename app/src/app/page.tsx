@@ -1,25 +1,17 @@
+import { headers } from "next/headers";
 import Clef from "@/components/Clef";
+import CreateRoomButton from "@/components/CreateRoomButton";
 import Header from "@/components/Header";
+import JoinRoomForm from "@/components/JoinRoomForm";
+import { primaryButton } from "@/components/ui";
+import { getDict } from "@/i18n";
+import { auth } from "@/lib/auth";
 
-const MEASURES = [
-  {
-    title: "Race",
-    text: "Jump into a public race and see who finishes first.",
-    action: "Start a race",
-  },
-  {
-    title: "Join",
-    text: "Got a room code from a friend? Enter it here.",
-    action: "Join room",
-  },
-  {
-    title: "Practice",
-    text: "Warm up on your own, no one watching.",
-    action: "Practice solo",
-  },
-];
-
-export default function Home() {
+export default async function Home() {
+  const [t, session] = await Promise.all([
+    getDict().then((d) => d.home),
+    headers().then((h) => auth.api.getSession({ headers: h })),
+  ]);
   return (
     <>
       <Header />
@@ -31,27 +23,26 @@ export default function Home() {
               <Clef className="-mt-[calc(var(--staff-gap)*1.7)] shrink-0" />
               <div className="pt-1">
                 <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal">
-                  Typing, in tempo
+                  {t.kicker}
                 </p>
                 <h1 className="mt-3 max-w-2xl font-display text-4xl leading-[1.08] sm:text-6xl">
-                  Type fast.
+                  {t.headingA}
                   <br />
-                  <span className="text-teal">Keep the rhythm.</span>
+                  <span className="text-teal">{t.headingB}</span>
                 </h1>
               </div>
             </div>
           </div>
           <p className="mt-10 max-w-xl text-lg text-muted">
-            Race other players in real time, climb the podium and unlock new
-            looks as your speed goes up.
+            {t.intro}
           </p>
         </section>
 
         <section
-          aria-label="Ways to play"
+          aria-label={t.waysToPlay}
           className="mt-16 grid border-y border-line md:grid-cols-3"
         >
-          {MEASURES.map((m, i) => (
+          {t.measures.map((m, i) => (
             <div
               key={m.title}
               className={`flex flex-col gap-4 px-1 py-8 md:px-8 ${
@@ -63,12 +54,19 @@ export default function Home() {
               </span>
               <h2 className="font-display text-2xl">{m.title}</h2>
               <p className="flex-1 text-muted">{m.text}</p>
-              <button
-                type="button"
-                className="self-start rounded-full bg-teal px-6 py-2.5 text-sm font-bold text-bg transition-colors hover:bg-teal-bright"
-              >
-                {m.action}
-              </button>
+              {i === 0 && (
+                <CreateRoomButton
+                  signedIn={!!session}
+                  label={m.action}
+                  t={t.create}
+                />
+              )}
+              {i === 1 && <JoinRoomForm action={m.action} t={t.join} />}
+              {i === 2 && (
+                <button type="button" className={`self-start ${primaryButton}`}>
+                  {m.action}
+                </button>
+              )}
             </div>
           ))}
         </section>

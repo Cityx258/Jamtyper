@@ -8,8 +8,26 @@
   --teal: #39c5bb;
   --teal-bright: #7cf0e6;
   --teal-deep: #1b8a84;
+  --on-teal: #061a1d;
+  --danger: #ff8f8f;
   --line: rgb(57 197 187 / 0.26);
+  --glow: rgb(57 197 187 / 0.13);
   --staff-gap: 16px;
+}
+
+/* Light theme: deeper teals so text and buttons keep their contrast on pale mint. */
+:root[data-theme="light"] {
+  --bg: #eefaf8;
+  --bg-raised: #ffffff;
+  --ink: #0a2b2e;
+  --muted: #3f6c69;
+  --teal: #0e8a82;
+  --teal-bright: #0a6b65;
+  --teal-deep: #5cc7bf;
+  --on-teal: #ffffff;
+  --danger: #b42318;
+  --line: rgb(14 138 130 / 0.3);
+  --glow: rgb(57 197 187 / 0.22);
 }
 
 @theme inline {
@@ -21,6 +39,8 @@
   --color-teal-bright: var(--teal-bright);
   --color-teal-deep: var(--teal-deep);
   --color-line: var(--line);
+  --color-on-teal: var(--on-teal);
+  --color-danger: var(--danger);
   --font-sans: var(--f-body);
   --font-display: var(--f-display);
   --font-mono: var(--f-mono);
@@ -33,7 +53,7 @@ html {
 
 body {
   background:
-    radial-gradient(60rem 30rem at 85% -10%, rgb(57 197 187 / 0.13), transparent 70%),
+    radial-gradient(60rem 30rem at 85% -10%, var(--glow), transparent 70%),
     var(--bg);
   color: var(--ink);
   font-family: var(--f-body), system-ui, sans-serif;
@@ -42,7 +62,7 @@ body {
 
 ::selection {
   background: var(--teal);
-  color: var(--bg);
+  color: var(--on-teal);
 }
 
 :focus-visible {

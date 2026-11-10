@@ -1,0 +1,320 @@
+import { eq } from "drizzle-orm";
+import { db } from "../src/db";
+import {
+  race as raceTable,
+  raceResult,
+  room as roomTable,
+} from "../src/db/rooms";
+import type {
+  ActionResult,
+  RacerOutcome,
+  RoomError,
+  RoomStatus,
+} from "../src/lib/room-protocol";
+import {
+  broadcast,
+  channel,
+  MIN_RACERS,
+  racerAccuracy,
+  racersView,
+  racerWpm,
+  rooms,
+  type AppServer,
+  type AppSocket,
+  type Member,
+  type Race,
+  type Racer,
+  type Room,
+} from "./room-state";
+import { generateText } from "./texts";
+
+export const COUNTDOWN_MS = 5_000;
+export const TIME_LIMIT_MS = 180_000;
+export const CLOSING_MS = 30_000;
+const MAX_CHARS_PER_SECOND = 25;
+const TICK_MS = 100;
+const MAX_WPM = 9999;
+
+const ok: ActionResult = { ok: true };
+const fail = (error: RoomError): ActionResult => ({ ok: false, error });
+
+type Context = { room: Room; member: Member };
+
+function context(socket: AppSocket): Context | null {
+  const code = socket.data.roomCode;
+  const room = code ? rooms.get(code) : undefined;
+  const member = room?.members.get(socket.data.identity.key);
+  return room && member ? { room, member } : null;
+}
+
+export function hostContext(socket: AppSocket): Context | RoomError {
+  const ctx = context(socket);
+  if (!ctx) return "not_found";
+  if (ctx.room.hostKey !== ctx.member.key) return "not_host";
+  return ctx;
+}
+
+const isLive = (status: RoomStatus) =>
+  status === "racing" || status === "finishing";
+
+function setStatus(room: Room, status: RoomStatus) {
+  room.status = status;
+  db.update(roomTable)
+    .set({ status })
+    .where(eq(roomTable.id, room.id))
+    .catch((e) => console.error("[race] failed to persist room status", e));
+}
+
+export function stopRace(race: Race) {
+  race.timers.forEach(clearTimeout);
+  race.timers = [];
+  if (race.ticker) clearInterval(race.ticker);
+  race.ticker = undefined;
+}
+
+function backToLobby(io: AppServer, room: Room) {
+  if (room.race) stopRace(room.race);
+  room.race = null;
+  for (const m of room.members.values()) m.role = "racer";
+  setStatus(room, "lobby");
+  broadcast(io, room);
+}
+
+export function startRace(io: AppServer, socket: AppSocket): ActionResult {
+  const ctx = hostContext(socket);
+  if (typeof ctx === "string") return fail(ctx);
+  const { room } = ctx;
+  if (room.status !== "lobby") return fail("bad_state");
+
+  const entrants = [...room.members.values()].filter(
+    (m) => m.role === "racer" && m.sockets.size > 0,
+  );
+  if (entrants.length < MIN_RACERS) return fail("not_enough_racers");
+
+  const startsAt = Date.now() + COUNTDOWN_MS;
+  const race: Race = {
+    dbId: null,
+    text: generateText(),
+    startsAt,
+    endsAt: startsAt + TIME_LIMIT_MS,
+    closesAt: null,
+    endedAt: null,
+    racers: new Map(
+      entrants.map((m) => [
+        m.id,
+        {
+          id: m.id,
+          userId: m.userId,
+          name: m.name,
+          position: 0,
+          mistakes: 0,
+          outcome: "racing",
+          doneAt: null,
+          place: null,
+        },
+      ]),
+    ),
+    dirty: false,
+    timers: [],
+  };
+  for (const m of room.members.values()) {
+    if (!race.racers.has(m.id)) m.role = "spectator";
+  }
+
+  room.race = race;
+  setStatus(room, "countdown");
+  race.timers.push(setTimeout(() => beginRacing(io, room, race), COUNTDOWN_MS));
+  broadcast(io, room);
+  return ok;
+}
+
+function beginRacing(io: AppServer, room: Room, race: Race) {
+  if (room.race !== race || room.status !== "countdown") return;
+  setStatus(room, "racing");
+  race.timers.push(
+    setTimeout(() => void endRace(io, room, race), race.endsAt - Date.now()),
+  );
+  race.ticker = setInterval(() => {
+    if (!race.dirty) return;
+    race.dirty = false;
+    io.to(channel(room.code)).emit("race:positions", racersView(race));
+  }, TICK_MS);
+  race.dbId = db
+    .insert(raceTable)
+    .values({
+      roomId: room.id,
+      textBody: race.text,
+      settings: { timeLimitMs: TIME_LIMIT_MS, closingMs: CLOSING_MS },
+      startedAt: new Date(race.startsAt),
+    })
+    .returning({ id: raceTable.id })
+    .then(
+      ([row]) => row.id,
+      (e) => {
+        console.error("[race] failed to persist race start", e);
+        return null;
+      },
+    );
+  broadcast(io, room);
+}
+
+export function cancelRace(io: AppServer, socket: AppSocket): ActionResult {
+  const ctx = hostContext(socket);
+  if (typeof ctx === "string") return fail(ctx);
+  if (ctx.room.status !== "countdown") return fail("bad_state");
+  backToLobby(io, ctx.room);
+  return ok;
+}
+
+export function raceAgain(io: AppServer, socket: AppSocket): ActionResult {
+  const ctx = hostContext(socket);
+  if (typeof ctx === "string") return fail(ctx);
+  if (ctx.room.status !== "results") return fail("bad_state");
+  backToLobby(io, ctx.room);
+  return ok;
+}
+
+const isCount = (v: unknown): v is number =>
+  typeof v === "number" && Number.isInteger(v) && v >= 0;
+
+export function recordProgress(
+  io: AppServer,
+  socket: AppSocket,
+  payload: unknown,
+) {
+  const ctx = context(socket);
+  const race = ctx?.room.race;
+  if (!ctx || !race || !isLive(ctx.room.status)) return;
+  const racer = race.racers.get(ctx.member.id);
+  if (!racer || racer.outcome !== "racing") return;
+
+  const { position, mistakes } = (payload ?? {}) as Record<string, unknown>;
+  if (!isCount(position) || !isCount(mistakes)) return;
+  const elapsed = Date.now() - race.startsAt;
+  const cap = Math.ceil((elapsed / 1000) * MAX_CHARS_PER_SECOND) + 5;
+  if (
+    position < racer.position ||
+    position > race.text.length ||
+    position > cap
+  ) {
+    return;
+  }
+
+  racer.position = position;
+  racer.mistakes = Math.max(racer.mistakes, mistakes);
+  race.dirty = true;
+  if (position === race.text.length) settle(io, ctx.room, race, racer, "finished");
+}
+
+export function forfeit(io: AppServer, socket: AppSocket): ActionResult {
+  const ctx = context(socket);
+  if (!ctx) return fail("not_found");
+  const race = ctx.room.race;
+  const racer = race?.racers.get(ctx.member.id);
+  if (!race || !racer || !isLive(ctx.room.status) || racer.outcome !== "racing") {
+    return fail("bad_state");
+  }
+  settle(io, ctx.room, race, racer, "forfeited");
+  return ok;
+}
+
+export function dropRacer(io: AppServer, room: Room, member: Member) {
+  const race = room.race;
+  const racer = race?.racers.get(member.id);
+  if (!race || !racer) return;
+  if (room.status === "countdown") {
+    race.racers.delete(member.id);
+    if (race.racers.size < MIN_RACERS) backToLobby(io, room);
+    return;
+  }
+  if (isLive(room.status) && racer.outcome === "racing") {
+    settle(io, room, race, racer, "forfeited");
+  }
+}
+
+function settle(
+  io: AppServer,
+  room: Room,
+  race: Race,
+  racer: Racer,
+  outcome: Exclude<RacerOutcome, "racing" | "timed_out">,
+) {
+  const now = Date.now();
+  racer.outcome = outcome;
+  racer.doneAt = now - race.startsAt;
+  race.dirty = true;
+  const racers = [...race.racers.values()];
+  if (outcome === "finished") {
+    racer.place = racers.filter((r) => r.outcome === "finished").length;
+  }
+
+  if (racers.every((r) => r.outcome !== "racing")) {
+    void endRace(io, room, race);
+    return;
+  }
+  if (outcome === "finished" && room.status === "racing") {
+    setStatus(room, "finishing");
+    race.closesAt = Math.min(now + CLOSING_MS, race.endsAt);
+    race.timers.push(
+      setTimeout(() => void endRace(io, room, race), race.closesAt - now),
+    );
+  }
+  broadcast(io, room);
+}
+
+const outcomeRank: Record<RacerOutcome, number> = {
+  finished: 0,
+  racing: 1,
+  timed_out: 1,
+  forfeited: 2,
+  kicked: 2,
+};
+
+async function endRace(io: AppServer, room: Room, race: Race) {
+  if (room.race !== race || !isLive(room.status)) return;
+  stopRace(race);
+  race.endedAt = Math.min(Date.now(), race.endsAt);
+
+  const ranked = [...race.racers.values()];
+  for (const r of ranked) {
+    if (r.outcome === "racing") r.outcome = "timed_out";
+  }
+  ranked.sort(
+    (a, b) =>
+      outcomeRank[a.outcome] - outcomeRank[b.outcome] ||
+      (a.outcome === "finished"
+        ? (a.doneAt ?? 0) - (b.doneAt ?? 0)
+        : b.position - a.position),
+  );
+  ranked.forEach((r, i) => (r.place = i + 1));
+
+  setStatus(room, "results");
+  broadcast(io, room);
+  await saveResults(race, ranked);
+}
+
+async function saveResults(race: Race, ranked: Racer[]) {
+  const raceId = await race.dbId;
+  if (!raceId) return;
+  try {
+    await db.transaction(async (tx) => {
+      await tx.insert(raceResult).values(
+        ranked.map((r) => ({
+          raceId,
+          userId: r.userId,
+          displayName: r.name,
+          position: r.place ?? ranked.length,
+          wpm: Math.min(Math.round(racerWpm(race, r) * 100) / 100, MAX_WPM),
+          accuracy: Math.round(racerAccuracy(r) * 10_000) / 10_000,
+          outcome: r.outcome as Exclude<RacerOutcome, "racing">,
+        })),
+      );
+      await tx
+        .update(raceTable)
+        .set({ endedAt: new Date(race.endedAt ?? Date.now()) })
+        .where(eq(raceTable.id, raceId));
+    });
+  } catch (e) {
+    console.error("[race] failed to persist results", e);
+  }
+}

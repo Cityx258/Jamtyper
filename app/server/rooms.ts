@@ -1,73 +1,31 @@
 import { randomUUID } from "node:crypto";
 import { and, eq, inArray, isNull, ne } from "drizzle-orm";
-import type { Server, Socket } from "socket.io";
 import { db } from "../src/db";
 import { room as roomTable, roomMember } from "../src/db/rooms";
 import { normalizeRoomCode } from "../src/lib/room-code";
 import type {
-  ClientToServerEvents,
+  ActionResult,
   RoomError,
   RoomResult,
-  RoomStatus,
-  RoomView,
-  ServerToClientEvents,
 } from "../src/lib/room-protocol";
 import { generateRoomCode } from "./codes";
+import { dropRacer, hostContext, stopRace } from "./race";
+import {
+  broadcast,
+  channel,
+  GRACE_MS,
+  rooms,
+  toView,
+  type AppServer,
+  type AppSocket,
+  type Member,
+  type Room,
+} from "./room-state";
 
-// How long a disconnected player keeps their seat (spec 2.10). A page refresh or
-// a brief network drop reconnects well inside this.
-const GRACE_MS = 30_000;
+export type { AppServer, Identity } from "./room-state";
+
 const MAX_NAME_LENGTH = 20;
 
-export interface Identity {
-  /** `user:<id>` for accounts, `guest:<id>` for guests. Never sent to other players. */
-  key: string;
-  userId: string | null;
-  name: string;
-}
-
-interface SocketData {
-  identity: Identity;
-  roomCode?: string;
-}
-
-export type AppServer = Server<
-  ClientToServerEvents,
-  ServerToClientEvents,
-  Record<string, never>,
-  SocketData
->;
-export type AppSocket = Socket<
-  ClientToServerEvents,
-  ServerToClientEvents,
-  Record<string, never>,
-  SocketData
->;
-
-interface Member {
-  id: string;
-  key: string;
-  userId: string | null;
-  name: string;
-  role: "racer" | "spectator";
-  joinedAt: number;
-  sockets: Set<string>;
-  graceTimer?: NodeJS.Timeout;
-}
-
-interface Room {
-  id: string;
-  code: string;
-  hostKey: string;
-  status: RoomStatus;
-  members: Map<string, Member>;
-}
-
-// The live state of every open room. The database holds the durable record, but
-// this is what the server trusts while it is running (see docs/adr/0001).
-const rooms = new Map<string, Room>();
-
-const channel = (code: string) => `room:${code}`;
 const fail = (error: RoomError): RoomResult => ({ ok: false, error });
 
 function isUniqueViolation(e: unknown): boolean {
@@ -85,27 +43,6 @@ function cleanGuestName(raw: unknown): string {
     .slice(0, MAX_NAME_LENGTH);
 }
 
-function toView(room: Room): RoomView {
-  const members = [...room.members.values()].sort(
-    (a, b) => a.joinedAt - b.joinedAt,
-  );
-  return {
-    code: room.code,
-    status: room.status,
-    members: members.map((m) => ({
-      id: m.id,
-      name: m.name,
-      role: m.role,
-      isHost: m.key === room.hostKey,
-      connected: m.sockets.size > 0,
-    })),
-  };
-}
-
-function broadcast(io: AppServer, room: Room) {
-  io.to(channel(room.code)).emit("room:state", toView(room));
-}
-
 function attach(socket: AppSocket, room: Room, member: Member) {
   if (member.graceTimer) {
     clearTimeout(member.graceTimer);
@@ -119,6 +56,7 @@ function attach(socket: AppSocket, room: Room, member: Member) {
 async function closeRoom(io: AppServer, room: Room) {
   if (rooms.get(room.code) !== room) return;
   rooms.delete(room.code);
+  if (room.race) stopRace(room.race);
   for (const m of room.members.values()) {
     if (m.graceTimer) clearTimeout(m.graceTimer);
   }
@@ -156,9 +94,6 @@ async function removeMember(io: AppServer, room: Room, member: Member) {
   if (room.members.size === 0) return closeRoom(io, room);
 
   if (room.hostKey === member.key) {
-    // The oldest remaining player takes over. Only accounts can host (guests can't
-    // create rooms and the room row's host is a user), so guests are skipped; a
-    // room with nobody but guests left is closed.
     const next = [...room.members.values()]
       .filter((m) => m.userId)
       .sort((a, b) => a.joinedAt - b.joinedAt)[0];
@@ -173,6 +108,7 @@ async function removeMember(io: AppServer, room: Room, member: Member) {
       console.error("[rooms] failed to persist host change", e);
     }
   }
+  dropRacer(io, room, member);
   broadcast(io, room);
 }
 
@@ -191,7 +127,6 @@ export async function leaveRoom(
   if (!room || !member) return;
 
   member.sockets.delete(socket.id);
-  // Still open in another tab: keep the seat.
   if (member.sockets.size > 0) return;
 
   if (immediate) {
@@ -201,8 +136,21 @@ export async function leaveRoom(
       () => void removeMember(io, room, member),
       GRACE_MS,
     );
-    broadcast(io, room); // shows the player as reconnecting
+    broadcast(io, room);
   }
+}
+
+export async function closeRoomByHost(
+  io: AppServer,
+  socket: AppSocket,
+): Promise<ActionResult> {
+  const ctx = hostContext(socket);
+  if (typeof ctx === "string") return { ok: false, error: ctx };
+  if (ctx.room.status !== "lobby" && ctx.room.status !== "results") {
+    return { ok: false, error: "bad_state" };
+  }
+  await closeRoom(io, ctx.room);
+  return { ok: true };
 }
 
 export async function createRoom(
@@ -212,7 +160,6 @@ export async function createRoom(
   const { identity } = socket.data;
   if (!identity.userId) return fail("not_signed_in");
 
-  // One room per socket: creating a new one leaves the old one.
   await leaveRoom(io, socket, { immediate: true });
 
   const memberId = randomUUID();
@@ -248,12 +195,13 @@ export async function createRoom(
         hostKey: identity.key,
         status: "lobby",
         members: new Map([[identity.key, member]]),
+        race: null,
       };
       rooms.set(code, room);
       attach(socket, room, member);
       return { ok: true, room: toView(room), you: member.id };
     } catch (e) {
-      if (isUniqueViolation(e)) continue; // code collision, roll a new one
+      if (isUniqueViolation(e)) continue;
       console.error("[rooms] createRoom failed", e);
       return fail("server_error");
     }
@@ -287,13 +235,10 @@ export async function joinRoom(
       key: identity.key,
       userId: identity.userId,
       name,
-      // Joining after the start means watching (spec 2.13).
       role: room.status === "lobby" ? "racer" : "spectator",
       joinedAt: Date.now(),
       sockets: new Set(),
     };
-    // Registered before the await so a second join from the same player (two tabs,
-    // a fast reconnect) finds this seat instead of inserting another.
     room.members.set(identity.key, created);
     try {
       await db.insert(roomMember).values({
@@ -310,7 +255,7 @@ export async function joinRoom(
       console.error("[rooms] joinRoom failed", e);
       return fail("server_error");
     }
-    if (rooms.get(code) !== room) return fail("not_found"); // closed meanwhile
+    if (rooms.get(code) !== room) return fail("not_found");
     member = created;
   }
 
@@ -319,7 +264,6 @@ export async function joinRoom(
   return { ok: true, room: toView(room), you: member.id };
 }
 
-/** Rooms live in memory, so after a restart any room still marked open is orphaned. */
 export async function closeStaleRooms() {
   const open = await db
     .select({ id: roomTable.id })

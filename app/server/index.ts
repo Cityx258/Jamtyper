@@ -3,10 +3,20 @@ import next from "next";
 import { Server } from "socket.io";
 import { auth } from "../src/lib/auth";
 import type {
+  ActionResult,
   ClientToServerEvents,
   ServerToClientEvents,
 } from "../src/lib/room-protocol";
 import {
+  cancelRace,
+  forfeit,
+  raceAgain,
+  recordProgress,
+  startRace,
+} from "./race";
+import type { AppSocket } from "./room-state";
+import {
+  closeRoomByHost,
   closeStaleRooms,
   createRoom,
   joinRoom,
@@ -21,7 +31,6 @@ const dev = process.env.NODE_ENV !== "production";
 const httpServer = createServer();
 const app = next({
   dev,
-  // Used for URL generation only; the server itself listens on every interface.
   hostname: dev ? "localhost" : "0.0.0.0",
   port,
   httpServer,
@@ -39,11 +48,7 @@ async function main() {
     ClientToServerEvents,
     ServerToClientEvents
   >(httpServer, {
-    // Next's dev server upgrades its own HMR websocket on this same HTTP server.
     destroyUpgrade: false,
-    // Browsers don't apply CORS to WebSocket upgrades, so refuse any page that
-    // isn't served from this host (otherwise another site could drive a logged-in
-    // user's socket).
     allowRequest: (req, callback) => {
       const origin = req.headers.origin;
       if (!origin) return callback(null, true);
@@ -117,6 +122,43 @@ async function main() {
         console.error("[socket] room:leave", e);
       }
       if (typeof ack === "function") ack();
+    });
+
+    const action = (
+      event: "race:start" | "race:cancel" | "race:again" | "race:forfeit",
+      run: (io: AppServer, socket: AppSocket) => ActionResult,
+    ) => {
+      socket.on(event, (ack) => {
+        if (typeof ack !== "function") return;
+        try {
+          ack(run(io, socket));
+        } catch (e) {
+          console.error(`[socket] ${event}`, e);
+          ack({ ok: false, error: "server_error" });
+        }
+      });
+    };
+    action("race:start", startRace);
+    action("race:cancel", cancelRace);
+    action("race:again", raceAgain);
+    action("race:forfeit", forfeit);
+
+    socket.on("race:progress", (payload) => {
+      try {
+        recordProgress(io, socket, payload);
+      } catch (e) {
+        console.error("[socket] race:progress", e);
+      }
+    });
+
+    socket.on("room:close", async (ack) => {
+      if (typeof ack !== "function") return;
+      try {
+        ack(await closeRoomByHost(io, socket));
+      } catch (e) {
+        console.error("[socket] room:close", e);
+        ack({ ok: false, error: "server_error" });
+      }
     });
 
     socket.on("disconnect", () => {

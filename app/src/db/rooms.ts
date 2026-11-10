@@ -1,7 +1,10 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  boolean,
   index,
+  integer,
   jsonb,
+  numeric,
   pgTable,
   text,
   timestamp,
@@ -10,13 +13,10 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "./schema";
 
-// Kept apart from schema.ts, which Better Auth's CLI generates and may overwrite.
-
 export const room = pgTable(
   "room",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    // 6 characters, see server/codes.ts
     code: text("code").notNull().unique(),
     hostId: text("host_id")
       .notNull()
@@ -45,7 +45,6 @@ export const roomMember = pgTable(
     roomId: uuid("room_id")
       .notNull()
       .references(() => room.id, { onDelete: "cascade" }),
-    // Exactly one of userId / guestName is set.
     userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
     guestName: text("guest_name"),
     role: text("role", { enum: ["racer", "spectator"] })
@@ -56,19 +55,72 @@ export const roomMember = pgTable(
   },
   (table) => [
     index("room_member_room_idx").on(table.roomId),
-    // A signed-in user has at most one active seat per room.
     uniqueIndex("room_member_active_user_idx")
       .on(table.roomId, table.userId)
       .where(sql`${table.userId} is not null and ${table.leftAt} is null`),
   ],
 );
 
+export const race = pgTable(
+  "race",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    roomId: uuid("room_id")
+      .notNull()
+      .references(() => room.id, { onDelete: "cascade" }),
+    textBody: text("text_body").notNull(),
+    settings: jsonb("settings").notNull().default({}),
+    startedAt: timestamp("started_at").notNull(),
+    endedAt: timestamp("ended_at"),
+  },
+  (table) => [index("race_room_idx").on(table.roomId)],
+);
+
+export const raceResult = pgTable(
+  "race_result",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    raceId: uuid("race_id")
+      .notNull()
+      .references(() => race.id, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+    displayName: text("display_name").notNull(),
+    isBot: boolean("is_bot").notNull().default(false),
+    position: integer("position").notNull(),
+    wpm: numeric("wpm", { precision: 6, scale: 2, mode: "number" }).notNull(),
+    accuracy: numeric("accuracy", {
+      precision: 5,
+      scale: 4,
+      mode: "number",
+    }).notNull(),
+    missedKeys: jsonb("missed_keys").notNull().default({}),
+    outcome: text("outcome", {
+      enum: ["finished", "forfeited", "kicked", "timed_out"],
+    }).notNull(),
+  },
+  (table) => [
+    index("race_result_race_idx").on(table.raceId),
+    index("race_result_user_idx").on(table.userId),
+  ],
+);
+
 export const roomRelations = relations(room, ({ many, one }) => ({
   members: many(roomMember),
+  races: many(race),
   host: one(user, { fields: [room.hostId], references: [user.id] }),
 }));
 
 export const roomMemberRelations = relations(roomMember, ({ one }) => ({
   room: one(room, { fields: [roomMember.roomId], references: [room.id] }),
   user: one(user, { fields: [roomMember.userId], references: [user.id] }),
+}));
+
+export const raceRelations = relations(race, ({ many, one }) => ({
+  room: one(room, { fields: [race.roomId], references: [room.id] }),
+  results: many(raceResult),
+}));
+
+export const raceResultRelations = relations(raceResult, ({ one }) => ({
+  race: one(race, { fields: [raceResult.raceId], references: [race.id] }),
+  user: one(user, { fields: [raceResult.userId], references: [user.id] }),
 }));

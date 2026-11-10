@@ -3,15 +3,20 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
+import RaceResults from "@/components/RaceResults";
+import RaceScreen from "@/components/RaceScreen";
 import { primaryButton, secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
-import type { RoomError, RoomView } from "@/lib/room-protocol";
-import { getSocket, requestJoinRoom, requestLeaveRoom } from "@/lib/socket";
+import type { RacerView, RoomError, RoomView } from "@/lib/room-protocol";
+import {
+  getSocket,
+  requestAction,
+  requestJoinRoom,
+  requestLeaveRoom,
+} from "@/lib/socket";
 
 type Props = {
-  /** Canonical room code, or null if the URL wasn't a valid one. */
   code: string | null;
-  /** The signed-in user's name, or null for a guest. */
   accountName: string | null;
   t: Dict["room"];
 };
@@ -79,15 +84,12 @@ function Message({
 
 export default function RoomLobby({ code, accountName, t }: Props) {
   const router = useRouter();
-  // A guest who already chose a name in this tab goes straight in. (Read after
-  // hydration so the server-rendered markup matches.)
   const storedName = useSyncExternalStore(
     noSubscribe,
     readStoredName,
     noStoredName,
   );
   const [chosenName, setChosenName] = useState<string | null>(null);
-  // Accounts join as themselves; guests need a name first.
   const guestName = chosenName ?? storedName ?? undefined;
   const ready = !!accountName || !!guestName;
   const [draftName, setDraftName] = useState("");
@@ -97,21 +99,21 @@ export default function RoomLobby({ code, accountName, t }: Props) {
   const [closed, setClosed] = useState(false);
   const [live, setLive] = useState(true);
   const [copied, setCopied] = useState<"code" | "link" | null>(null);
+  const [offset, setOffset] = useState(0);
+  const [actionError, setActionError] = useState<RoomError | null>(null);
 
   useEffect(() => {
     if (!code || !ready) return;
     let cancelled = false;
     const socket = getSocket();
 
-    // Runs on the first connection and on every reconnection: joining again simply
-    // reclaims the same seat while the server's grace period is still running.
     async function join() {
       setLive(true);
       try {
         const res = await requestJoinRoom(code!, accountName ? undefined : guestName);
         if (cancelled) return;
         if (res.ok) {
-          setRoom(res.room);
+          receive(res.room);
           setYou(res.you);
           setError(null);
         } else {
@@ -121,9 +123,15 @@ export default function RoomLobby({ code, accountName, t }: Props) {
         if (!cancelled) setError("server_error");
       }
     }
+    function receive(view: RoomView) {
+      setRoom(view);
+      if (view.race) setOffset(view.race.serverNow - Date.now());
+    }
     const onState = (view: RoomView) => {
-      if (view.code === code) setRoom(view);
+      if (view.code === code) receive(view);
     };
+    const onPositions = (racers: RacerView[]) =>
+      setRoom((r) => (r?.race ? { ...r, race: { ...r.race, racers } } : r));
     const onClosed = () => setClosed(true);
     const onDisconnect = () => setLive(false);
 
@@ -131,6 +139,7 @@ export default function RoomLobby({ code, accountName, t }: Props) {
     socket.on("disconnect", onDisconnect);
     socket.on("room:state", onState);
     socket.on("room:closed", onClosed);
+    socket.on("race:positions", onPositions);
     if (socket.connected) void join();
     else socket.connect();
 
@@ -140,8 +149,7 @@ export default function RoomLobby({ code, accountName, t }: Props) {
       socket.off("disconnect", onDisconnect);
       socket.off("room:state", onState);
       socket.off("room:closed", onClosed);
-      // Leaving the page drops the connection; the server keeps the seat for its
-      // grace period, so a refresh or a quick back-and-forth costs nothing.
+      socket.off("race:positions", onPositions);
       socket.disconnect();
     };
   }, [code, ready, accountName, guestName]);
@@ -154,15 +162,21 @@ export default function RoomLobby({ code, accountName, t }: Props) {
       setCopied(what);
       setTimeout(() => setCopied(null), 1500);
     } catch {
-      // clipboard blocked: nothing useful to do
     }
+  }
+
+  async function act(
+    event: "race:start" | "race:cancel" | "race:again" | "race:forfeit" | "room:close",
+  ) {
+    setActionError(null);
+    const res = await requestAction(event);
+    if (!res.ok) setActionError(res.error);
   }
 
   async function leave() {
     try {
       await requestLeaveRoom();
     } catch {
-      // leaving anyway
     }
     router.push("/");
   }
@@ -185,7 +199,6 @@ export default function RoomLobby({ code, accountName, t }: Props) {
           try {
             sessionStorage.setItem(NAME_KEY, name);
           } catch {
-            // fine, just won't be remembered
           }
           setChosenName(name);
         }}
@@ -229,13 +242,60 @@ export default function RoomLobby({ code, accountName, t }: Props) {
     return <p className="text-muted">{t.joining}</p>;
   }
 
-  return (
-    <div className="w-full">
+  const isHost = !!room.members.find((m) => m.id === you)?.isHost;
+  const readyRacers = room.members.filter(
+    (m) => m.role === "racer" && m.connected,
+  ).length;
+  const banner = (
+    <>
       {!live && (
         <p role="status" className="mb-6 text-sm text-danger">
           {t.connectionLost}
         </p>
       )}
+      {actionError && (
+        <p role="alert" className="mb-6 text-sm text-danger">
+          {t.errors[actionError]}
+        </p>
+      )}
+    </>
+  );
+
+  if (room.race && room.status !== "lobby") {
+    return (
+      <div className="w-full">
+        {banner}
+        {room.status === "results" ? (
+          <RaceResults
+            race={room.race}
+            you={you}
+            isHost={isHost}
+            t={t}
+            onAgain={() => act("race:again")}
+            onClose={() => act("room:close")}
+          />
+        ) : (
+          <RaceScreen
+            status={room.status}
+            race={room.race}
+            you={you}
+            offset={offset}
+            isHost={isHost}
+            t={t}
+            onCancel={() => act("race:cancel")}
+            onForfeit={() => act("race:forfeit")}
+          />
+        )}
+        <button type="button" onClick={leave} className={`mt-10 ${secondaryButton}`}>
+          {t.leave}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full">
+      {banner}
 
       <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal">
         {t.kicker}
@@ -284,9 +344,36 @@ export default function RoomLobby({ code, accountName, t }: Props) {
 
       <p className="mt-8 max-w-xl text-muted">{t.waiting}</p>
 
-      <button type="button" onClick={leave} className={`mt-10 ${secondaryButton}`}>
-        {t.leave}
-      </button>
+      {isHost ? (
+        <div className="mt-6">
+          <button
+            type="button"
+            onClick={() => act("race:start")}
+            disabled={readyRacers < room.minRacers}
+            className={primaryButton}
+          >
+            {t.start}
+          </button>
+          {readyRacers < room.minRacers && (
+            <p className="mt-3 text-sm text-muted">
+              {t.needPlayers.replace("{n}", String(room.minRacers))}
+            </p>
+          )}
+        </div>
+      ) : (
+        <p className="mt-6 text-teal">{t.waitingHost}</p>
+      )}
+
+      <div className="mt-10 flex flex-wrap gap-3">
+        <button type="button" onClick={leave} className={secondaryButton}>
+          {t.leave}
+        </button>
+        {isHost && (
+          <button type="button" onClick={() => act("room:close")} className={secondaryButton}>
+            {t.closeRoom}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

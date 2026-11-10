@@ -1,6 +1,8 @@
 import { io, type Socket } from "socket.io-client";
 import type {
+  ActionResult,
   ClientToServerEvents,
+  ProgressPayload,
   RoomResult,
   ServerToClientEvents,
 } from "./room-protocol";
@@ -9,8 +11,6 @@ export type AppClientSocket = Socket<ServerToClientEvents, ClientToServerEvents>
 
 let socket: AppClientSocket | null = null;
 
-// Guests are identified by a random id kept for the life of the browser tab, so a
-// refresh reclaims the same seat. Accounts are identified by their session cookie.
 function guestId(): string {
   try {
     let id = sessionStorage.getItem("jt-guest-id");
@@ -69,4 +69,20 @@ export async function requestLeaveRoom(): Promise<void> {
   const s = getSocket();
   if (!s.connected) return;
   await s.timeout(ACK_TIMEOUT_MS).emitWithAck("room:leave");
+}
+
+type HostAction = "race:start" | "race:cancel" | "race:again" | "race:forfeit" | "room:close";
+
+export async function requestAction(event: HostAction): Promise<ActionResult> {
+  const s = getSocket();
+  if (!s.connected) return { ok: false, error: "server_error" };
+  try {
+    return await s.timeout(ACK_TIMEOUT_MS).emitWithAck(event);
+  } catch {
+    return { ok: false, error: "server_error" };
+  }
+}
+
+export function sendProgress(progress: ProgressPayload) {
+  getSocket().emit("race:progress", progress);
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { MissedKeys } from "@/lib/room-protocol";
 import { sendProgress } from "@/lib/socket";
 
 type Props = {
@@ -23,6 +24,7 @@ export default function TypingBox({ text, start, label }: Props) {
   const [committed, setCommitted] = useState(start);
   const [input, setInput] = useState("");
   const [mistakes, setMistakes] = useState(0);
+  const [missed, setMissed] = useState<MissedKeys>({});
   const inputRef = useRef<HTMLInputElement>(null);
 
   const rest = text.slice(committed);
@@ -36,17 +38,24 @@ export default function TypingBox({ text, start, label }: Props) {
   }, []);
 
   useEffect(() => {
-    sendProgress({ position, mistakes });
-  }, [position, mistakes]);
+    sendProgress({ position, mistakes, missed });
+  }, [position, mistakes, missed]);
 
   function onChange(value: string) {
     if (value.length > input.length) {
       if (value.length - correctPrefix(value, rest) > MAX_WRONG) return;
-      let added = 0;
+      const keys: string[] = [];
       for (let i = input.length; i < value.length; i++) {
-        if (value[i] !== rest[i]) added++;
+        if (value[i] !== rest[i]) keys.push(rest[i] ?? "");
       }
-      if (added) setMistakes((m) => m + added);
+      if (keys.length) {
+        setMistakes((m) => m + keys.length);
+        setMissed((prev) => {
+          const next = { ...prev };
+          for (const k of keys) if (k) next[k] = (next[k] ?? 0) + 1;
+          return next;
+        });
+      }
     }
     if (value === rest || (value.endsWith(" ") && rest.startsWith(value))) {
       setCommitted(committed + value.length);

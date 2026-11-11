@@ -82,9 +82,13 @@ export default async function Header() {
         </form>
         {session ? (
           <>
-            <span className="ml-2 hidden text-ink sm:inline">
+            <Link
+              href="/profile"
+              aria-label={t.header.profile}
+              className="ml-2 max-w-40 truncate rounded-full px-3 py-2 text-ink transition-colors hover:text-teal-bright"
+            >
               {session.user.displayUsername ?? session.user.name}
-            </span>
+            </Link>
             <SignOutButton label={t.header.signOut} />
           </>
         ) : (

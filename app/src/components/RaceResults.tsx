@@ -1,5 +1,6 @@
 "use client";
 
+import KeyHeatmap from "@/components/KeyHeatmap";
 import { primaryButton, secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import type { RaceView } from "@/lib/room-protocol";
@@ -9,11 +10,21 @@ type Props = {
   you: string | null;
   isHost: boolean;
   t: Dict["room"];
+  heatmapT: Dict["profile"]["heatmap"];
   onAgain: () => void;
   onClose: () => void;
 };
 
-export default function RaceResults({ race, you, isHost, t, onAgain, onClose }: Props) {
+export default function RaceResults({
+  race,
+  you,
+  isHost,
+  t,
+  heatmapT,
+  onAgain,
+  onClose,
+}: Props) {
+  const me = race.racers.find((r) => r.id === you);
   return (
     <div className="w-full">
       <h1 className="font-display text-4xl">{t.results}</h1>
@@ -46,6 +57,15 @@ export default function RaceResults({ race, you, isHost, t, onAgain, onClose }: 
           </tbody>
         </table>
       </div>
+
+      {me && (
+        <section className="mt-12 max-w-2xl">
+          <h2 className="font-display text-2xl">{t.yourMisses}</h2>
+          <div className="mt-4">
+            <KeyHeatmap missed={me.missed} t={heatmapT} />
+          </div>
+        </section>
+      )}
 
       {isHost ? (
         <div className="mt-10 flex flex-wrap gap-3">

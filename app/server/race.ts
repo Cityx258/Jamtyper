@@ -7,6 +7,7 @@ import {
 } from "../src/db/rooms";
 import type {
   ActionResult,
+  MissedKeys,
   RacerOutcome,
   RoomError,
   RoomStatus,
@@ -34,6 +35,7 @@ export const CLOSING_MS = 30_000;
 const MAX_CHARS_PER_SECOND = 25;
 const TICK_MS = 100;
 const MAX_WPM = 9999;
+const MAX_MISSED_KEYS = 64;
 
 const ok: ActionResult = { ok: true };
 const fail = (error: RoomError): ActionResult => ({ ok: false, error });
@@ -108,6 +110,7 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
           name: m.name,
           position: 0,
           mistakes: 0,
+          missed: {},
           outcome: "racing",
           doneAt: null,
           place: null,
@@ -177,6 +180,26 @@ export function raceAgain(io: AppServer, socket: AppSocket): ActionResult {
 const isCount = (v: unknown): v is number =>
   typeof v === "number" && Number.isInteger(v) && v >= 0;
 
+function cleanMissed(raw: unknown, mistakes: number): MissedKeys | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const entries = Object.entries(raw);
+  if (entries.length > MAX_MISSED_KEYS) return null;
+  let total = 0;
+  for (const [key, count] of entries) {
+    if ([...key].length !== 1 || !isCount(count)) return null;
+    total += count;
+  }
+  return total <= mistakes ? Object.fromEntries(entries) : null;
+}
+
+function mergeMissed(a: MissedKeys, b: MissedKeys): MissedKeys {
+  const merged = { ...a };
+  for (const [key, count] of Object.entries(b)) {
+    merged[key] = Math.max(merged[key] ?? 0, count);
+  }
+  return merged;
+}
+
 export function recordProgress(
   io: AppServer,
   socket: AppSocket,
@@ -188,8 +211,13 @@ export function recordProgress(
   const racer = race.racers.get(ctx.member.id);
   if (!racer || racer.outcome !== "racing") return;
 
-  const { position, mistakes } = (payload ?? {}) as Record<string, unknown>;
+  const { position, mistakes, missed } = (payload ?? {}) as Record<
+    string,
+    unknown
+  >;
   if (!isCount(position) || !isCount(mistakes)) return;
+  const missedKeys = cleanMissed(missed, mistakes);
+  if (!missedKeys) return;
   const elapsed = Date.now() - race.startsAt;
   const cap = Math.ceil((elapsed / 1000) * MAX_CHARS_PER_SECOND) + 5;
   if (
@@ -202,6 +230,7 @@ export function recordProgress(
 
   racer.position = position;
   racer.mistakes = Math.max(racer.mistakes, mistakes);
+  racer.missed = mergeMissed(racer.missed, missedKeys);
   race.dirty = true;
   if (position === race.text.length) settle(io, ctx.room, race, racer, "finished");
 }
@@ -306,6 +335,7 @@ async function saveResults(race: Race, ranked: Racer[]) {
           position: r.place ?? ranked.length,
           wpm: Math.min(Math.round(racerWpm(race, r) * 100) / 100, MAX_WPM),
           accuracy: Math.round(racerAccuracy(r) * 10_000) / 10_000,
+          missedKeys: r.missed,
           outcome: r.outcome as Exclude<RacerOutcome, "racing">,
         })),
       );

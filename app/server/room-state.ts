@@ -1,6 +1,7 @@
 import type { Server, Socket } from "socket.io";
 import type {
   ClientToServerEvents,
+  MissedKeys,
   RacerOutcome,
   RacerView,
   RaceView,
@@ -53,6 +54,7 @@ export interface Racer {
   name: string;
   position: number;
   mistakes: number;
+  missed: MissedKeys;
   outcome: RacerOutcome;
   doneAt: number | null;
   place: number | null;
@@ -111,6 +113,7 @@ export function racersView(race: Race): RacerView[] {
       accuracy: racerAccuracy(r),
       outcome: r.outcome,
       place: r.place,
+      missed: r.missed,
     }));
 }
 

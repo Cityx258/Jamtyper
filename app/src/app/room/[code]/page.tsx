@@ -28,6 +28,7 @@ export default async function RoomPage(props: PageProps<"/room/[code]">) {
             session ? (session.user.displayUsername ?? session.user.name) : null
           }
           t={t.room}
+          heatmapT={t.profile.heatmap}
         />
       </main>
     </>

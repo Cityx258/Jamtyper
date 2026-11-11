@@ -29,6 +29,7 @@ export interface RacerView {
   accuracy: number;
   outcome: RacerOutcome;
   place: number | null;
+  missed: MissedKeys;
 }
 
 export interface RaceView {
@@ -64,9 +65,12 @@ export type RoomResult =
 
 export type ActionResult = { ok: true } | { ok: false; error: RoomError };
 
+export type MissedKeys = Record<string, number>;
+
 export interface ProgressPayload {
   position: number;
   mistakes: number;
+  missed: MissedKeys;
 }
 
 export interface ClientToServerEvents {

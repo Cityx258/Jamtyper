@@ -19,6 +19,7 @@ type Props = {
   code: string | null;
   accountName: string | null;
   t: Dict["room"];
+  heatmapT: Dict["profile"]["heatmap"];
 };
 
 const NAME_KEY = "jt-guest-name";
@@ -82,7 +83,7 @@ function Message({
   );
 }
 
-export default function RoomLobby({ code, accountName, t }: Props) {
+export default function RoomLobby({ code, accountName, t, heatmapT }: Props) {
   const router = useRouter();
   const storedName = useSyncExternalStore(
     noSubscribe,
@@ -271,6 +272,7 @@ export default function RoomLobby({ code, accountName, t }: Props) {
             you={you}
             isHost={isHost}
             t={t}
+            heatmapT={heatmapT}
             onAgain={() => act("race:again")}
             onClose={() => act("room:close")}
           />

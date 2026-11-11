@@ -131,6 +131,7 @@ const en = {
       passwordShort: "Password must be at least 8 characters.",
       badCredentials: "Wrong username or password.",
       taken: "That username is already taken.",
+      oauth: "Couldn't sign in with that account. Please try again.",
       generic: "Something went wrong. Please try again.",
     },
   },

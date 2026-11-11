@@ -5,16 +5,16 @@ import Clef from "@/components/Clef";
 import Header from "@/components/Header";
 import LoginForm from "@/components/LoginForm";
 import { getDict } from "@/i18n";
-import { auth } from "@/lib/auth";
+import { auth, enabledProviders } from "@/lib/auth";
 
 export async function generateMetadata() {
   return { title: `${(await getDict()).meta.loginTitle} | JamTyper` };
 }
 
-export default async function LoginPage() {
+export default async function LoginPage(props: PageProps<"/login">) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (session) redirect("/");
-  const t = await getDict();
+  const [t, { error }] = await Promise.all([getDict(), props.searchParams]);
 
   return (
     <>
@@ -29,7 +29,11 @@ export default async function LoginPage() {
           </p>
         </div>
         <div className="flex w-full flex-col items-center md:items-start">
-          <LoginForm t={t.login} />
+          <LoginForm
+            t={t.login}
+            providers={enabledProviders}
+            oauthError={error === "oauth"}
+          />
           <p className="mt-8 text-sm text-muted">
             {t.login.guestPrompt}{" "}
             <Link

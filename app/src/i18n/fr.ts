@@ -137,6 +137,7 @@ const fr: Dict = {
       passwordShort: "Le mot de passe doit compter au moins 8 caractères.",
       badCredentials: "Nom d'utilisateur ou mot de passe incorrect.",
       taken: "Ce nom d'utilisateur est déjà pris.",
+      oauth: "Connexion impossible avec ce compte. Réessaie.",
       generic: "Une erreur est survenue. Réessaie.",
     },
   },

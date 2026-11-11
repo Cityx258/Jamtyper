@@ -3,14 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Dict } from "@/i18n/en";
+import type { Provider } from "@/lib/auth";
 import { authClient } from "@/lib/auth-client";
 
 type T = Dict["login"];
 
 type Mode = "signin" | "signup";
 
-// Better Auth identifies accounts by email. The spec only asks for a username,
-// so sign-ups get an internal address on a reserved (undeliverable) domain.
 const internalEmail = (username: string) =>
   `${username.toLowerCase()}@users.invalid`;
 
@@ -19,27 +18,72 @@ const USERNAME_RE = /^[a-zA-Z0-9_.]{3,20}$/;
 const field =
   "w-full rounded-lg border border-line bg-bg/70 px-4 py-3 text-ink placeholder:text-muted/60 focus:border-teal focus:outline-none";
 
-function ProviderButton({ name, t }: { name: string; t: T }) {
+const PROVIDER_NAMES: Record<Provider, string> = {
+  discord: "Discord",
+  github: "GitHub",
+};
+
+function ProviderButton({
+  provider,
+  enabled,
+  busy,
+  onClick,
+  t,
+}: {
+  provider: Provider;
+  enabled: boolean;
+  busy: boolean;
+  onClick: () => void;
+  t: T;
+}) {
   return (
     <button
       type="button"
-      disabled
-      className="flex w-full items-center justify-between rounded-lg border border-line px-4 py-3 text-left font-medium text-ink/80 disabled:cursor-not-allowed"
+      disabled={!enabled || busy}
+      onClick={onClick}
+      className="flex w-full items-center justify-between rounded-lg border border-line px-4 py-3 text-left font-medium text-ink/80 transition-colors enabled:hover:border-teal enabled:hover:text-ink disabled:cursor-not-allowed"
     >
-      <span>{t.continueWith.replace("{name}", name)}</span>
-      <span className="font-mono text-[10px] uppercase tracking-wider text-muted">
-        {t.soon}
-      </span>
+      <span>{t.continueWith.replace("{name}", PROVIDER_NAMES[provider])}</span>
+      {!enabled && (
+        <span className="font-mono text-[10px] uppercase tracking-wider text-muted">
+          {t.soon}
+        </span>
+      )}
     </button>
   );
 }
 
-export default function LoginForm({ t }: { t: T }) {
+export default function LoginForm({
+  t,
+  providers,
+  oauthError,
+}: {
+  t: T;
+  providers: Provider[];
+  oauthError: boolean;
+}) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("signin");
   const [showPasswordSignup, setShowPasswordSignup] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    oauthError ? t.errors.oauth : null,
+  );
   const [pending, setPending] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
+
+  async function social(provider: Provider) {
+    setError(null);
+    setRedirecting(true);
+    const res = await authClient.signIn.social({
+      provider,
+      callbackURL: "/",
+      errorCallbackURL: "/login?error=oauth",
+    });
+    if (res.error) {
+      setRedirecting(false);
+      setError(t.errors.oauth);
+    }
+  }
 
   const showForm = mode === "signin" || showPasswordSignup;
 
@@ -122,9 +166,23 @@ export default function LoginForm({ t }: { t: T }) {
       </div>
 
       <div className="space-y-3">
-        <ProviderButton name="Discord" t={t} />
-        <ProviderButton name="GitHub" t={t} />
+        {(["discord", "github"] as const).map((p) => (
+          <ProviderButton
+            key={p}
+            provider={p}
+            enabled={providers.includes(p)}
+            busy={redirecting}
+            onClick={() => social(p)}
+            t={t}
+          />
+        ))}
       </div>
+
+      {error && !showForm && (
+        <p role="alert" className="mt-4 text-sm text-danger">
+          {error}
+        </p>
+      )}
 
       {mode === "signup" && !showPasswordSignup && (
         <p className="mt-6 text-sm text-muted">

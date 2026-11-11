@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { MissedKeys } from "@/lib/room-protocol";
-import { sendProgress } from "@/lib/socket";
+import type { MissedKeys, ProgressPayload } from "@/lib/room-protocol";
 
 type Props = {
   text: string;
   start: number;
   label: string;
+  onProgress: (progress: ProgressPayload) => void;
 };
 
 const MAX_WRONG = 10;
@@ -20,7 +20,7 @@ function correctPrefix(a: string, b: string): number {
 
 const block = (e: React.SyntheticEvent) => e.preventDefault();
 
-export default function TypingBox({ text, start, label }: Props) {
+export default function TypingBox({ text, start, label, onProgress }: Props) {
   const [committed, setCommitted] = useState(start);
   const [input, setInput] = useState("");
   const [mistakes, setMistakes] = useState(0);
@@ -38,8 +38,8 @@ export default function TypingBox({ text, start, label }: Props) {
   }, []);
 
   useEffect(() => {
-    sendProgress({ position, mistakes, missed });
-  }, [position, mistakes, missed]);
+    onProgress({ position, mistakes, missed });
+  }, [position, mistakes, missed, onProgress]);
 
   function onChange(value: string) {
     if (value.length > input.length) {

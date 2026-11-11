@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import Link from "next/link";
 import Clef from "@/components/Clef";
 import CreateRoomButton from "@/components/CreateRoomButton";
 import Header from "@/components/Header";
@@ -63,9 +64,9 @@ export default async function Home() {
               )}
               {i === 1 && <JoinRoomForm action={m.action} t={t.join} />}
               {i === 2 && (
-                <button type="button" className={`self-start ${primaryButton}`}>
+                <Link href="/practice" className={`self-start ${primaryButton}`}>
                   {m.action}
-                </button>
+                </Link>
               )}
             </div>
           ))}

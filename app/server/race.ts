@@ -27,7 +27,7 @@ import {
   type Racer,
   type Room,
 } from "./room-state";
-import { generateText } from "./texts";
+import { generateText } from "../src/lib/texts";
 
 export const COUNTDOWN_MS = 5_000;
 export const TIME_LIMIT_MS = 180_000;

@@ -5,6 +5,7 @@ import TypingBox from "@/components/TypingBox";
 import { secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import type { RaceView, RoomStatus } from "@/lib/room-protocol";
+import { sendProgress } from "@/lib/socket";
 
 type Props = {
   status: RoomStatus;
@@ -84,6 +85,7 @@ export default function RaceScreen({
             text={race.text}
             start={me.progress}
             label={t.typeHere}
+            onProgress={sendProgress}
           />
         ) : (
           <>

@@ -8,6 +8,7 @@ type Props = {
   text: string;
   start: number;
   startErrors?: number;
+  jump?: number;
   mode?: ErrorMode;
   label: string;
   onProgress: (progress: ProgressPayload) => void;
@@ -92,14 +93,23 @@ function Field({
 
 const textClass = "select-none font-mono text-xl leading-relaxed sm:text-2xl";
 
-function FixBox({ text, start, label, onProgress }: Props) {
+function FixBox({ text, start, jump = 0, label, onProgress }: Props) {
   const [committed, setCommitted] = useState(start);
   const [input, setInput] = useState("");
+  const [seenJump, setSeenJump] = useState(jump);
   const { mistakes, missed, record } = useMistakes();
 
   const rest = text.slice(committed);
   const correct = correctPrefix(input, rest);
   const position = committed + correct;
+
+  if (jump !== seenJump) {
+    setSeenJump(jump);
+    if (jump > position) {
+      setCommitted(jump);
+      setInput("");
+    }
+  }
   const wrong = input.length - correct;
   const done = committed >= text.length;
 
@@ -139,17 +149,34 @@ function FixBox({ text, start, label, onProgress }: Props) {
   );
 }
 
-function ContinueBox({ text, start, startErrors = 0, label, onProgress }: Props) {
+function ContinueBox({
+  text,
+  start,
+  startErrors = 0,
+  jump = 0,
+  label,
+  onProgress,
+}: Props) {
   const [origin] = useState(start);
   const [baseErrors] = useState(startErrors);
   const [committed, setCommitted] = useState(start);
   const [wrongBefore, setWrongBefore] = useState<number[]>([]);
   const [input, setInput] = useState("");
+  const [seenJump, setSeenJump] = useState(jump);
   const { mistakes, missed, record } = useMistakes();
 
   const rest = text.slice(committed);
   const wrongNow = wrongIndexes(input, rest, committed);
   const position = committed + input.length;
+
+  if (jump !== seenJump) {
+    setSeenJump(jump);
+    if (jump > position) {
+      setWrongBefore((w) => [...w, ...wrongNow]);
+      setCommitted(jump);
+      setInput("");
+    }
+  }
   const errors = baseErrors + wrongBefore.length + wrongNow.length;
   const done = position >= text.length;
 

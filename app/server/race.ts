@@ -30,6 +30,7 @@ import {
 import { mergeSettings, settingsView } from "../src/lib/race-settings";
 import { generateText } from "../src/lib/texts";
 import { createBots, stepBot } from "./bots";
+import { applyBoosts } from "./boosts";
 
 export const COUNTDOWN_MS = 5_000;
 export const CLOSING_MS = 30_000;
@@ -125,6 +126,10 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
           doneAt: null,
           place: null,
           bot: null,
+          jump: 0,
+          bonus: 0,
+          boost: null,
+          lastBoostAt: 0,
         },
       ]),
     ),
@@ -149,6 +154,7 @@ function beginRacing(io: AppServer, room: Room, race: Race) {
     setTimeout(() => void endRace(io, room, race), race.endsAt - Date.now()),
   );
   let last = Date.now();
+  let lastBoostCheck = last;
   race.ticker = setInterval(() => {
     const now = Date.now();
     const dt = now - last;
@@ -160,6 +166,10 @@ function beginRacing(io: AppServer, room: Room, race: Race) {
       if (racer.position >= race.text.length) {
         settle(io, room, race, racer, "finished");
       }
+    }
+    if (race.settings.boosts && now - lastBoostCheck >= 1000) {
+      lastBoostCheck = now;
+      if (applyBoosts(race, now)) race.dirty = true;
     }
     if (!race.dirty) return;
     race.dirty = false;
@@ -263,7 +273,8 @@ export function recordProgress(
   const missedKeys = cleanMissed(missed, mistakes);
   if (!missedKeys) return;
   const elapsed = Date.now() - race.startsAt;
-  const cap = Math.ceil((elapsed / 1000) * MAX_CHARS_PER_SECOND) + 5;
+  const cap =
+    Math.ceil((elapsed / 1000) * MAX_CHARS_PER_SECOND) + 5 + racer.bonus;
   if (
     position < racer.position ||
     position > race.text.length ||

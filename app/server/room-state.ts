@@ -1,5 +1,6 @@
 import type { Server, Socket } from "socket.io";
 import type {
+  BoostView,
   ClientToServerEvents,
   MemberRole,
   MissedKeys,
@@ -65,6 +66,10 @@ export interface Racer {
   doneAt: number | null;
   place: number | null;
   bot: BotState | null;
+  jump: number;
+  bonus: number;
+  boost: BoostView | null;
+  lastBoostAt: number;
 }
 
 export interface Race {
@@ -142,6 +147,8 @@ export function racersView(race: Race): RacerView[] {
       outcome: r.outcome,
       place: r.place,
       missed: r.missed,
+      jump: r.jump,
+      boost: r.boost,
     }));
 }
 

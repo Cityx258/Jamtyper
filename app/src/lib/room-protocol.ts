@@ -30,6 +30,13 @@ export type RacerOutcome =
   | "kicked"
   | "timed_out";
 
+export type BoostKind = "shortcut";
+
+export interface BoostView {
+  kind: BoostKind;
+  until: number;
+}
+
 export interface RacerView {
   id: string;
   name: string;
@@ -41,6 +48,8 @@ export interface RacerView {
   outcome: RacerOutcome;
   place: number | null;
   missed: MissedKeys;
+  jump: number;
+  boost: BoostView | null;
 }
 
 export interface RaceView {

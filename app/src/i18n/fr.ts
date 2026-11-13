@@ -112,6 +112,8 @@ const fr: Dict = {
       botsHint: "Des bots se joignent quand il n'y a pas assez de joueurs.",
       botLevel: "Niveau des bots",
       botLevels: { easy: "Facile", medium: "Moyen", expert: "Expert", impossible: "Impossible" },
+      boosts: "Boosts",
+      boostsHint: "Garde la course serrée : un joueur loin derrière saute quelques mots.",
       errorMode: "Fautes de frappe",
       errorModes: { fix: "À corriger", continue: "On continue" },
       errorModeHints: {
@@ -163,6 +165,8 @@ const fr: Dict = {
     needOneRacer: "Au moins 1 joueur connecté doit courir.",
     botsWillJoin: "Un bot va se joindre pour que tu aies quelqu'un à affronter.",
     bot: "bot",
+    boostYou: { shortcut: "Raccourci! On a sauté 2 mots pour toi." },
+    boostTags: { shortcut: "raccourci" },
     getReady: "Prépare-toi",
     cancel: "Annuler",
     timeLeft: "Temps restant",

@@ -110,6 +110,8 @@ const en = {
       botsHint: "Bots join when there aren't enough players to race.",
       botLevel: "Bot level",
       botLevels: { easy: "Easy", medium: "Medium", expert: "Expert", impossible: "Impossible" },
+      boosts: "Boosts",
+      boostsHint: "Keeps the race close: a player far behind gets a couple of words skipped.",
       errorMode: "Typos",
       errorModes: { fix: "Must fix", continue: "Keep going" },
       errorModeHints: {
@@ -158,6 +160,8 @@ const en = {
     needOneRacer: "At least 1 connected player has to race.",
     botsWillJoin: "A bot will join so you have someone to race.",
     bot: "bot",
+    boostYou: { shortcut: "Shortcut! We skipped 2 words for you." },
+    boostTags: { shortcut: "shortcut" },
     getReady: "Get ready",
     cancel: "Cancel",
     timeLeft: "Time left",

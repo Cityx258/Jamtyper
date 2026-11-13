@@ -379,6 +379,16 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
             />
           </Field>
         )}
+        <Field label={t.boosts} hint={t.boostsHint}>
+          <Toggle
+            on={settings.boosts}
+            label={t.boosts}
+            editable={editable}
+            onLabel={t.on}
+            offLabel={t.off}
+            onFlip={(v) => onChange({ boosts: v })}
+          />
+        </Field>
         <Field label={t.errorMode} hint={t.errorModeHints[settings.errorMode]}>
           <Choice
             options={ERROR_MODES}

@@ -34,6 +34,7 @@ export interface RaceSettings {
   errorMode: ErrorMode;
   bots: boolean;
   botLevel: BotLevel;
+  boosts: boolean;
   customText: string;
   length: number;
   timeLimitSec: number;
@@ -55,6 +56,7 @@ export const DEFAULT_SETTINGS: RaceSettings = {
   errorMode: "fix",
   bots: true,
   botLevel: "medium",
+  boosts: true,
   customText: "",
   length: 30,
   timeLimitSec: 180,
@@ -96,6 +98,7 @@ export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettin
     errorMode: pick(ERROR_MODES, p.errorMode, current.errorMode),
     bots: bool(p.bots, current.bots),
     botLevel: pick(BOT_LEVELS, p.botLevel, current.botLevel),
+    boosts: bool(p.boosts, current.boosts),
     customText: cleanCustom(p.customText, current.customText),
     length: clampInt(p.length, LENGTH_MIN, LENGTH_MAX, current.length),
     timeLimitSec: pick(TIME_LIMITS, p.timeLimitSec, current.timeLimitSec),

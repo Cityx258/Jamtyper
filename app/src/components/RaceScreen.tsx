@@ -48,6 +48,8 @@ export default function RaceScreen({
   const secondsTo = (ts: number) =>
     Math.max(0, Math.ceil((ts - serverNow) / 1000));
   const me = race.racers.find((r) => r.id === you);
+  const myBoost =
+    me?.boost && me.boost.until > serverNow ? me.boost.kind : null;
   const offline = new Set(members.filter((m) => !m.connected).map((m) => m.id));
 
   if (status === "countdown") {
@@ -84,13 +86,23 @@ export default function RaceScreen({
         )}
       </div>
 
-      <div className="mt-8">
+      <p
+        role="status"
+        className={`mt-6 h-6 text-sm text-teal transition-opacity ${
+          myBoost ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        {myBoost ? t.boostYou[myBoost] : ""}
+      </p>
+
+      <div className="mt-2">
         {me?.outcome === "racing" && race.text ? (
           <TypingBox
             key={race.startsAt}
             text={race.text}
             start={me.progress}
             startErrors={me.errors}
+            jump={me.jump}
             mode={race.errorMode}
             label={t.typeHere}
             onProgress={sendProgress}
@@ -124,6 +136,11 @@ export default function RaceScreen({
                 {r.id === you && <span className="text-muted"> ({t.you})</span>}
                 {r.isBot && <span className="text-muted"> ({t.bot})</span>}
               </span>
+              {r.boost && r.boost.until > serverNow && (
+                <span className="rounded-full border border-teal px-2 font-mono text-[10px] uppercase tracking-wider text-teal">
+                  {t.boostTags[r.boost.kind]}
+                </span>
+              )}
               {r.outcome === "racing" && offline.has(r.id) && (
                 <span className="font-mono text-xs uppercase text-muted">
                   {t.reconnecting}

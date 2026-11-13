@@ -59,6 +59,10 @@ export function createBots(
       outcome: "racing",
       doneAt: null,
       place: null,
+      jump: 0,
+      bonus: 0,
+      boost: null,
+      lastBoostAt: 0,
       bot: {
         cps: ((wpm * 5) / 60) * PAUSE_COMPENSATION * (0.88 + random() * 0.24),
         typoRate,

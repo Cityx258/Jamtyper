@@ -116,7 +116,7 @@ export const raceResult = pgTable(
     }).notNull(),
     missedKeys: jsonb("missed_keys").notNull().default({}),
     outcome: text("outcome", {
-      enum: ["finished", "forfeited", "kicked", "timed_out"],
+      enum: ["finished", "forfeited", "kicked", "eliminated", "timed_out"],
     }).notNull(),
   },
   (table) => [

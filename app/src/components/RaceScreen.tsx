@@ -79,6 +79,11 @@ export default function RaceScreen({
             {clock(secondsTo(race.closesAt ?? race.endsAt))}
           </span>
         </p>
+        {race.instantDeath && (
+          <p className="font-mono text-xs uppercase tracking-wider text-danger">
+            {t.instantDeathOn}
+          </p>
+        )}
         {me?.outcome === "racing" && (
           <button type="button" onClick={onForfeit} className={secondaryButton}>
             {t.forfeit}
@@ -118,7 +123,9 @@ export default function RaceScreen({
                 ? t.spectating
                 : me.outcome === "finished"
                   ? t.finishedMsg
-                  : t.forfeitedMsg}
+                  : me.outcome === "eliminated"
+                    ? t.eliminatedMsg
+                    : t.forfeitedMsg}
             </p>
           </>
         )}
@@ -162,9 +169,9 @@ export default function RaceScreen({
             <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-line">
               <div
                 className={`h-full rounded-full transition-[width] duration-200 ${
-                  r.outcome === "forfeited" || r.outcome === "kicked"
-                    ? "bg-muted"
-                    : "bg-teal"
+                  r.outcome === "finished" || r.outcome === "racing"
+                    ? "bg-teal"
+                    : "bg-muted"
                 }`}
                 style={{ width: `${(r.progress / race.length) * 100}%` }}
               />

@@ -112,6 +112,8 @@ const en = {
       botLevels: { easy: "Easy", medium: "Medium", expert: "Expert", impossible: "Impossible" },
       boosts: "Boosts",
       boostsHint: "Keeps the race close: a player far behind skips a couple of words, and a runaway leader gets the text ahead blurred for a moment.",
+      instantDeath: "Instant death",
+      instantDeathHint: "The first typo knocks a player out of the race.",
       errorMode: "Typos",
       errorModes: { fix: "Must fix", continue: "Keep going" },
       errorModeHints: {
@@ -175,6 +177,8 @@ const en = {
     spectating: "You're watching this race. You'll race in the next one.",
     finishedMsg: "Finished! Waiting for the others...",
     forfeitedMsg: "You forfeited this race.",
+    eliminatedMsg: "A typo knocked you out. Watch the others finish.",
+    instantDeathOn: "Instant death: one typo and you're out",
     results: "Results",
     place: "Place",
     player: "Player",
@@ -189,6 +193,7 @@ const en = {
       finished: "finished",
       forfeited: "forfeited",
       kicked: "kicked",
+      eliminated: "out on a typo",
       timed_out: "out of time",
     },
     errors: {
@@ -228,6 +233,7 @@ const en = {
       finished: "finished",
       forfeited: "forfeited",
       kicked: "kicked",
+      eliminated: "out on a typo",
       timed_out: "out of time",
     },
     heatmap: {

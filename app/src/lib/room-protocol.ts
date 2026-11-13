@@ -28,6 +28,7 @@ export type RacerOutcome =
   | "finished"
   | "forfeited"
   | "kicked"
+  | "eliminated"
   | "timed_out";
 
 export type BoostKind = "shortcut" | "spotlight";
@@ -56,6 +57,7 @@ export interface RaceView {
   text: string | null;
   by: string | null;
   errorMode: ErrorMode;
+  instantDeath: boolean;
   length: number;
   startsAt: number;
   endsAt: number;

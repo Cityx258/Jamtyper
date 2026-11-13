@@ -114,6 +114,8 @@ const fr: Dict = {
       botLevels: { easy: "Facile", medium: "Moyen", expert: "Expert", impossible: "Impossible" },
       boosts: "Boosts",
       boostsHint: "Garde la course serrée : un joueur loin derrière saute quelques mots, et un meneur trop loin devant voit le texte embrouillé un instant.",
+      instantDeath: "Mort instantanée",
+      instantDeathHint: "La première faute élimine le joueur de la course.",
       errorMode: "Fautes de frappe",
       errorModes: { fix: "À corriger", continue: "On continue" },
       errorModeHints: {
@@ -180,6 +182,8 @@ const fr: Dict = {
     spectating: "Tu regardes cette course. Tu participeras à la prochaine.",
     finishedMsg: "Terminé! En attente des autres...",
     forfeitedMsg: "Tu as abandonné cette course.",
+    eliminatedMsg: "Une faute t'a éliminé. Regarde les autres finir.",
+    instantDeathOn: "Mort instantanée : une faute et tu es éliminé",
     results: "Résultats",
     place: "Rang",
     player: "Joueur",
@@ -194,6 +198,7 @@ const fr: Dict = {
       finished: "terminé",
       forfeited: "abandon",
       kicked: "expulsé",
+      eliminated: "éliminé",
       timed_out: "temps écoulé",
     },
     errors: {
@@ -233,6 +238,7 @@ const fr: Dict = {
       finished: "terminé",
       forfeited: "abandon",
       kicked: "expulsé",
+      eliminated: "éliminé",
       timed_out: "temps écoulé",
     },
     heatmap: {

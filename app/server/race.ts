@@ -163,7 +163,9 @@ function beginRacing(io: AppServer, room: Room, race: Race) {
       if (room.race !== race || !isLive(room.status)) return;
       if (!stepBot(race, racer, dt)) continue;
       race.dirty = true;
-      if (racer.position >= race.text.length) {
+      if (race.settings.instantDeath && racer.mistakes > 0) {
+        settle(io, room, race, racer, "eliminated");
+      } else if (racer.position >= race.text.length) {
         settle(io, room, race, racer, "finished");
       }
     }
@@ -288,7 +290,11 @@ export function recordProgress(
   racer.mistakes = Math.max(racer.mistakes, mistakes);
   racer.missed = mergeMissed(racer.missed, missedKeys);
   race.dirty = true;
-  if (position === race.text.length) settle(io, ctx.room, race, racer, "finished");
+  if (race.settings.instantDeath && racer.mistakes > 0) {
+    settle(io, ctx.room, race, racer, "eliminated");
+  } else if (position === race.text.length) {
+    settle(io, ctx.room, race, racer, "finished");
+  }
 }
 
 export function forfeit(io: AppServer, socket: AppSocket): ActionResult {
@@ -370,6 +376,7 @@ const outcomeRank: Record<RacerOutcome, number> = {
   timed_out: 1,
   forfeited: 2,
   kicked: 2,
+  eliminated: 2,
 };
 
 async function endRace(io: AppServer, room: Room, race: Race) {

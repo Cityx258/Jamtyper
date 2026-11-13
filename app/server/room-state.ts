@@ -157,6 +157,7 @@ function raceView(room: Room, race: Race): RaceView {
     text: room.status === "countdown" ? null : race.text,
     by: race.by,
     errorMode: race.settings.errorMode,
+    instantDeath: race.settings.instantDeath,
     length: race.text.length,
     startsAt: race.startsAt,
     endsAt: race.endsAt,

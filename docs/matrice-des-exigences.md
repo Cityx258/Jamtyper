@@ -71,7 +71,7 @@ Tous ces réglages sont dans le panneau « Paramètres de la course » du lobby.
 |---|---|---|---|---|---|
 | 3.1 | Source du texte (citation, mots aléatoires, personnalisé) | 4 | Fait | Script | Citations du domaine public avec leur auteur. Texte personnalisé limité à 1000 caractères et nettoyé (œ devient oe, guillemets et tirets simplifiés). |
 | 3.2 | Critères des mots aléatoires (accents, ponctuation) | 4 | Fait | Script | Accents (français seulement) et ponctuation (majuscules, virgules, fins de phrase). |
-| 3.3 | Langue du texte, y compris langages de programmation | 4 | Fait | Script | Anglais, français, JavaScript, Python. Le code tient sur une ligne, comme la zone de frappe. |
+| 3.3 | Langue du texte, y compris langages de programmation | 4 | Fait | Script | Anglais, français, JavaScript, Python, Java et C# (les trois premiers langages de programmation sont ceux de l'hypothèse 5). Le code tient sur une ligne, comme la zone de frappe. |
 | 3.4 | Thème du texte | 4 | Fait | Script | Tout, musique, nature, science, pour les mots et les citations. |
 | 3.5 | Niveau de difficulté | 4 | Fait | Script | Facile, moyen, difficile (chiffres, symboles, majuscules). Pour les mots aléatoires seulement. |
 | 3.6 | Longueur de la course | 4 | Fait | Script | 10 à 200 mots. |

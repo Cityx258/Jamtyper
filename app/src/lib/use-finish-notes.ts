@@ -17,6 +17,6 @@ export function useFinishNotes(racers: RacerView[]) {
       .sort((a, b) => (a.place ?? 0) - (b.place ?? 0));
     if (!fresh.length) return;
     fresh.forEach((r) => heard.current!.add(r.id));
-    playMelody(fresh.map((r) => ({ pitch: r.pitch, note: r.note })));
+    playMelody(fresh.map((r) => ({ pitches: r.pitches, note: r.note })));
   }, [racers]);
 }

@@ -2,7 +2,7 @@ import { randomInt, randomUUID } from "node:crypto";
 import type { NoteKind } from "../src/lib/notes";
 import type { BotLevel } from "../src/lib/race-settings";
 import type { Race, Racer } from "./room-state";
-import { randomPitch } from "../src/lib/melody";
+import { randomPitches } from "../src/lib/melody";
 
 const NAMES = [
   "Allegro",
@@ -63,7 +63,7 @@ export function createBots(
       place: null,
       team: null,
       note,
-      pitch: randomPitch(random),
+      pitches: randomPitches(note, random),
       unlocked: null,
       samples: [],
       jump: 0,

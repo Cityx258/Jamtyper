@@ -51,7 +51,7 @@ export function playMelody(notes: MelodyNote[], force = false): number {
   const start = ac.currentTime + 0.05;
   for (const { freq, at, length } of timed) {
     const from = start + at;
-    const ring = Math.max(length, 0.35);
+    const ring = length + 0.12;
     for (const [mult, level, type] of [
       [1, 0.11, "triangle"],
       [2, 0.025, "sine"],

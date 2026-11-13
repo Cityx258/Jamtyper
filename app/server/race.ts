@@ -33,7 +33,7 @@ import { generateText } from "../src/lib/texts";
 import { createBots, stepBot } from "./bots";
 import { applyBoosts } from "./boosts";
 import { sampleRace, sampleRacer } from "./samples";
-import { randomPitch } from "../src/lib/melody";
+import { randomPitches } from "../src/lib/melody";
 import { teamGaps, type Team } from "../src/lib/teams";
 import { newlyUnlocked } from "../src/lib/notes";
 import { currentNote, winCount } from "../src/db/notes";
@@ -140,7 +140,7 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
           bot: null,
           team: settings.teams ? m.team : null,
           note: m.note,
-          pitch: randomPitch(),
+          pitches: randomPitches(m.note),
           unlocked: null,
           samples: [],
           jump: 0,

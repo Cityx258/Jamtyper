@@ -14,10 +14,9 @@ const BEATS: Record<NoteKind, number> = {
   thirtySecond: 0.125,
 };
 
-export const BEAT_SECONDS = 0.4;
-const MIN_SECONDS = 0.14;
+export const BEAT_SECONDS = 0.5;
 
-export type MelodyNote = { pitch: number; note: NoteKind };
+export type MelodyNote = { pitches: number[]; note: NoteKind };
 export type ScheduledNote = { freq: number; at: number; length: number };
 
 export const isPitch = (v: unknown): v is number =>
@@ -25,20 +24,29 @@ export const isPitch = (v: unknown): v is number =>
 
 export const frequency = (pitch: number) => FREQUENCIES[pitch] ?? FREQUENCIES[0];
 
-export const noteSeconds = (note: NoteKind) => Math.max(MIN_SECONDS, BEATS[note] * BEAT_SECONDS);
+export const noteSeconds = (note: NoteKind) => BEATS[note] * BEAT_SECONDS;
+
+export const notesPerBeat = (note: NoteKind) => Math.max(1, Math.round(1 / BEATS[note]));
 
 export function randomPitch(random: () => number = Math.random): number {
   return PITCHES[Math.floor(random() * PITCHES.length)];
 }
 
+export function randomPitches(note: NoteKind, random: () => number = Math.random): number[] {
+  return Array.from({ length: notesPerBeat(note) }, () => randomPitch(random));
+}
+
 export function schedule(notes: MelodyNote[]): ScheduledNote[] {
   let at = 0;
-  return notes.map(({ pitch, note }) => {
+  const out: ScheduledNote[] = [];
+  for (const { pitches, note } of notes) {
     const length = noteSeconds(note);
-    const out = { freq: frequency(pitch), at, length };
-    at += length;
-    return out;
-  });
+    for (const pitch of pitches.slice(0, notesPerBeat(note))) {
+      out.push({ freq: frequency(pitch), at, length });
+      at += length;
+    }
+  }
+  return out;
 }
 
 export function melodyOrder<T extends { place: number | null; progress: number }>(racers: T[]): T[] {

@@ -188,7 +188,7 @@ export default function RaceScreen({
               progress={r.progress}
               length={race.length}
               note={r.note}
-              pitch={r.pitch}
+              pitch={r.pitches[0] ?? 0}
               tone={
                 r.outcome === "racing" || r.outcome === "finished"
                   ? r.id === you

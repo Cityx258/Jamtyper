@@ -50,7 +50,7 @@ export interface RacerView {
   isBot: boolean;
   team: Team | null;
   note: NoteKind;
-  pitch: number;
+  pitches: number[];
   unlocked: NoteKind | null;
   samples: number[] | null;
   wpm: number;

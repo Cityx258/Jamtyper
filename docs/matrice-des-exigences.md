@@ -91,7 +91,7 @@ Tous ces réglages sont dans le panneau « Paramètres de la course » du lobby.
 
 | N° | Exigence | Priorité | État | Vérifié par | Remarque |
 |---|---|---|---|---|---|
-| 4.1 | Au moins deux mécanismes de boost | 5 | Fait | Navigateur | Option « Boosts », activée par défaut. **Raccourci** : le dernier coureur, à 15 % ou plus du meneur, saute 2 mots (au plus aux 10 s). **Brouillard** : un meneur humain à 15 % ou plus devant tous les autres voit le texte flou après son mot en cours pendant 3 s (au plus aux 12 s). Les deux restent légers pour ne pas devenir injustes. |
+| 4.1 | Au moins deux mécanismes de boost | 5 | Fait | Navigateur | Option « Boosts », activée par défaut. **Raccourci** : le dernier coureur, à 15 % ou plus du meneur, perd les 2 derniers mots de son texte : sa ligne d'arrivée se rapproche (au plus aux 10 s, jamais dans le mot en cours). **Brouillard** : un meneur humain à 15 % ou plus devant tous les autres voit le texte flou après son mot en cours pendant 3 s (au plus aux 12 s). Les deux restent légers pour ne pas devenir injustes. |
 
 ## 5. Rejoindre une course
 

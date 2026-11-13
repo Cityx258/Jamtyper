@@ -48,6 +48,7 @@ export interface RacerView {
   accuracy: number;
   outcome: RacerOutcome;
   place: number | null;
+  timeMs: number | null;
   missed: MissedKeys;
   jump: number;
   boost: BoostView | null;
@@ -58,6 +59,7 @@ export interface RaceView {
   by: string | null;
   errorMode: ErrorMode;
   instantDeath: boolean;
+  timeGoalSec: number;
   length: number;
   startsAt: number;
   endsAt: number;

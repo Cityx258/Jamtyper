@@ -21,6 +21,7 @@ export const CHARS_MAX = 30;
 export const LENGTH_MIN = 10;
 export const LENGTH_MAX = 200;
 export const TIME_LIMITS = [30, 60, 120, 180, 300, 600] as const;
+export const TIME_GOALS = [0, 30, 45, 60, 90, 120] as const;
 
 export interface RaceSettings {
   source: TextSource;
@@ -39,6 +40,7 @@ export interface RaceSettings {
   customText: string;
   length: number;
   timeLimitSec: number;
+  timeGoalSec: number;
 }
 
 export type SettingsView = Omit<RaceSettings, "customText"> & {
@@ -62,6 +64,7 @@ export const DEFAULT_SETTINGS: RaceSettings = {
   customText: "",
   length: 30,
   timeLimitSec: 180,
+  timeGoalSec: 0,
 };
 
 const bool = (value: unknown, fallback: boolean) =>
@@ -105,6 +108,7 @@ export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettin
     customText: cleanCustom(p.customText, current.customText),
     length: clampInt(p.length, LENGTH_MIN, LENGTH_MAX, current.length),
     timeLimitSec: pick(TIME_LIMITS, p.timeLimitSec, current.timeLimitSec),
+    timeGoalSec: pick(TIME_GOALS, p.timeGoalSec, current.timeGoalSec),
   };
 }
 

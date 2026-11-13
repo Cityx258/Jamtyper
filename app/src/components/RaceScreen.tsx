@@ -79,6 +79,12 @@ export default function RaceScreen({
             {clock(secondsTo(race.closesAt ?? race.endsAt))}
           </span>
         </p>
+        {race.timeGoalSec > 0 && (
+          <p className="font-mono text-sm text-muted">
+            {t.goal}{" "}
+            <span className="text-ink">{clock(race.timeGoalSec)}</span>
+          </p>
+        )}
         {race.instantDeath && (
           <p className="font-mono text-xs uppercase tracking-wider text-danger">
             {t.instantDeathOn}

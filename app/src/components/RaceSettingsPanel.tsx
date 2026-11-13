@@ -13,6 +13,7 @@ import {
   LENGTH_MIN,
   SOURCES,
   TEXT_THEMES,
+  TIME_GOALS,
   TIME_LIMITS,
   isCodeLanguage,
   type SettingsView,
@@ -415,6 +416,15 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
             label={(v) => timeLabel(v, t)}
             editable={editable}
             onPick={(v) => onChange({ timeLimitSec: v })}
+          />
+        </Field>
+        <Field label={t.timeGoal} hint={t.timeGoalHint}>
+          <Choice
+            options={TIME_GOALS}
+            value={settings.timeGoalSec as (typeof TIME_GOALS)[number]}
+            label={(v) => (v ? timeLabel(v, t) : t.off)}
+            editable={editable}
+            onPick={(v) => onChange({ timeGoalSec: v })}
           />
         </Field>
       </div>

@@ -3,7 +3,9 @@
 import KeyHeatmap from "@/components/KeyHeatmap";
 import { primaryButton, secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
-import type { RaceView } from "@/lib/room-protocol";
+import type { RacerView, RaceView } from "@/lib/room-protocol";
+
+const seconds = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
 
 type Props = {
   race: RaceView;
@@ -25,9 +27,19 @@ export default function RaceResults({
   onClose,
 }: Props) {
   const me = race.racers.find((r) => r.id === you);
+  const goalMs = race.timeGoalSec * 1000;
+  const metGoal = (r: RacerView) => r.timeMs !== null && r.timeMs <= goalMs;
+  const goalCount = race.racers.filter(metGoal).length;
   return (
     <div className="w-full">
       <h1 className="font-display text-4xl">{t.results}</h1>
+      {goalMs > 0 && (
+        <p className="mt-3 text-muted">
+          {(goalCount === 0 ? t.goalBeatNone : goalCount === 1 ? t.goalBeatOne : t.goalBeat)
+            .replace("{n}", String(goalCount))
+            .replace("{goal}", seconds(goalMs))}
+        </p>
+      )}
 
       <div className="mt-8 overflow-x-auto">
         <table className="w-full text-left text-sm">
@@ -37,6 +49,7 @@ export default function RaceResults({
               <th className="py-2 pr-4 font-normal">{t.player}</th>
               <th className="py-2 pr-4 text-right font-normal">{t.wpm}</th>
               <th className="py-2 pr-4 text-right font-normal">{t.accuracy}</th>
+              <th className="py-2 pr-4 text-right font-normal">{t.time}</th>
               <th className="py-2 font-normal" />
             </tr>
           </thead>
@@ -51,6 +64,14 @@ export default function RaceResults({
                 <td className="py-3 pr-4 text-right font-mono">{r.wpm}</td>
                 <td className="py-3 pr-4 text-right font-mono">
                   {Math.round(r.accuracy * 100)}%
+                </td>
+                <td className="py-3 pr-4 text-right font-mono">
+                  {r.timeMs === null ? "-" : seconds(r.timeMs)}
+                  {goalMs > 0 && metGoal(r) && (
+                    <span className="ml-2 text-teal" title={t.goalMet}>
+                      ✓<span className="sr-only"> {t.goalMet}</span>
+                    </span>
+                  )}
                 </td>
                 <td className="py-3 font-mono text-xs uppercase text-muted">
                   {t.outcomes[r.outcome]}

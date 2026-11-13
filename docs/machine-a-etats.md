@@ -64,19 +64,44 @@ stateDiagram-v2
 
 Si l'hôte se déconnecte brièvement, il reprend son rôle comme n'importe quel joueur. S'il abandonne ou quitte, le rôle passe au participant le plus ancien, ou à celui que l'hôte a désigné avant de partir (réponse du client).
 
-**État actuel de l'implémentation** : le rôle passe au plus ancien joueur *ayant un compte*. Un invité ne peut pas être hôte, car la salle référence un utilisateur en base. S'il ne reste que des invités, la salle se ferme. Le choix d'un successeur par l'hôte n'est pas encore fait.
+**État actuel de l'implémentation** : l'hôte peut nommer un autre joueur hôte à tout moment (bouton « Nommer hôte »). S'il quitte sans l'avoir fait, le rôle passe au plus ancien joueur *ayant un compte*. Un invité ne peut pas être hôte, car la salle référence un utilisateur en base. S'il ne reste que des invités, la salle se ferme.
+
+## Spectateurs, expulsion et reconnexion
+
+- **Hôte spectateur (2.3)** : l'hôte passe lui-même en spectateur dans le lobby, sans approbation.
+- **Demande pour regarder (2.4)** : un joueur demande à regarder; l'hôte accepte ou refuse. Revenir comme coureur ne demande pas d'approbation. Le choix reste valable pour les courses suivantes.
+- **Expulsion (2.12)** : l'hôte peut expulser un joueur dans le lobby ou pendant la course. Pendant la course, le joueur est classé `kicked`. Il est retiré de la salle et ne peut plus la rejoindre.
+- **Reconnexion (2.10)** : un coureur déconnecté garde sa place tant qu'il est encore en course. Le délai de grâce de 30 secondes est relancé tant que la course n'est pas finie; il ne s'applique vraiment qu'une fois la course terminée ou dans le lobby.
+
+## Visibilité d'une salle
+
+| Visibilité | Comment on entre |
+|---|---|
+| `public` | Par code, ou par le bouton « Lancer une course » de l'accueil, qui choisit la salle publique en lobby la plus remplie. S'il n'y en a pas, un joueur connecté crée une salle publique et en devient l'hôte; un invité est envoyé dans une course publique en cours (comme spectateur), sinon on lui indique qu'il n'y en a pas. |
+| `semi_public` | Par code ou par lien (valeur par défaut d'une salle créée par « Créer une salle »). |
+| `private` | Seulement avec un lien d'invitation à usage unique, valable 24 heures. Un membre déjà présent peut se reconnecter sans nouveau lien. |
+
+L'hôte peut changer la visibilité à tout moment; tous les joueurs la voient.
 
 ## Messages entre client et serveur (aperçu)
 
 | Direction | Message | Valide dans l'état |
 |---|---|---|
 | client vers serveur | `room:join` (code) | `lobby`, `racing`, `finishing` (devient spectateur) |
-| client vers serveur | `room:configure` | `lobby`, hôte seulement |
+| client vers serveur | `room:quickplay` | toujours (accueil) |
+| client vers serveur | `room:visibility` | tous les états, hôte seulement |
+| client vers serveur | `room:invite` | tous les états, hôte seulement |
+| client vers serveur | `member:watch` | `lobby` |
+| client vers serveur | `member:approve` | hôte seulement |
+| client vers serveur | `member:kick` | hôte seulement |
+| client vers serveur | `member:promote` | hôte seulement, cible avec un compte |
+| client vers serveur | `room:configure` (prévu, priorité 4) | `lobby`, hôte seulement |
 | client vers serveur | `race:start` | `lobby`, hôte seulement |
 | client vers serveur | `race:progress` (position dans le texte) | `racing`, `finishing` |
 | client vers serveur | `race:forfeit` | `racing`, `finishing` |
 | serveur vers clients | `room:state` (instantané complet) | à chaque changement d'état |
 | serveur vers clients | `race:positions` | environ 10 fois par seconde pendant la course |
+| serveur vers un client | `room:kicked` | quand l'hôte expulse ce joueur |
 
 Les messages reçus dans un état qui ne les accepte pas sont ignorés et journalisés.
 

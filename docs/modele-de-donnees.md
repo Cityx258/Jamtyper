@@ -72,9 +72,12 @@ erDiagram
     INVITE_LINK {
         uuid id PK
         uuid room_id FK
-        text token UK
-        timestamp expires_at
+        text token_hash UK "SHA-256 du jeton, jamais le jeton lui-même"
+        text created_by FK
+        timestamp created_at
+        timestamp expires_at "24 heures"
         timestamp used_at "usage unique"
+        uuid used_by FK "room_member qui l'a utilisé"
     }
     RACE {
         uuid id PK
@@ -125,7 +128,7 @@ Comme Better Auth exige un courriel, les comptes créés avec nom d'utilisateur 
 |---|---|---|---|
 | `room` | Une salle : code, hôte, visibilité, état, paramètres | 2.1, 2.7, 5.1 à 5.4 | 2 et 3 |
 | `room_member` | Qui est dans la salle et avec quel rôle (coureur ou spectateur). `user_id` est nul pour un invité. | 1.4, 2.3, 2.4, 2.13 | 2 et 3 |
-| `invite_link` | Lien d'invitation à usage unique pour une course privée | 5.3 | 3 |
+| `invite_link` | Lien d'invitation à usage unique pour une course privée. Créée (migration `0003_invite_links`). Seul le hachage du jeton est stocké; le lien est consommé dans la même transaction que l'ajout du membre, ce qui empêche deux personnes d'utiliser le même lien. | 5.3 | 3 |
 | `race` | Une course jouée dans une salle (le texte et les paramètres au départ) | 3.10, 6.6 | 2 |
 | `race_result` | Le résultat d'un joueur ou d'un bot pour une course | 1.5, 6.3 à 6.5 | 6 |
 | `item`, `user_item` | Objets déblocables et ceux que chaque joueur possède | 6.7 | 6 |

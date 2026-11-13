@@ -35,17 +35,17 @@ Les numéros reprennent ceux du cahier des charges. Celui-ci contient deux exige
 |---|---|---|---|---|
 | 2.1 | Tout utilisateur connecté peut créer une course | 2 | Partiel | La création de salle fonctionne (vérifiée dans le navigateur) et est refusée aux invités. La course elle-même reste à faire. |
 | 2.2 | Minimum 2 coureurs, pas de maximum | 2 | À faire | Règle décrite dans la machine à états. |
-| 2.3 | L'hôte peut courir ou seulement observer | 3 | À faire | |
-| 2.4 | Demande pour devenir spectateur, avec approbation | 3 | À faire | |
+| 2.3 | L'hôte peut courir ou seulement observer | 3 | Vérifié (requêtes) | Bouton « Regarder plutôt » dans le lobby, sans approbation pour l'hôte. Une course peut partir avec l'hôte spectateur et 2 autres coureurs. Vérifié de bout en bout contre un serveur réel avec plusieurs sessions (script socket.io) et écrans du lobby regardés dans Chromium sans interface. |
+| 2.4 | Demande pour devenir spectateur, avec approbation | 3 | Vérifié (requêtes) | « Demander à regarder », puis l'hôte accepte ou refuse. Revenir comme coureur est libre. |
 | 2.5 | Positions en temps réel | 2 | À faire | ADR 0001. |
 | 2.6 | Compte à rebours avant le départ | 2 | À faire | |
 | 2.7 | Paramètres visibles de tous pendant la configuration | 2 | À faire | |
 | 2.8 | Copier-coller désactivé | 2 | À faire | |
 | 2.9 | Statistiques en temps réel par coureur | 2 | À faire | |
-| 2.10 | Reconnexion pendant une course | 3 | Partiel | Délai de grâce de 30 s dans la salle d'attente : un rafraîchissement ou une coupure reprend la même place (vérifié). Pas encore pendant une course. |
+| 2.10 | Reconnexion pendant une course | 3 | Vérifié (requêtes) | Un coureur déconnecté reste en course jusqu'à la fin, même au-delà des 30 s de grâce, et reprend sa progression en revenant. Les autres le voient « reconnexion ». |
 | 2.11 | Abandon d'une course | 3 | À faire | |
-| 2.12 | Expulsion d'un coureur par l'hôte | 3 | À faire | |
-| 2.13 | Arrivée tardive : spectateur | 3 | À faire | |
+| 2.12 | Expulsion d'un coureur par l'hôte | 3 | Vérifié (requêtes) | Dans le lobby et pendant la course (avec confirmation). Classé `kicked`, retiré de la salle et ne peut plus y revenir. |
+| 2.13 | Arrivée tardive : spectateur | 3 | Vérifié (requêtes) | Redevient coureur au retour dans le lobby. |
 | 2.14 | Mode d'entraînement individuel | 2 | Partiel | Bouton « S'entraîner seul » sur l'accueil, sans action. |
 
 ## Configuration de course (hôte)
@@ -85,10 +85,10 @@ Les numéros reprennent ceux du cahier des charges. Celui-ci contient deux exige
 
 | N° | Exigence | Priorité | État | Remarque |
 |---|---|---|---|---|
-| 5.1 | Course publique | 3 | À faire | |
+| 5.1 | Course publique | 3 | Vérifié (requêtes) | L'hôte choisit Publique / Avec le code / Sur invitation; tous voient le choix. |
 | 5.2 | Course semi-publique par code de salle | 3 | Vérifié (navigateur) | Salle créée avec un code de 6 caractères, rejointe par code ou par lien, liste des joueurs mise à jour en direct chez tous. Tables `room` et `room_member` en base. |
-| 5.3 | Course privée par lien à usage unique | 3 | À faire | Table `invite_link` prévue. |
-| 5.4 | Démarrer une course depuis l'accueil | 3 | Partiel | Le bouton « Lancer une course » crée une salle (connexion requise). Pas encore de course publique ni de mise en relation automatique. |
+| 5.3 | Course privée par lien à usage unique | 3 | Vérifié (requêtes) | Table `invite_link`, jeton haché, valable 24 h, consommé une seule fois même en cas de clics simultanés. Sans lien valide : refus. |
+| 5.4 | Démarrer une course depuis l'accueil | 3 | Vérifié (requêtes) | « Lancer une course » rejoint la salle publique en lobby la plus remplie, sinon crée une salle publique dont le joueur devient l'hôte. Un invité (qui ne peut pas être hôte) est envoyé dans une course publique en cours ou averti qu'il n'y en a pas. « Ou crée une salle pour tes amis » reste disponible. |
 
 ## Fin de course
 
@@ -129,7 +129,7 @@ Les numéros reprennent ceux du cahier des charges. Celui-ci contient deux exige
 |---|---|---|
 | 1 | HTTPS, authentification, début de la direction artistique | Authentification vérifiée (requêtes), direction artistique en cours, HTTPS à faire |
 | 2 | Course de base à 2 joueurs | À faire |
-| 3 | Gestion des salles | Partiel : création, code, rejoindre, reconnexion en salle d'attente (vérifiés). Reste : salles publiques et privées, spectateurs, expulsion. |
+| 3 | Gestion des salles | Vérifié (requêtes) : codes, salles publiques, semi-publiques et privées, spectateurs, expulsion, reconnexion, changement d'hôte |
 | 4 | Options avancées de course | À faire |
 | 5 | Bots et boosts | À faire |
 | 6 | Écrans de fin, statistiques, récompenses | À faire |

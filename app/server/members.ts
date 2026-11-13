@@ -2,6 +2,8 @@ import { eq } from "drizzle-orm";
 import { db } from "../src/db";
 import { roomMember } from "../src/db/rooms";
 import type { ActionResult, RoomError } from "../src/lib/room-protocol";
+import { chooseNote } from "../src/db/notes";
+import { isNote } from "../src/lib/notes";
 import { isTeam } from "../src/lib/teams";
 import { context, hostContext, kickRacer } from "./race";
 import {
@@ -133,5 +135,23 @@ export function setTeam(
   if (ctx.room.status !== "lobby") return fail("bad_state");
   target.team = team;
   broadcast(io, ctx.room);
+  return ok;
+}
+
+export async function setNote(
+  io: AppServer,
+  socket: AppSocket,
+  payload: unknown,
+): Promise<ActionResult> {
+  const ctx = context(socket);
+  if (!ctx) return fail("not_found");
+  const { room, member } = ctx;
+  if (!member.userId) return fail("not_signed_in");
+  const note = field(payload, "note");
+  if (!isNote(note)) return fail("bad_request");
+  if (room.status !== "lobby") return fail("bad_state");
+  if (!(await chooseNote(member.userId, note))) return fail("bad_request");
+  member.note = note;
+  broadcast(io, room);
   return ok;
 }

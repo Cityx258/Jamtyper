@@ -208,6 +208,11 @@ const en = {
     goalBeatOne: "1 player finished under the {goal} goal.",
     goalBeatNone: "Nobody finished under the {goal} goal.",
     yourMisses: "Your missed keys",
+    yourNote: {
+      title: "Your note",
+      hint: "This is you on the staff during the race. Pick any note you've unlocked.",
+      guestHint: "Guests race as a whole note. Sign in and win races to unlock the others.",
+    },
     melody: {
       title: "This race's melody",
       hint: "Every racer is a note, played in the order you finished. A new race makes a new melody.",

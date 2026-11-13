@@ -26,9 +26,13 @@ export async function chosenNote(userId: string): Promise<string | null> {
   return row?.note ?? null;
 }
 
-export async function currentNote(userId: string): Promise<NoteKind> {
+export async function noteState(userId: string): Promise<{ note: NoteKind; wins: number }> {
   const [wins, chosen] = await Promise.all([winCount(userId), chosenNote(userId)]);
-  return noteFor(wins, chosen);
+  return { note: noteFor(wins, chosen), wins };
+}
+
+export async function currentNote(userId: string): Promise<NoteKind> {
+  return (await noteState(userId)).note;
 }
 
 export async function chooseNote(userId: string, note: NoteKind): Promise<boolean> {

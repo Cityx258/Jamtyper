@@ -36,7 +36,7 @@ import { sampleRace, sampleRacer } from "./samples";
 import { randomPitches } from "../src/lib/melody";
 import { botPlan } from "../src/lib/bot-plan";
 import { newlyUnlocked } from "../src/lib/notes";
-import { currentNote, winCount } from "../src/db/notes";
+import { noteState, winCount } from "../src/db/notes";
 
 export const COUNTDOWN_MS = 5_000;
 export const CLOSING_MS = 30_000;
@@ -439,7 +439,7 @@ async function announceUnlocks(io: AppServer, room: Room, race: Race) {
     const wins = await winCount(r.userId);
     r.unlocked = newlyUnlocked(wins - 1, wins);
     const member = [...room.members.values()].find((m) => m.id === r.id);
-    if (member) member.note = await currentNote(r.userId);
+    if (member) Object.assign(member, await noteState(r.userId));
     changed = true;
   }
   if (changed && room.race === race) broadcast(io, room);

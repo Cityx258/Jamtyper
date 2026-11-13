@@ -13,7 +13,7 @@ import type {
   Visibility,
 } from "../src/lib/room-protocol";
 import { settingsView, type RaceSettings } from "../src/lib/race-settings";
-import type { NoteKind } from "../src/lib/notes";
+import { unlockedNotes, type NoteKind } from "../src/lib/notes";
 import type { Team } from "../src/lib/teams";
 import { MIN_RACERS } from "../src/lib/bot-plan";
 import type { BotState } from "./bots";
@@ -54,6 +54,7 @@ export interface Member {
   watchRequested: boolean;
   team: Team;
   note: NoteKind;
+  wins: number;
   joinedAt: number;
   sockets: Set<string>;
   graceTimer?: NodeJS.Timeout;
@@ -216,6 +217,7 @@ export function toView(room: Room): RoomView {
       watchRequested: m.watchRequested,
       team: m.team,
       note: m.note,
+      notes: unlockedNotes(m.wins),
     })),
     race: room.race ? raceView(room, room.race) : null,
   };

@@ -9,6 +9,7 @@ import type {
   ServerToClientEvents,
   Visibility,
 } from "./room-protocol";
+import type { NoteKind } from "./notes";
 import type { Team } from "./teams";
 
 export type AppClientSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -131,6 +132,9 @@ export const requestPromote = (memberId: string) =>
 
 export const requestTeam = (memberId: string, team: Team) =>
   guarded((s) => s.emitWithAck("member:team", { memberId, team }));
+
+export const requestNote = (note: NoteKind) =>
+  guarded((s) => s.emitWithAck("member:note", { note }));
 
 export function sendProgress(progress: ProgressPayload) {
   getSocket().emit("race:progress", progress);

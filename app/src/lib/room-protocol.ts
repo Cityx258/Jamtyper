@@ -25,6 +25,7 @@ export interface MemberView {
   watchRequested: boolean;
   team: Team;
   note: NoteKind;
+  notes: NoteKind[];
 }
 
 export type RacerOutcome =
@@ -159,6 +160,10 @@ export interface ClientToServerEvents {
   ) => void;
   "member:team": (
     payload: { memberId: string; team: Team },
+    ack: (result: ActionResult) => void,
+  ) => void;
+  "member:note": (
+    payload: { note: NoteKind },
     ack: (result: ActionResult) => void,
   ) => void;
   "room:leave": (ack?: () => void) => void;

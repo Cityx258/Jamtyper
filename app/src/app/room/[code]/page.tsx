@@ -32,6 +32,7 @@ export default async function RoomPage(props: PageProps<"/room/[code]">) {
           t={t.room}
           heatmapT={t.profile.heatmap}
           noteNames={t.profile.notes.names}
+          notesT={t.profile.notes}
         />
       </main>
     </>

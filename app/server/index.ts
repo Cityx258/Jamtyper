@@ -12,6 +12,7 @@ import {
   answerWatchRequest,
   kickMember,
   promoteMember,
+  setNote,
   setTeam,
   setWatching,
 } from "./members";
@@ -193,6 +194,9 @@ async function main() {
     );
     socket.on("member:team", (payload, ack) =>
       respond("member:team", ack, () => setTeam(io, socket, payload)),
+    );
+    socket.on("member:note", (payload, ack) =>
+      respond("member:note", ack, () => setNote(io, socket, payload)),
     );
 
     socket.on("room:leave", async (ack) => {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import KickButton from "@/components/KickButton";
+import LobbyNotePicker from "@/components/LobbyNotePicker";
 import NoteIcon from "@/components/NoteIcon";
 import RaceResults from "@/components/RaceResults";
 import RaceScreen from "@/components/RaceScreen";
@@ -32,6 +33,7 @@ import {
   requestKick,
   requestLeaveRoom,
   requestPromote,
+  requestNote,
   requestTeam,
   requestVisibility,
   requestWatch,
@@ -44,6 +46,7 @@ type Props = {
   t: Dict["room"];
   heatmapT: Dict["profile"]["heatmap"];
   noteNames: Dict["profile"]["notes"]["names"];
+  notesT: Dict["profile"]["notes"];
 };
 
 const NAME_KEY = "jt-guest-name";
@@ -98,6 +101,7 @@ export default function RoomLobby({
   t,
   heatmapT,
   noteNames,
+  notesT,
 }: Props) {
   const router = useRouter();
   const storedName = useSyncExternalStore(
@@ -444,6 +448,17 @@ export default function RoomLobby({
         t={t.settings}
         onChange={(patch) => run(requestConfigure(patch))}
       />
+
+      {me && room.status === "lobby" && (
+        <LobbyNotePicker
+          current={me.note}
+          unlocked={me.notes}
+          guest={me.isGuest}
+          t={t.yourNote}
+          notesT={notesT}
+          onPick={(note) => run(requestNote(note))}
+        />
+      )}
 
       <section className="mt-12" aria-label={t.players}>
         <h2 className="font-display text-2xl">

@@ -30,6 +30,9 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 8,
   },
+  account: {
+    accountLinking: { allowDifferentEmails: true },
+  },
   socialProviders: Object.fromEntries(
     Object.entries(socialProviders).filter(([, c]) => c),
   ),

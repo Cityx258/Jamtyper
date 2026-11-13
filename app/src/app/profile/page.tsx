@@ -69,6 +69,9 @@ export default async function ProfilePage() {
           <p className="text-muted">
             {t.memberSince.replace("{date}", date.format(session.user.createdAt))}
           </p>
+          <Link href="/settings" className={secondaryButton}>
+            {t.settings}
+          </Link>
           <SignOutButton label={dict.header.signOut} className={secondaryButton} />
         </div>
 

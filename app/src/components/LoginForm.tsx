@@ -8,6 +8,7 @@ import type { Provider } from "@/lib/auth";
 import { createRecoveryCode } from "@/app/recovery-actions";
 import RecoveryCodeNotice from "@/components/RecoveryCodeNotice";
 import { authClient } from "@/lib/auth-client";
+import { USERNAME_RE } from "@/lib/username";
 
 type T = Dict["login"];
 
@@ -15,8 +16,6 @@ type Mode = "signin" | "signup";
 
 const internalEmail = (username: string) =>
   `${username.toLowerCase()}@users.invalid`;
-
-const USERNAME_RE = /^[a-zA-Z0-9_.]{3,20}$/;
 
 const field =
   "w-full rounded-lg border border-line bg-bg/70 px-4 py-3 text-ink placeholder:text-muted/60 focus:border-teal focus:outline-none";

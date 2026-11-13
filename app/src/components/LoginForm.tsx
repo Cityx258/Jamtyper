@@ -1,9 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Dict } from "@/i18n/en";
 import type { Provider } from "@/lib/auth";
+import { createRecoveryCode } from "@/app/recovery-actions";
+import RecoveryCodeNotice from "@/components/RecoveryCodeNotice";
 import { authClient } from "@/lib/auth-client";
 
 type T = Dict["login"];
@@ -70,6 +73,7 @@ export default function LoginForm({
   );
   const [pending, setPending] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
+  const [recovery, setRecovery] = useState<string | null>(null);
 
   async function social(provider: Provider) {
     setError(null);
@@ -131,8 +135,23 @@ export default function LoginForm({
       );
       return;
     }
+    if (mode === "signup") {
+      const code = await createRecoveryCode().catch(() => null);
+      if (code) {
+        setRecovery(code);
+        return;
+      }
+    }
+    goHome();
+  }
+
+  function goHome() {
     router.push("/");
     router.refresh();
+  }
+
+  if (recovery) {
+    return <RecoveryCodeNotice code={recovery} t={t.recovery} onDone={goHome} />;
   }
 
   return (
@@ -238,6 +257,14 @@ export default function LoginForm({
               <p role="alert" className="text-sm text-danger">
                 {error}
               </p>
+            )}
+            {mode === "signin" && (
+              <Link
+                href="/login/reset"
+                className="block text-sm text-teal underline underline-offset-4 hover:text-teal-bright"
+              >
+                {t.recovery.forgot}
+              </Link>
             )}
 
             <button

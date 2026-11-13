@@ -3,11 +3,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import KeyHeatmap from "@/components/KeyHeatmap";
+import RecoveryCodeSection from "@/components/RecoveryCodeSection";
 import SignOutButton from "@/components/SignOutButton";
 import { primaryButton, secondaryButton } from "@/components/ui";
 import { getProfile } from "@/db/profile";
 import { getDict, getLocale } from "@/i18n";
 import { auth } from "@/lib/auth";
+import { hasPassword } from "@/lib/recovery";
 
 export async function generateMetadata() {
   return { title: `${(await getDict()).profile.title} | JamTyper` };
@@ -17,10 +19,11 @@ export default async function ProfilePage() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/login");
 
-  const [dict, locale, profile] = await Promise.all([
+  const [dict, locale, profile, withPassword] = await Promise.all([
     getDict(),
     getLocale(),
     getProfile(session.user.id),
+    hasPassword(session.user.id),
   ]);
   const t = dict.profile;
   const name = session.user.displayUsername ?? session.user.name;
@@ -143,6 +146,8 @@ export default async function ProfilePage() {
             </div>
           )}
         </section>
+
+        {withPassword && <RecoveryCodeSection t={dict.login.recovery} />}
       </main>
     </>
   );

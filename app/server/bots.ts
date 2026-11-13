@@ -63,6 +63,7 @@ export function createBots(
       team: null,
       note,
       unlocked: null,
+      samples: [],
       jump: 0,
       bonus: 0,
       boost: null,

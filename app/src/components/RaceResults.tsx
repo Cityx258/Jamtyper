@@ -2,6 +2,7 @@
 
 import KeyHeatmap from "@/components/KeyHeatmap";
 import NoteIcon from "@/components/NoteIcon";
+import RaceGraph from "@/components/RaceGraph";
 import { primaryButton, secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import type { RacerView, RaceView } from "@/lib/room-protocol";
@@ -127,6 +128,8 @@ export default function RaceResults({
           </tbody>
         </table>
       </div>
+
+      <RaceGraph racers={race.racers} you={you} t={t.graph} />
 
       {me && (
         <section className="mt-12 max-w-2xl">

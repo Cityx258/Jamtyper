@@ -73,6 +73,7 @@ export interface Racer {
   team: Team | null;
   note: NoteKind;
   unlocked: NoteKind | null;
+  samples: number[];
   jump: number;
   bonus: number;
   boost: BoostView | null;
@@ -147,7 +148,7 @@ export function racerAccuracy(racer: Racer): number {
   return strokes === 0 ? 1 : racer.position / strokes;
 }
 
-export function racersView(race: Race): RacerView[] {
+export function racersView(race: Race, withSamples = false): RacerView[] {
   const now = Date.now();
   return [...race.racers.values()]
     .sort(
@@ -163,6 +164,7 @@ export function racersView(race: Race): RacerView[] {
       team: r.team,
       note: r.note,
       unlocked: r.unlocked,
+      samples: withSamples ? r.samples : null,
       wpm: Math.round(racerWpm(race, r, now)),
       accuracy: racerAccuracy(r),
       outcome: r.outcome,
@@ -187,7 +189,7 @@ function raceView(room: Room, race: Race): RaceView {
     endsAt: race.endsAt,
     closesAt: race.closesAt,
     serverNow: Date.now(),
-    racers: racersView(race),
+    racers: racersView(race, room.status === "results"),
   };
 }
 

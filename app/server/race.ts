@@ -32,6 +32,7 @@ import { mergeSettings, settingsView } from "../src/lib/race-settings";
 import { generateText } from "../src/lib/texts";
 import { createBots, stepBot } from "./bots";
 import { applyBoosts } from "./boosts";
+import { sampleRace, sampleRacer } from "./samples";
 import { teamGaps, type Team } from "../src/lib/teams";
 import { newlyUnlocked } from "../src/lib/notes";
 import { currentNote, winCount } from "../src/db/notes";
@@ -139,6 +140,7 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
           team: settings.teams ? m.team : null,
           note: m.note,
           unlocked: null,
+          samples: [],
           jump: 0,
           bonus: 0,
           boost: null,
@@ -189,6 +191,7 @@ function beginRacing(io: AppServer, room: Room, race: Race) {
         settle(io, room, race, racer, "finished");
       }
     }
+    sampleRace(race, now);
     if (race.settings.boosts && now - lastBoostCheck >= 1000) {
       lastBoostCheck = now;
       if (applyBoosts(race, now)) race.dirty = true;
@@ -370,6 +373,7 @@ function settle(
   outcome: Exclude<RacerOutcome, "racing" | "timed_out">,
 ) {
   const now = Date.now();
+  sampleRacer(race, racer, now);
   racer.outcome = outcome;
   racer.doneAt = now - race.startsAt;
   race.dirty = true;

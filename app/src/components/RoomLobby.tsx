@@ -27,6 +27,7 @@ import {
   requestJoinRoom,
   requestKick,
   requestLeaveRoom,
+  requestPromote,
   requestVisibility,
   requestWatch,
 } from "@/lib/socket";
@@ -478,6 +479,15 @@ export default function RoomLobby({
                         {t.decline}
                       </button>
                     </>
+                  )}
+                  {!m.isGuest && (
+                    <button
+                      type="button"
+                      onClick={() => run(requestPromote(m.id))}
+                      className={smallButton}
+                    >
+                      {t.makeHost}
+                    </button>
                   )}
                   <KickButton name={m.name} t={t} onKick={() => run(requestKick(m.id))} />
                 </span>

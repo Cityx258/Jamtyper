@@ -8,7 +8,12 @@ import type {
   RoomError,
   ServerToClientEvents,
 } from "../src/lib/room-protocol";
-import { answerWatchRequest, kickMember, setWatching } from "./members";
+import {
+  answerWatchRequest,
+  kickMember,
+  promoteMember,
+  setWatching,
+} from "./members";
 import {
   cancelRace,
   forfeit,
@@ -63,7 +68,6 @@ async function respond<T>(
     reply(serverError);
   }
 }
-
 
 async function main() {
   await closeStaleRooms();
@@ -156,6 +160,9 @@ async function main() {
     );
     socket.on("member:kick", (payload, ack) =>
       respond("member:kick", ack, () => kickMember(io, socket, payload)),
+    );
+    socket.on("member:promote", (payload, ack) =>
+      respond("member:promote", ack, () => promoteMember(io, socket, payload)),
     );
 
     socket.on("room:leave", async (ack) => {

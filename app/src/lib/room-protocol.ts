@@ -16,6 +16,7 @@ export interface MemberView {
   name: string;
   role: MemberRole;
   isHost: boolean;
+  isGuest: boolean;
   connected: boolean;
   watchRequested: boolean;
 }
@@ -112,6 +113,10 @@ export interface ClientToServerEvents {
     ack: (result: ActionResult) => void,
   ) => void;
   "member:kick": (
+    payload: { memberId: string },
+    ack: (result: ActionResult) => void,
+  ) => void;
+  "member:promote": (
     payload: { memberId: string },
     ack: (result: ActionResult) => void,
   ) => void;

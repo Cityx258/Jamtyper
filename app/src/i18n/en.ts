@@ -90,6 +90,7 @@ const en = {
     decline: "Decline",
     kick: "Kick",
     confirmKick: "Kick {name}?",
+    makeHost: "Make host",
     waiting: "Share the code and wait for your friends. Races need at least 2 players.",
     waitingInvite: "Send invite links and wait for your friends. Races need at least 2 players.",
     leave: "Leave room",

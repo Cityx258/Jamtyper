@@ -162,6 +162,7 @@ export function toView(room: Room): RoomView {
       name: m.name,
       role: memberRole(room, m),
       isHost: m.key === room.hostKey,
+      isGuest: !m.userId,
       connected: m.sockets.size > 0,
       watchRequested: m.watchRequested,
     })),

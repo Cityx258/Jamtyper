@@ -11,7 +11,7 @@ import {
   type AppSocket,
   type Member,
 } from "./room-state";
-import { removeMember } from "./rooms";
+import { removeMember, setHost } from "./rooms";
 
 const ok: ActionResult = { ok: true };
 const fail = (error: RoomError): ActionResult => ({ ok: false, error });
@@ -95,5 +95,26 @@ export async function kickMember(
   }
   target.sockets.clear();
   await removeMember(io, room, target);
+  return ok;
+}
+
+export async function promoteMember(
+  io: AppServer,
+  socket: AppSocket,
+  payload: unknown,
+): Promise<ActionResult> {
+  const ctx = hostContext(socket);
+  if (typeof ctx === "string") return fail(ctx);
+  const target = findMember(ctx.room, field(payload, "memberId"));
+  if (!target || !target.userId) return fail("bad_request");
+  if (target.key === ctx.room.hostKey) return ok;
+
+  await setHost(ctx.room, target);
+  if (target.watchRequested) {
+    target.watchRequested = false;
+    target.watching = true;
+    persistRole(target);
+  }
+  broadcast(io, ctx.room);
   return ok;
 }

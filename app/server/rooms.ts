@@ -47,7 +47,6 @@ function inviteHash(raw: unknown): string | null {
     : null;
 }
 
-
 function isUniqueViolation(e: unknown): boolean {
   const code = (e as { code?: string })?.code;
   const causeCode = (e as { cause?: { code?: string } })?.cause?.code;
@@ -97,6 +96,19 @@ async function closeRoom(io: AppServer, room: Room) {
   }
 }
 
+export async function setHost(room: Room, member: Member) {
+  if (!member.userId) return;
+  room.hostKey = member.key;
+  try {
+    await db
+      .update(roomTable)
+      .set({ hostId: member.userId })
+      .where(eq(roomTable.id, room.id));
+  } catch (e) {
+    console.error("[rooms] failed to persist host change", e);
+  }
+}
+
 export async function removeMember(io: AppServer, room: Room, member: Member) {
   if (room.members.get(member.key) !== member) return;
   if (member.graceTimer) clearTimeout(member.graceTimer);
@@ -118,15 +130,7 @@ export async function removeMember(io: AppServer, room: Room, member: Member) {
       .filter((m) => m.userId)
       .sort((a, b) => a.joinedAt - b.joinedAt)[0];
     if (!next?.userId) return closeRoom(io, room);
-    room.hostKey = next.key;
-    try {
-      await db
-        .update(roomTable)
-        .set({ hostId: next.userId })
-        .where(eq(roomTable.id, room.id));
-    } catch (e) {
-      console.error("[rooms] failed to persist host change", e);
-    }
+    await setHost(room, next);
   }
   dropRacer(io, room, member);
   broadcast(io, room);

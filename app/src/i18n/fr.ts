@@ -92,6 +92,7 @@ const fr: Dict = {
     decline: "Refuser",
     kick: "Expulser",
     confirmKick: "Expulser {name}?",
+    makeHost: "Nommer hôte",
     waiting:
       "Partage le code et attends tes amis. Une course demande au moins 2 joueurs.",
     waitingInvite:

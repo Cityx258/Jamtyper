@@ -89,6 +89,13 @@ const en = {
       languages: { en: "English", fr: "French", javascript: "JavaScript", python: "Python" },
       theme: "Theme",
       themes: { general: "Anything", music: "Music", nature: "Nature", science: "Science" },
+      difficulty: "Difficulty",
+      difficulties: { easy: "Easy", medium: "Medium", hard: "Hard" },
+      difficultyHints: {
+        easy: "Short, simple words.",
+        medium: "Every word in the list.",
+        hard: "Adds numbers, symbols and capital letters.",
+      },
       punctuation: "Punctuation",
       punctuationHint: "Capital letters, commas and sentence endings.",
       accents: "Accents",

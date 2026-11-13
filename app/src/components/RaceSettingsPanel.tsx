@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import type { Dict } from "@/i18n/en";
 import {
   CUSTOM_MAX,
+  DIFFICULTIES,
   LANGUAGES,
   LENGTH_MAX,
   LENGTH_MIN,
@@ -191,6 +192,17 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
               label={(v) => t.themes[v]}
               editable={editable}
               onPick={(v) => onChange({ theme: v })}
+            />
+          </Field>
+        )}
+        {settings.source === "words" && (
+          <Field label={t.difficulty} hint={t.difficultyHints[settings.difficulty]}>
+            <Choice
+              options={DIFFICULTIES}
+              value={settings.difficulty}
+              label={(v) => t.difficulties[v]}
+              editable={editable}
+              onPick={(v) => onChange({ difficulty: v })}
             />
           </Field>
         )}

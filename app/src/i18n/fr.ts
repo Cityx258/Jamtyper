@@ -91,6 +91,13 @@ const fr: Dict = {
       languages: { en: "Anglais", fr: "Français", javascript: "JavaScript", python: "Python" },
       theme: "Thème",
       themes: { general: "Tout", music: "Musique", nature: "Nature", science: "Science" },
+      difficulty: "Difficulté",
+      difficulties: { easy: "Facile", medium: "Moyen", hard: "Difficile" },
+      difficultyHints: {
+        easy: "Des mots courts et simples.",
+        medium: "Tous les mots de la liste.",
+        hard: "Ajoute des chiffres, des symboles et des majuscules.",
+      },
       punctuation: "Ponctuation",
       punctuationHint: "Majuscules, virgules et fins de phrase.",
       accents: "Accents",

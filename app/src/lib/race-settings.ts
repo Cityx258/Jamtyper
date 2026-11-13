@@ -8,6 +8,8 @@ export type CodeLanguage = "javascript" | "python";
 export type NaturalLanguage = Exclude<Language, CodeLanguage>;
 export const isCodeLanguage = (l: Language): l is CodeLanguage =>
   l === "javascript" || l === "python";
+export const DIFFICULTIES = ["easy", "medium", "hard"] as const;
+export type Difficulty = (typeof DIFFICULTIES)[number];
 export const TEXT_THEMES = ["general", "music", "nature", "science"] as const;
 export type TextTheme = (typeof TEXT_THEMES)[number];
 export const CUSTOM_MAX = 1000;
@@ -21,6 +23,7 @@ export interface RaceSettings {
   theme: TextTheme;
   accents: boolean;
   punctuation: boolean;
+  difficulty: Difficulty;
   customText: string;
   length: number;
   timeLimitSec: number;
@@ -36,6 +39,7 @@ export const DEFAULT_SETTINGS: RaceSettings = {
   theme: "general",
   accents: true,
   punctuation: false,
+  difficulty: "medium",
   customText: "",
   length: 30,
   timeLimitSec: 180,
@@ -65,6 +69,7 @@ export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettin
     theme: pick(TEXT_THEMES, p.theme, current.theme),
     accents: bool(p.accents, current.accents),
     punctuation: bool(p.punctuation, current.punctuation),
+    difficulty: pick(DIFFICULTIES, p.difficulty, current.difficulty),
     customText: cleanCustom(p.customText, current.customText),
     length: clampInt(p.length, LENGTH_MIN, LENGTH_MAX, current.length),
     timeLimitSec: pick(TIME_LIMITS, p.timeLimitSec, current.timeLimitSec),

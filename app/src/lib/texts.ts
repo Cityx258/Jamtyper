@@ -57,6 +57,37 @@ const stripAccents = (word: string) =>
 
 const ENDINGS = [".", ".", ".", "!", "?"];
 
+function byDifficulty(pool: string[], s: RaceSettings): string[] {
+  if (s.difficulty !== "easy") return pool;
+  const simple = pool.filter((w) =>
+    isCodeLanguage(s.language) ? /^[a-z]+$/i.test(w) : [...w].length <= 5,
+  );
+  return simple.length >= 5 ? simple : pool;
+}
+
+const SYMBOLS: ((w: string) => string)[] = [
+  (w) => `(${w})`,
+  (w) => `"${w}"`,
+  (w) => `[${w}]`,
+  (w) => `${w};`,
+  (w) => `${w}:`,
+  (w) => `#${w}`,
+  (w) => `@${w}`,
+  (w) => `${w}&`,
+  (w) => `${w}/`,
+  (w) => `${w}*`,
+];
+
+function harden(words: string[]): string[] {
+  return words.map((w) => {
+    const roll = randomInt(20);
+    if (roll < 2) return String(randomInt(10_000));
+    if (roll < 5) return SYMBOLS[randomInt(SYMBOLS.length)](w);
+    if (roll < 7) return w[0].toUpperCase() + w.slice(1);
+    return w;
+  });
+}
+
 function punctuate(words: string[]): string[] {
   let sentence = 0;
   let target = 4 + randomInt(7);
@@ -75,11 +106,11 @@ function punctuate(words: string[]): string[] {
 }
 
 function wordsText(s: RaceSettings): string {
-  let words = randomWords(wordPool(s), s.length);
-  if (!isCodeLanguage(s.language)) {
-    if (!s.accents) words = words.map(stripAccents);
-    if (s.punctuation) words = punctuate(words);
-  }
+  let words = randomWords(byDifficulty(wordPool(s), s), s.length);
+  const natural = !isCodeLanguage(s.language);
+  if (natural && !s.accents) words = words.map(stripAccents);
+  if (s.difficulty === "hard") words = harden(words);
+  if (natural && s.punctuation) words = punctuate(words);
   return words.join(" ");
 }
 

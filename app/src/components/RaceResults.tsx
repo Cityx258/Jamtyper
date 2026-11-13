@@ -73,19 +73,19 @@ export default function RaceResults({
         <table className="w-full text-left text-sm">
           <thead className="font-mono text-xs uppercase tracking-wider text-muted">
             <tr className="border-b border-line">
-              <th className="py-2 pr-4 font-normal">{t.place}</th>
-              <th className="py-2 pr-4 font-normal">{t.player}</th>
-              <th className="py-2 pr-4 text-right font-normal">{t.wpm}</th>
-              <th className="py-2 pr-4 text-right font-normal">{t.accuracy}</th>
-              <th className="py-2 pr-4 text-right font-normal">{t.time}</th>
+              <th className="py-2 pr-3 sm:pr-4 font-normal">{t.place}</th>
+              <th className="py-2 pr-3 sm:pr-4 font-normal">{t.player}</th>
+              <th className="py-2 pr-3 sm:pr-4 text-right font-normal">{t.wpm}</th>
+              <th className="py-2 pr-3 sm:pr-4 text-right font-normal">{t.accuracy}</th>
+              <th className="py-2 pr-3 sm:pr-4 text-right font-normal">{t.time}</th>
               <th className="py-2 font-normal" />
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
             {race.racers.map((r) => (
               <tr key={r.id} className={r.id === you ? "text-teal" : ""}>
-                <td className="py-3 pr-4 font-mono">{r.place}</td>
-                <td className="py-3 pr-4 font-medium">
+                <td className="py-3 pr-3 sm:pr-4 font-mono">{r.place}</td>
+                <td className="py-3 pr-3 sm:pr-4 font-medium">
                   {r.name}
                   {r.isBot && <span className="text-muted"> ({t.bot})</span>}
                   {r.team !== null && (
@@ -94,11 +94,11 @@ export default function RaceResults({
                     </span>
                   )}
                 </td>
-                <td className="py-3 pr-4 text-right font-mono">{r.wpm}</td>
-                <td className="py-3 pr-4 text-right font-mono">
+                <td className="py-3 pr-3 sm:pr-4 text-right font-mono">{r.wpm}</td>
+                <td className="py-3 pr-3 sm:pr-4 text-right font-mono">
                   {Math.round(r.accuracy * 100)}%
                 </td>
-                <td className="whitespace-nowrap py-3 pr-4 text-right font-mono">
+                <td className="whitespace-nowrap py-3 pr-3 sm:pr-4 text-right font-mono">
                   {r.timeMs === null ? "-" : seconds(r.timeMs)}
                   {goalMs > 0 && metGoal(r) && (
                     <span className="ml-2 text-teal" title={t.goalMet}>

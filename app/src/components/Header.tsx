@@ -20,8 +20,8 @@ export default async function Header() {
   const nextTheme = theme === "dark" ? "light" : "dark";
 
   return (
-    <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-5 sm:px-8">
-      <Link href="/" className="group flex items-center gap-3">
+    <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-5 sm:px-8">
+      <Link href="/" aria-label="JamTyper" className="group flex shrink-0 items-center gap-2 sm:gap-3">
         <span
           aria-hidden="true"
           className="h-10 w-8 bg-teal transition-colors group-hover:bg-teal-bright"
@@ -36,11 +36,11 @@ export default async function Header() {
             WebkitMaskSize: "contain",
           }}
         />
-        <span className="font-display text-lg tracking-wide text-ink group-hover:text-teal-bright sm:text-xl">
+        <span className="hidden font-display text-lg tracking-wide text-ink group-hover:text-teal-bright min-[400px]:inline sm:text-xl">
           JamTyper
         </span>
       </Link>
-      <nav className="flex items-center gap-2 text-sm font-medium">
+      <nav className="flex min-w-0 items-center gap-1.5 text-sm font-medium sm:gap-2">
         <form action={setLocale.bind(null, nextLocale)}>
           <button
             type="submit"
@@ -91,16 +91,18 @@ export default async function Header() {
             <Link
               href="/profile"
               aria-label={t.header.profile}
-              className="ml-2 max-w-40 truncate rounded-full px-3 py-2 text-ink transition-colors hover:text-teal-bright"
+              className="min-w-0 max-w-40 truncate rounded-full px-2 py-2 text-ink transition-colors hover:text-teal-bright sm:ml-2 sm:px-3"
             >
               {session.user.displayUsername ?? session.user.name}
             </Link>
-            <SignOutButton label={t.header.signOut} />
+            <span className="hidden sm:block">
+              <SignOutButton label={t.header.signOut} />
+            </span>
           </>
         ) : (
           <Link
             href="/login"
-            className="ml-2 rounded-full border border-teal/50 px-5 py-2 text-teal transition-colors hover:bg-teal hover:text-on-teal"
+            className="shrink-0 whitespace-nowrap rounded-full border border-teal/50 px-4 py-2 text-teal transition-colors hover:bg-teal hover:text-on-teal sm:ml-2 sm:px-5"
           >
             {t.header.signIn}
           </Link>

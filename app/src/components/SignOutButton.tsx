@@ -3,7 +3,13 @@
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
-export default function SignOutButton({ label }: { label: string }) {
+export default function SignOutButton({
+  label,
+  className = "rounded-full px-4 py-2 text-muted transition-colors hover:text-ink",
+}: {
+  label: string;
+  className?: string;
+}) {
   const router = useRouter();
   return (
     <button
@@ -12,7 +18,7 @@ export default function SignOutButton({ label }: { label: string }) {
         await authClient.signOut();
         router.refresh();
       }}
-      className="rounded-full px-2 py-2 sm:px-4 text-muted transition-colors hover:text-ink"
+      className={className}
     >
       {label}
     </button>

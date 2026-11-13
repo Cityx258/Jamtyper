@@ -3,7 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import KeyHeatmap from "@/components/KeyHeatmap";
-import { primaryButton } from "@/components/ui";
+import SignOutButton from "@/components/SignOutButton";
+import { primaryButton, secondaryButton } from "@/components/ui";
 import { getProfile } from "@/db/profile";
 import { getDict, getLocale } from "@/i18n";
 import { auth } from "@/lib/auth";
@@ -53,13 +54,16 @@ export default async function ProfilePage() {
         </p>
         <div className="relative mt-4">
           <div className="staff absolute inset-x-0 top-[calc(var(--staff-gap)*0.5)]" />
-          <h1 className="relative break-words font-display text-5xl sm:text-7xl">
+          <h1 className="relative break-all font-display text-4xl sm:text-7xl">
             {name}
           </h1>
         </div>
-        <p className="mt-6 text-muted">
-          {t.memberSince.replace("{date}", date.format(session.user.createdAt))}
-        </p>
+        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <p className="text-muted">
+            {t.memberSince.replace("{date}", date.format(session.user.createdAt))}
+          </p>
+          <SignOutButton label={dict.header.signOut} className={secondaryButton} />
+        </div>
 
         <section
           aria-label={t.title}

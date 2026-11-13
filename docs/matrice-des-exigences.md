@@ -11,7 +11,7 @@ Chaque exigence du cahier des charges, sa priorité et où elle en est. Les num�
 | 3 | Gestion des salles | Fait |
 | 4 | Options avancées de course | Fait |
 | 5 | Bots et boosts | Fait |
-| 6 | Écrans de fin, statistiques, récompenses | Partiel : il manque le podium, les graphiques, les récompenses et la page de paramètres |
+| 6 | Écrans de fin, statistiques, récompenses | Partiel : il manque le podium, les graphiques et la page de paramètres |
 | 7 | Bilinguisme, thèmes, responsive, optionnel | Fait, sauf la direction artistique (en cours) |
 | 8 | Tests, déploiement, sécurité, documentation | Fait |
 
@@ -112,7 +112,7 @@ Tous ces réglages sont dans le panneau « Paramètres de la course » du lobby.
 | 6.4 | Écran de statistiques | 6 | Partiel | Navigateur | MPM et précision de chaque coureur. Pas encore de graphique de la course. |
 | 6.5 | Carte de chaleur des touches manquées | 6 | Fait | Navigateur | À la fin de chaque course et cumulée sur le profil. |
 | 6.6 | Relancer avec les mêmes participants ou fermer la salle | 6 | Fait | Script | Boutons « Relancer » et « Fermer la salle » pour l'hôte. |
-| 6.7 | Récompenses et objets déblocables | 6 | À faire | | |
+| 6.7 | Récompenses et objets déblocables | 6 | Partiel | Navigateur, tests | Chaque joueur est une note de musique, affichée à côté de son nom (lobby, course, résultats). Ronde au départ, puis une nouvelle note toutes les 5 victoires : blanche, noire, croche, double croche, triple croche (25 victoires). L'écran de résultats annonce un déblocage; le profil permet de choisir parmi les notes débloquées. Les invités sont des rondes; les bots ont une note selon leur niveau. Il manque le graphique de progression. |
 
 ## 7. Langues, apparence et accessibilité
 

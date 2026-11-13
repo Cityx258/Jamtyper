@@ -22,13 +22,12 @@ erDiagram
     USER ||--o{ ROOM : "héberge"
     USER ||--o{ ROOM_MEMBER : "participe"
     USER ||--o{ RACE_RESULT : "obtient"
-    USER ||--o{ USER_ITEM : "débloque"
+    USER ||--o| PLAYER_NOTE : "choisit"
     USER ||--o| RECOVERY_CODE : "garde"
     ROOM ||--o{ ROOM_MEMBER : "contient"
     ROOM ||--o{ RACE : "accueille"
     ROOM ||--o{ INVITE_LINK : "génère"
     RACE ||--o{ RACE_RESULT : "produit"
-    ITEM ||--o{ USER_ITEM : "est débloqué par"
 
     USER {
         text id PK
@@ -100,15 +99,9 @@ erDiagram
         jsonb missed_keys "pour la carte de chaleur"
         text outcome "finished, forfeited, kicked, eliminated, timed_out"
     }
-    ITEM {
-        text id PK
-        text kind "thème, avatar, effet"
-        int wpm_required
-    }
-    USER_ITEM {
-        text user_id PK
-        text item_id PK
-        timestamp unlocked_at
+    PLAYER_NOTE {
+        text user_id PK, FK
+        text note "whole, half, quarter, eighth, sixteenth, thirtySecond"
     }
     RECOVERY_CODE {
         text user_id PK, FK
@@ -131,14 +124,9 @@ erDiagram
 | `invite_link` | Lien d'invitation à usage unique pour une course privée | Seul le hachage du jeton est stocké; le lien est consommé dans la même transaction que l'ajout du membre, ce qui empêche deux personnes d'utiliser le même lien. Exigence 5.3. |
 | `race` | Une course jouée dans une salle : le texte et les paramètres au départ | Exigences 3.10, 6.6. |
 | `race_result` | Le résultat d'un joueur ou d'un bot pour une course | `outcome` vaut `finished`, `forfeited`, `kicked`, `eliminated` ou `timed_out`. Exigences 1.5, 6.3 à 6.5. |
+| `player_note` | La note de musique choisie par un joueur (exigence 6.7) | Les notes débloquées ne sont pas stockées : elles se déduisent du nombre de victoires dans `race_result` (une toutes les 5). Sans ligne, le joueur affiche sa note la plus récente. |
 
 Comme Better Auth exige un courriel, les comptes créés avec nom d'utilisateur et mot de passe reçoivent une adresse interne de la forme `nom@users.invalid`. Elle n'est jamais utilisée pour envoyer un message. C'est pour ça que la récupération de mot de passe passe par un code plutôt que par courriel.
-
-## Tables prévues
-
-| Table | Rôle | Exigence | Priorité |
-|---|---|---|---|
-| `item`, `user_item` | Objets déblocables et ceux que chaque joueur possède | 6.7 | 6 |
 
 ## Choix de conception
 

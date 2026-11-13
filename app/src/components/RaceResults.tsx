@@ -40,7 +40,7 @@ export default function RaceResults({
         <p className="mt-3 text-muted">
           {(goalCount === 0 ? t.goalBeatNone : goalCount === 1 ? t.goalBeatOne : t.goalBeat)
             .replace("{n}", String(goalCount))
-            .replace("{goal}", seconds(goalMs))}
+            .replace("{goal}", `${race.timeGoalSec} s`)}
         </p>
       )}
 
@@ -98,7 +98,7 @@ export default function RaceResults({
                 <td className="py-3 pr-4 text-right font-mono">
                   {Math.round(r.accuracy * 100)}%
                 </td>
-                <td className="py-3 pr-4 text-right font-mono">
+                <td className="whitespace-nowrap py-3 pr-4 text-right font-mono">
                   {r.timeMs === null ? "-" : seconds(r.timeMs)}
                   {goalMs > 0 && metGoal(r) && (
                     <span className="ml-2 text-teal" title={t.goalMet}>

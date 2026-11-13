@@ -97,7 +97,7 @@ erDiagram
         numeric wpm
         numeric accuracy
         jsonb missed_keys "pour la carte de chaleur"
-        text outcome "finished, forfeited, kicked, timed_out"
+        text outcome "finished, forfeited, kicked, eliminated, timed_out"
     }
     ITEM {
         text id PK

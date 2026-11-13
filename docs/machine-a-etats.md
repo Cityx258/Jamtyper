@@ -32,7 +32,7 @@ stateDiagram-v2
 
 Le cahier des charges signale trois conditions de fin sans ordre (zone floue 2). On applique la règle suivante, la première condition vraie l'emporte :
 
-1. **Tous les coureurs ont terminé, abandonné ou été expulsés** : fin immédiate.
+1. **Tous les coureurs ont terminé, abandonné, été éliminés ou été expulsés** : fin immédiate.
 2. **La limite de temps de l'hôte est atteinte** : fin immédiate, même si la minuterie de clôture court encore. Les coureurs non terminés sont classés `timed_out` selon leur progression.
 3. **La minuterie de clôture est écoulée** : même traitement que la limite de temps.
 
@@ -50,14 +50,17 @@ stateDiagram-v2
     disconnected --> forfeited : délai de grâce dépassé
     racer --> forfeited : abandonne
     racer --> kicked : l'hôte expulse
+    racer --> eliminated : faute en mort instantanée
     racer --> finished : texte terminé
     forfeited --> [*]
     kicked --> [*]
+    eliminated --> [*]
     finished --> [*]
 ```
 
 - Un joueur déconnecté **reste dans la course** tant qu'elle n'est pas terminée et peut reprendre sa place (exigence 2.10). Le délai de grâce proposé est de 30 secondes, à ajuster.
 - Un joueur qui abandonne est considéré comme perdant (exigence 2.11).
+- En mode mort instantanée, la première faute classe le joueur `eliminated`, humain ou bot (exigence 3.12). Il est classé avec les abandons, selon sa progression.
 - Un joueur qui arrive après le départ devient spectateur pour cette course seulement (exigence 2.13).
 
 ## Départ de l'hôte
@@ -95,6 +98,7 @@ L'hôte peut changer la visibilité à tout moment; tous les joueurs la voient.
 | client vers serveur | `member:approve` | hôte seulement |
 | client vers serveur | `member:kick` | hôte seulement |
 | client vers serveur | `member:promote` | hôte seulement, cible avec un compte |
+| client vers serveur | `member:team` | `lobby`, hôte seulement |
 | client vers serveur | `room:configure` (paramètres partiels, validés et fusionnés par le serveur) | `lobby` et `results`, hôte seulement |
 | client vers serveur | `race:start` | `lobby`, hôte seulement |
 | client vers serveur | `race:progress` (position dans le texte) | `racing`, `finishing` |
@@ -109,6 +113,12 @@ Les messages reçus dans un état qui ne les accepte pas sont ignorés et journa
 
 - Le minimum de 2 coureurs inclut les bots : un joueur seul peut lancer une course contre un bot si l'hôte a laissé les bots activés. Il faut toujours au moins un humain parmi les coureurs.
 - Les bots ne retiennent pas la course : dès qu'aucun humain n'est encore en course (tous ont fini ou abandonné), la course passe à `results`.
+
+## Équipes
+
+- Quand l'hôte active les équipes, les joueurs sont répartis en deux équipes (Sol et Fa) dans l'ordre d'arrivée. Un joueur qui arrive ensuite rejoint la plus petite. L'hôte peut déplacer n'importe qui dans le lobby.
+- Au départ, si les bots sont activés, des bots s'ajoutent à la plus petite équipe jusqu'à l'égalité. Sans bots, chaque équipe doit avoir au moins un coureur connecté (erreur `empty_team`), mais des équipes de tailles différentes sont permises.
+- L'équipe gagnante est celle dont la vitesse moyenne (MPM net) est la plus haute. Une moyenne ne désavantage pas une équipe plus petite.
 
 ## Points à valider
 

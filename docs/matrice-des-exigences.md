@@ -12,7 +12,7 @@ Chaque exigence du cahier des charges, sa priorité et où elle en est. Les num�
 | 4 | Options avancées de course | Fait |
 | 5 | Bots et boosts | Fait |
 | 6 | Écrans de fin, statistiques, récompenses | Partiel : il manque le podium, les graphiques, les récompenses et la page de paramètres |
-| 7 | Bilinguisme, thèmes, responsive, optionnel | Partiel : bilinguisme et thèmes faits |
+| 7 | Bilinguisme, thèmes, responsive, optionnel | Fait, sauf la direction artistique (en cours) |
 | 8 | Tests, déploiement, sécurité, documentation | À faire |
 
 ## Comment lire les tableaux
@@ -80,9 +80,9 @@ Tous ces réglages sont dans le panneau « Paramètres de la course » du lobby.
 | 3.9 | Limite de temps | 4 | Fait | Script | 30 s, 1, 2, 3, 5 ou 10 minutes. |
 | 3.10 | Texte généré par algorithme, différent à chaque course | 4 | Fait | Script | Tirage aléatoire cryptographique à chaque départ. |
 | 3.11 | Continuer ou non après une erreur, sans pénalité disproportionnée | 4 | Fait | Navigateur | « À corriger » ou « On continue ». En mode continu, une faute ne compte pas dans la vitesse (MPM net) : elle coûte un caractère, pas plus. |
-| 3.12 | Mode mort instantanée | 7 | Optionnel | | |
-| 3.13 | Objectif de temps | 7 | Optionnel | | |
-| 3.14 | Équipes | 7 | Optionnel | | |
+| 3.12 | Mode mort instantanée | 7 | Fait | Navigateur | La première faute élimine le joueur (bots compris). Un bandeau rappelle le mode pendant la course. |
+| 3.13 | Objectif de temps | 7 | Fait | Navigateur | 30 s à 2 min. Affiché pendant la course; les résultats montrent le temps de chacun et qui a battu l'objectif. |
+| 3.14 | Équipes | 7 | Fait | Navigateur | Deux équipes (Sol et Fa), réparties automatiquement, modifiables par l'hôte. Les bots équilibrent les équipes. L'équipe avec la meilleure moyenne MPM gagne. |
 | 3.15 | Bots ajoutés automatiquement si pas assez de joueurs | 5 | Fait | Script | Option « Bots », activée par défaut. Étiquette « bot », pas d'expulsion, exclus des statistiques du joueur. |
 | 3.16 | Difficulté des bots configurable | 5 | Fait | Script | Facile, moyen, expert, impossible (environ 25, 45, 75 et 140 MPM), avec des fautes. |
 | 3.17 | Vitesse des bots variable dans le temps | 5 | Fait | Script | Départ lent, rythme qui change, accélérations brèves, pauses après les espaces et la ponctuation. |
@@ -118,11 +118,12 @@ Tous ces réglages sont dans le panneau « Paramètres de la course » du lobby.
 
 | N° | Exigence | Priorité | État | Vérifié par | Remarque |
 |---|---|---|---|---|---|
-| 7.1 | Site en français et en anglais | 7 | Fait | Navigateur | Bouton EN/FR dans l'en-tête, choix gardé dans un témoin. |
+| 7.1 | Site en français et en anglais | 7 | Fait | Navigateur | Bouton EN/FR dans l'en-tête, choix gardé dans un témoin. Tous les textes passent par `src/i18n`, y compris la page 404 et les titres d'onglet. |
 | 7.2 | Thème clair et thème sombre | 7 | Fait | Navigateur | Bouton dans l'en-tête, choix gardé dans un témoin. |
-| 7.2 bis | Site responsive | 7 | Partiel | | Pensé pour téléphone, tablette et ordinateur, mais pas encore vérifié à ces tailles. |
+| 7.2 bis | Site responsive | 7 | Fait | Navigateur | Chaque page (accueil, connexion, entraînement, profil, lobby, course, résultats) vérifiée à 360, 768 et 1280 pixels, en français et en anglais, sans défilement horizontal. |
 | 7.3 | Design unique, sans apparence générée par IA | 7 | Partiel | | Direction artistique en cours. |
 | 7.4 | Nom et logo créés par le développeur | 7 | Fait | | Nom : JamTyper. Logo dessiné à la main (`images/logo.jpg`), vectorisé en `app/public/logo.svg`. |
+| 7.5 | Effets sonores (optionnel, liste de priorités) | 7 | Fait | Navigateur | Coupés par défaut, bouton dans l'en-tête. Compte à rebours, départ, faute, arrivée, élimination. Sons générés par le navigateur, sans fichier audio. |
 
 ## 8. Technique, sécurité et exploitation
 

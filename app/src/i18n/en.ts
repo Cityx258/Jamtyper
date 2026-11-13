@@ -23,6 +23,13 @@ const en = {
       signInToHost: "Sign in to host",
       pending: "Creating...",
       error: "Couldn't create the room. Try again.",
+      hostOwn: "Or host a room for your friends",
+    },
+    quickplay: {
+      pending: "Finding a race...",
+      error: "Couldn't find a race. Try again.",
+      none: "No public race right now.",
+      signIn: "Sign in to host one",
     },
     join: {
       label: "Room code",
@@ -119,6 +126,7 @@ const en = {
       not_host: "Only the host can do that.",
       not_enough_racers: "At least 2 connected players are needed to start.",
       invite_required: "This room is invite only. Ask the host for an invite link.",
+      no_public_room: "No public race right now.",
       bad_state: "That can't be done right now.",
       server_error: "Something went wrong. Please try again.",
     },

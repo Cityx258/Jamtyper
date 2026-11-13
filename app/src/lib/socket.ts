@@ -4,6 +4,7 @@ import type {
   ClientToServerEvents,
   InviteResult,
   ProgressPayload,
+  QuickplayResult,
   RoomResult,
   ServerToClientEvents,
   Visibility,
@@ -68,6 +69,12 @@ export async function requestJoinRoom(
   return s
     .timeout(ACK_TIMEOUT_MS)
     .emitWithAck("room:join", { code, guestName, invite });
+}
+
+export async function requestQuickplay(): Promise<QuickplayResult> {
+  const s = getSocket();
+  await connected(s);
+  return s.timeout(ACK_TIMEOUT_MS).emitWithAck("room:quickplay");
 }
 
 export async function requestLeaveRoom(): Promise<void> {

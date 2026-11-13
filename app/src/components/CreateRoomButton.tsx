@@ -3,25 +3,25 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { primaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import { requestCreateRoom } from "@/lib/socket";
 
 type Props = {
   signedIn: boolean;
-  label: string;
   t: Dict["home"]["create"];
 };
 
-export default function CreateRoomButton({ signedIn, label, t }: Props) {
+const linkStyle =
+  "text-sm text-teal underline underline-offset-4 hover:text-teal-bright disabled:opacity-60";
+
+export default function CreateRoomButton({ signedIn, t }: Props) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  // Guests can join rooms but not host them (see the client Q&A in the spec).
   if (!signedIn) {
     return (
-      <Link href="/login" className={`self-start ${primaryButton}`}>
+      <Link href="/login" className={`self-start ${linkStyle}`}>
         {t.signInToHost}
       </Link>
     );
@@ -37,7 +37,6 @@ export default function CreateRoomButton({ signedIn, label, t }: Props) {
         return;
       }
     } catch {
-      // fall through to the error message
     }
     setFailed(true);
     setPending(false);
@@ -49,9 +48,9 @@ export default function CreateRoomButton({ signedIn, label, t }: Props) {
         type="button"
         onClick={create}
         disabled={pending}
-        className={primaryButton}
+        className={linkStyle}
       >
-        {pending ? t.pending : label}
+        {pending ? t.pending : t.hostOwn}
       </button>
       {failed && (
         <p role="alert" className="mt-2 text-sm text-danger">

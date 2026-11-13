@@ -4,6 +4,7 @@ import Clef from "@/components/Clef";
 import CreateRoomButton from "@/components/CreateRoomButton";
 import Header from "@/components/Header";
 import JoinRoomForm from "@/components/JoinRoomForm";
+import QuickplayButton from "@/components/QuickplayButton";
 import { primaryButton } from "@/components/ui";
 import { getDict } from "@/i18n";
 import { auth } from "@/lib/auth";
@@ -56,11 +57,14 @@ export default async function Home() {
               <h2 className="font-display text-2xl">{m.title}</h2>
               <p className="flex-1 text-muted">{m.text}</p>
               {i === 0 && (
-                <CreateRoomButton
-                  signedIn={!!session}
-                  label={m.action}
-                  t={t.create}
-                />
+                <div className="flex flex-col items-start gap-4">
+                  <QuickplayButton
+                    signedIn={!!session}
+                    label={m.action}
+                    t={t.quickplay}
+                  />
+                  <CreateRoomButton signedIn={!!session} t={t.create} />
+                </div>
               )}
               {i === 1 && <JoinRoomForm action={m.action} t={t.join} />}
               {i === 2 && (

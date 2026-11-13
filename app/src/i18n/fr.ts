@@ -25,6 +25,13 @@ const fr: Dict = {
       signInToHost: "Connecte-toi pour créer",
       pending: "Création...",
       error: "Impossible de créer la salle. Réessaie.",
+      hostOwn: "Ou crée une salle pour tes amis",
+    },
+    quickplay: {
+      pending: "Recherche d'une course...",
+      error: "Impossible de trouver une course. Réessaie.",
+      none: "Aucune course publique pour le moment.",
+      signIn: "Connecte-toi pour en créer une",
     },
     join: {
       label: "Code de salle",
@@ -124,6 +131,7 @@ const fr: Dict = {
       not_host: "Seul l'hôte peut faire ça.",
       not_enough_racers: "Il faut au moins 2 joueurs connectés pour lancer la course.",
       invite_required: "Cette salle est sur invitation. Demande un lien à l'hôte.",
+      no_public_room: "Aucune course publique pour le moment.",
       bad_state: "Impossible pour le moment.",
       server_error: "Une erreur est survenue. Réessaie.",
     },

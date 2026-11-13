@@ -7,6 +7,7 @@ import {
   VISIBILITIES,
   type ActionResult,
   type InviteResult,
+  type QuickplayResult,
   type RoomError,
   type RoomResult,
   type Visibility,
@@ -308,6 +309,28 @@ export async function joinRoom(
   attach(socket, room, member);
   broadcast(io, room);
   return { ok: true, room: toView(room), you: member.id };
+}
+
+export async function quickplay(
+  io: AppServer,
+  socket: AppSocket,
+): Promise<QuickplayResult> {
+  const { identity } = socket.data;
+  const open = [...rooms.values()].filter((r) => r.visibility === "public");
+  const busiest = (list: Room[]) =>
+    list.sort((a, b) => b.members.size - a.members.size)[0];
+
+  const pick =
+    open.find((r) => r.members.has(identity.key)) ??
+    busiest(open.filter((r) => r.status === "lobby"));
+  if (pick) return { ok: true, code: pick.code };
+
+  if (identity.userId) {
+    const created = await createRoom(io, socket, "public");
+    return created.ok ? { ok: true, code: created.room.code } : created;
+  }
+  const running = busiest(open);
+  return running ? { ok: true, code: running.code } : fail("no_public_room");
 }
 
 export async function setVisibility(

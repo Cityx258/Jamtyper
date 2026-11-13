@@ -61,6 +61,7 @@ export type RoomError =
   | "not_host"
   | "not_enough_racers"
   | "invite_required"
+  | "no_public_room"
   | "bad_state"
   | "server_error";
 
@@ -69,6 +70,10 @@ export type RoomResult =
   | { ok: false; error: RoomError };
 
 export type ActionResult = { ok: true } | { ok: false; error: RoomError };
+
+export type QuickplayResult =
+  | { ok: true; code: string }
+  | { ok: false; error: RoomError };
 
 export type InviteResult =
   | { ok: true; token: string }
@@ -88,6 +93,7 @@ export interface ClientToServerEvents {
     payload: { code: string; guestName?: string; invite?: string },
     ack: (result: RoomResult) => void,
   ) => void;
+  "room:quickplay": (ack: (result: QuickplayResult) => void) => void;
   "room:visibility": (
     payload: { visibility: Visibility },
     ack: (result: ActionResult) => void,

@@ -23,6 +23,7 @@ import {
   createRoom,
   joinRoom,
   leaveRoom,
+  quickplay,
   setVisibility,
   type AppServer,
   type Identity,
@@ -132,6 +133,9 @@ async function main() {
           payload?.invite,
         ),
       ),
+    );
+    socket.on("room:quickplay", (ack) =>
+      respond("room:quickplay", ack, () => quickplay(io, socket)),
     );
     socket.on("room:visibility", (payload, ack) =>
       respond("room:visibility", ack, () =>

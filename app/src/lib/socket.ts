@@ -2,9 +2,11 @@ import { io, type Socket } from "socket.io-client";
 import type {
   ActionResult,
   ClientToServerEvents,
+  InviteResult,
   ProgressPayload,
   RoomResult,
   ServerToClientEvents,
+  Visibility,
 } from "./room-protocol";
 
 export type AppClientSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -59,10 +61,13 @@ export async function requestCreateRoom(): Promise<RoomResult> {
 export async function requestJoinRoom(
   code: string,
   guestName?: string,
+  invite?: string,
 ): Promise<RoomResult> {
   const s = getSocket();
   await connected(s);
-  return s.timeout(ACK_TIMEOUT_MS).emitWithAck("room:join", { code, guestName });
+  return s
+    .timeout(ACK_TIMEOUT_MS)
+    .emitWithAck("room:join", { code, guestName, invite });
 }
 
 export async function requestLeaveRoom(): Promise<void> {
@@ -82,6 +87,24 @@ export async function requestAction(event: HostAction): Promise<ActionResult> {
     return { ok: false, error: "server_error" };
   }
 }
+
+async function guarded<T extends { ok: boolean }>(
+  send: (s: AppClientSocket) => Promise<T>,
+): Promise<T | { ok: false; error: "server_error" }> {
+  const s = getSocket();
+  if (!s.connected) return { ok: false, error: "server_error" };
+  try {
+    return await send(s.timeout(ACK_TIMEOUT_MS) as AppClientSocket);
+  } catch {
+    return { ok: false, error: "server_error" };
+  }
+}
+
+export const requestVisibility = (visibility: Visibility) =>
+  guarded((s) => s.emitWithAck("room:visibility", { visibility }));
+
+export const requestInvite = (): Promise<InviteResult> =>
+  guarded((s) => s.emitWithAck("room:invite"));
 
 export function sendProgress(progress: ProgressPayload) {
   getSocket().emit("race:progress", progress);

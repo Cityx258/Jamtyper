@@ -8,6 +8,7 @@ import type {
   RoomStatus,
   RoomView,
   ServerToClientEvents,
+  Visibility,
 } from "../src/lib/room-protocol";
 
 export const GRACE_MS = 30_000;
@@ -78,7 +79,9 @@ export interface Room {
   code: string;
   hostKey: string;
   status: RoomStatus;
+  visibility: Visibility;
   members: Map<string, Member>;
+  invitesIssued: number;
   race: Race | null;
 }
 
@@ -136,6 +139,7 @@ export function toView(room: Room): RoomView {
   return {
     code: room.code,
     status: room.status,
+    visibility: room.visibility,
     minRacers: MIN_RACERS,
     members: members.map((m) => ({
       id: m.id,

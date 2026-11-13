@@ -19,9 +19,11 @@ import type { AppSocket } from "./room-state";
 import {
   closeRoomByHost,
   closeStaleRooms,
+  createInvite,
   createRoom,
   joinRoom,
   leaveRoom,
+  setVisibility,
   type AppServer,
   type Identity,
 } from "./rooms";
@@ -122,8 +124,22 @@ async function main() {
     );
     socket.on("room:join", (payload, ack) =>
       respond("room:join", ack, () =>
-        joinRoom(io, socket, payload?.code, payload?.guestName),
+        joinRoom(
+          io,
+          socket,
+          payload?.code,
+          payload?.guestName,
+          payload?.invite,
+        ),
       ),
+    );
+    socket.on("room:visibility", (payload, ack) =>
+      respond("room:visibility", ack, () =>
+        setVisibility(io, socket, payload),
+      ),
+    );
+    socket.on("room:invite", (ack) =>
+      respond("room:invite", ack, () => createInvite(socket)),
     );
 
     socket.on("room:leave", async (ack) => {

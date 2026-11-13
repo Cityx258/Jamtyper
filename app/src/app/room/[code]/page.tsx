@@ -12,8 +12,9 @@ export async function generateMetadata(props: PageProps<"/room/[code]">) {
 }
 
 export default async function RoomPage(props: PageProps<"/room/[code]">) {
-  const [{ code }, t, session] = await Promise.all([
+  const [{ code }, { invite }, t, session] = await Promise.all([
     props.params,
+    props.searchParams,
     getDict(),
     headers().then((h) => auth.api.getSession({ headers: h })),
   ]);
@@ -24,6 +25,7 @@ export default async function RoomPage(props: PageProps<"/room/[code]">) {
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pb-16 pt-8 sm:px-8 sm:pt-14">
         <RoomLobby
           code={normalizeRoomCode(code)}
+          invite={typeof invite === "string" ? invite : null}
           accountName={
             session ? (session.user.displayUsername ?? session.user.name) : null
           }

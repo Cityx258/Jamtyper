@@ -60,8 +60,24 @@ const fr: Dict = {
     you: "toi",
     spectator: "spectateur",
     reconnecting: "reconnexion",
+    visibilityTitle: "Qui peut rejoindre",
+    visibilities: {
+      public: "Publique",
+      semi_public: "Avec le code",
+      private: "Sur invitation",
+    },
+    visibilityHints: {
+      public: "N'importe qui peut arriver ici depuis l'accueil, ou rejoindre avec le code.",
+      semi_public: "Tous ceux qui ont le code ou le lien peuvent rejoindre.",
+      private: "Seules les personnes avec un lien d'invitation à usage unique peuvent rejoindre.",
+    },
+    newInvite: "Nouveau lien d'invitation",
+    inviteHint: "Chaque lien laisse entrer une seule personne et expire après 24 heures.",
+    copyInvite: "Copier l'invitation",
     waiting:
       "Partage le code et attends tes amis. Une course demande au moins 2 joueurs.",
+    waitingInvite:
+      "Envoie des liens d'invitation et attends tes amis. Une course demande au moins 2 joueurs.",
     leave: "Quitter la salle",
     joining: "Connexion à la salle...",
     connectionLost: "Connexion perdue. Nouvelle tentative...",
@@ -107,6 +123,7 @@ const fr: Dict = {
       not_signed_in: "Tu dois te connecter pour faire ça.",
       not_host: "Seul l'hôte peut faire ça.",
       not_enough_racers: "Il faut au moins 2 joueurs connectés pour lancer la course.",
+      invite_required: "Cette salle est sur invitation. Demande un lien à l'hôte.",
       bad_state: "Impossible pour le moment.",
       server_error: "Une erreur est survenue. Réessaie.",
     },

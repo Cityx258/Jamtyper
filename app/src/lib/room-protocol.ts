@@ -6,6 +6,9 @@ export type RoomStatus =
   | "results"
   | "closed";
 
+export const VISIBILITIES = ["public", "semi_public", "private"] as const;
+export type Visibility = (typeof VISIBILITIES)[number];
+
 export interface MemberView {
   id: string;
   name: string;
@@ -45,6 +48,7 @@ export interface RaceView {
 export interface RoomView {
   code: string;
   status: RoomStatus;
+  visibility: Visibility;
   members: MemberView[];
   minRacers: number;
   race: RaceView | null;
@@ -56,6 +60,7 @@ export type RoomError =
   | "bad_request"
   | "not_host"
   | "not_enough_racers"
+  | "invite_required"
   | "bad_state"
   | "server_error";
 
@@ -64,6 +69,10 @@ export type RoomResult =
   | { ok: false; error: RoomError };
 
 export type ActionResult = { ok: true } | { ok: false; error: RoomError };
+
+export type InviteResult =
+  | { ok: true; token: string }
+  | { ok: false; error: RoomError };
 
 export type MissedKeys = Record<string, number>;
 
@@ -76,9 +85,14 @@ export interface ProgressPayload {
 export interface ClientToServerEvents {
   "room:create": (ack: (result: RoomResult) => void) => void;
   "room:join": (
-    payload: { code: string; guestName?: string },
+    payload: { code: string; guestName?: string; invite?: string },
     ack: (result: RoomResult) => void,
   ) => void;
+  "room:visibility": (
+    payload: { visibility: Visibility },
+    ack: (result: ActionResult) => void,
+  ) => void;
+  "room:invite": (ack: (result: InviteResult) => void) => void;
   "room:leave": (ack?: () => void) => void;
   "room:close": (ack: (result: ActionResult) => void) => void;
   "race:start": (ack: (result: ActionResult) => void) => void;

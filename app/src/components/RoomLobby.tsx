@@ -2,21 +2,34 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import RaceResults from "@/components/RaceResults";
 import RaceScreen from "@/components/RaceScreen";
-import { primaryButton, secondaryButton } from "@/components/ui";
+import {
+  primaryButton,
+  secondaryButton,
+  smallButton,
+} from "@/components/ui";
 import type { Dict } from "@/i18n/en";
-import type { RacerView, RoomError, RoomView } from "@/lib/room-protocol";
+import {
+  VISIBILITIES,
+  type ActionResult,
+  type RacerView,
+  type RoomError,
+  type RoomView,
+} from "@/lib/room-protocol";
 import {
   getSocket,
   requestAction,
+  requestInvite,
   requestJoinRoom,
   requestLeaveRoom,
+  requestVisibility,
 } from "@/lib/socket";
 
 type Props = {
   code: string | null;
+  invite: string | null;
   accountName: string | null;
   t: Dict["room"];
   heatmapT: Dict["profile"]["heatmap"];
@@ -83,7 +96,13 @@ function Message({
   );
 }
 
-export default function RoomLobby({ code, accountName, t, heatmapT }: Props) {
+export default function RoomLobby({
+  code,
+  invite,
+  accountName,
+  t,
+  heatmapT,
+}: Props) {
   const router = useRouter();
   const storedName = useSyncExternalStore(
     noSubscribe,
@@ -99,9 +118,11 @@ export default function RoomLobby({ code, accountName, t, heatmapT }: Props) {
   const [error, setError] = useState<RoomError | null>(code ? null : "bad_request");
   const [closed, setClosed] = useState(false);
   const [live, setLive] = useState(true);
-  const [copied, setCopied] = useState<"code" | "link" | null>(null);
+  const [copied, setCopied] = useState<"code" | "link" | "invite" | null>(null);
   const [offset, setOffset] = useState(0);
   const [actionError, setActionError] = useState<RoomError | null>(null);
+  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
+  const inviteRef = useRef(invite);
 
   useEffect(() => {
     if (!code || !ready) return;
@@ -111,9 +132,17 @@ export default function RoomLobby({ code, accountName, t, heatmapT }: Props) {
     async function join() {
       setLive(true);
       try {
-        const res = await requestJoinRoom(code!, accountName ? undefined : guestName);
+        const res = await requestJoinRoom(
+          code!,
+          accountName ? undefined : guestName,
+          inviteRef.current ?? undefined,
+        );
         if (cancelled) return;
         if (res.ok) {
+          if (inviteRef.current) {
+            inviteRef.current = null;
+            window.history.replaceState(null, "", `/room/${code}`);
+          }
           receive(res.room);
           setYou(res.you);
           setError(null);
@@ -155,9 +184,15 @@ export default function RoomLobby({ code, accountName, t, heatmapT }: Props) {
     };
   }, [code, ready, accountName, guestName]);
 
-  async function copy(what: "code" | "link") {
+  async function copy(what: "code" | "link" | "invite") {
     if (!code) return;
-    const text = what === "code" ? code : `${location.origin}/room/${code}`;
+    const text =
+      what === "code"
+        ? code
+        : what === "link"
+          ? `${location.origin}/room/${code}`
+          : inviteUrl;
+    if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
       setCopied(what);
@@ -166,12 +201,25 @@ export default function RoomLobby({ code, accountName, t, heatmapT }: Props) {
     }
   }
 
-  async function act(
-    event: "race:start" | "race:cancel" | "race:again" | "race:forfeit" | "room:close",
-  ) {
+  async function run(request: Promise<ActionResult>) {
     setActionError(null);
-    const res = await requestAction(event);
+    const res = await request;
     if (!res.ok) setActionError(res.error);
+  }
+
+  const act = (
+    event: "race:start" | "race:cancel" | "race:again" | "race:forfeit" | "room:close",
+  ) => run(requestAction(event));
+
+  async function newInvite() {
+    setActionError(null);
+    const res = await requestInvite();
+    if (!res.ok) {
+      setActionError(res.error);
+      return;
+    }
+    setInviteUrl(`${location.origin}/room/${code}?invite=${res.token}`);
+    setCopied(null);
   }
 
   async function leave() {
@@ -243,7 +291,9 @@ export default function RoomLobby({ code, accountName, t, heatmapT }: Props) {
     return <p className="text-muted">{t.joining}</p>;
   }
 
-  const isHost = !!room.members.find((m) => m.id === you)?.isHost;
+  const me = room.members.find((m) => m.id === you);
+  const isHost = !!me?.isHost;
+  const isPrivate = room.visibility === "private";
   const readyRacers = room.members.filter(
     (m) => m.role === "racer" && m.connected,
   ).length;
@@ -312,14 +362,70 @@ export default function RoomLobby({ code, accountName, t, heatmapT }: Props) {
           {room.code}
         </h1>
       </div>
-      <div className="mt-6 flex flex-wrap gap-3">
-        <button type="button" onClick={() => copy("code")} className={secondaryButton}>
-          {copied === "code" ? t.copied : t.copyCode}
-        </button>
-        <button type="button" onClick={() => copy("link")} className={secondaryButton}>
-          {copied === "link" ? t.copied : t.copyLink}
-        </button>
-      </div>
+      {!isPrivate && (
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button type="button" onClick={() => copy("code")} className={secondaryButton}>
+            {copied === "code" ? t.copied : t.copyCode}
+          </button>
+          <button type="button" onClick={() => copy("link")} className={secondaryButton}>
+            {copied === "link" ? t.copied : t.copyLink}
+          </button>
+        </div>
+      )}
+
+      <section className="mt-10 max-w-xl" aria-labelledby="visibility-title">
+        <h2
+          id="visibility-title"
+          className="font-mono text-xs uppercase tracking-[0.3em] text-muted"
+        >
+          {t.visibilityTitle}
+        </h2>
+        {isHost ? (
+          <div className="mt-3 flex flex-wrap gap-2" role="group" aria-labelledby="visibility-title">
+            {VISIBILITIES.map((v) => (
+              <button
+                key={v}
+                type="button"
+                aria-pressed={room.visibility === v}
+                onClick={() => run(requestVisibility(v))}
+                className={
+                  room.visibility === v
+                    ? "rounded-full border border-teal bg-teal/15 px-4 py-1.5 text-sm font-medium text-ink"
+                    : "rounded-full border border-line px-4 py-1.5 text-sm text-muted transition-colors hover:border-teal hover:text-ink"
+                }
+              >
+                {t.visibilities[v]}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-2 font-display text-xl">{t.visibilities[room.visibility]}</p>
+        )}
+        <p className="mt-2 text-sm text-muted">{t.visibilityHints[room.visibility]}</p>
+
+        {isHost && isPrivate && (
+          <div className="mt-5">
+            <button type="button" onClick={newInvite} className={secondaryButton}>
+              {t.newInvite}
+            </button>
+            {inviteUrl && (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <input
+                  readOnly
+                  value={inviteUrl}
+                  aria-label={t.newInvite}
+                  onFocus={(e) => e.currentTarget.select()}
+                  className="min-w-0 flex-1 rounded-lg border border-line bg-bg/70 px-3 py-2 font-mono text-xs text-ink"
+                />
+                <button type="button" onClick={() => copy("invite")} className={smallButton}>
+                  {copied === "invite" ? t.copied : t.copyInvite}
+                </button>
+              </div>
+            )}
+            <p className="mt-2 text-sm text-muted">{t.inviteHint}</p>
+          </div>
+        )}
+      </section>
 
       <section className="mt-12" aria-label={t.players}>
         <h2 className="font-display text-2xl">
@@ -345,7 +451,9 @@ export default function RoomLobby({ code, accountName, t, heatmapT }: Props) {
         </ul>
       </section>
 
-      <p className="mt-8 max-w-xl text-muted">{t.waiting}</p>
+      <p className="mt-8 max-w-xl text-muted">
+        {isPrivate ? t.waitingInvite : t.waiting}
+      </p>
 
       {isHost ? (
         <div className="mt-6">

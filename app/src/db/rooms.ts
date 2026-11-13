@@ -61,6 +61,27 @@ export const roomMember = pgTable(
   ],
 );
 
+export const inviteLink = pgTable(
+  "invite_link",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    roomId: uuid("room_id")
+      .notNull()
+      .references(() => room.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    createdBy: text("created_by").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    usedAt: timestamp("used_at"),
+    usedBy: uuid("used_by").references(() => roomMember.id, {
+      onDelete: "set null",
+    }),
+  },
+  (table) => [index("invite_link_room_idx").on(table.roomId)],
+);
+
 export const race = pgTable(
   "race",
   {
@@ -107,12 +128,17 @@ export const raceResult = pgTable(
 export const roomRelations = relations(room, ({ many, one }) => ({
   members: many(roomMember),
   races: many(race),
+  invites: many(inviteLink),
   host: one(user, { fields: [room.hostId], references: [user.id] }),
 }));
 
 export const roomMemberRelations = relations(roomMember, ({ one }) => ({
   room: one(room, { fields: [roomMember.roomId], references: [room.id] }),
   user: one(user, { fields: [roomMember.userId], references: [user.id] }),
+}));
+
+export const inviteLinkRelations = relations(inviteLink, ({ one }) => ({
+  room: one(room, { fields: [inviteLink.roomId], references: [room.id] }),
 }));
 
 export const raceRelations = relations(race, ({ many, one }) => ({

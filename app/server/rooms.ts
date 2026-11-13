@@ -1,12 +1,15 @@
-import { randomUUID } from "node:crypto";
-import { and, eq, inArray, isNull, ne } from "drizzle-orm";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { and, eq, gt, inArray, isNull, ne } from "drizzle-orm";
 import { db } from "../src/db";
-import { room as roomTable, roomMember } from "../src/db/rooms";
+import { inviteLink, room as roomTable, roomMember } from "../src/db/rooms";
 import { normalizeRoomCode } from "../src/lib/room-code";
-import type {
-  ActionResult,
-  RoomError,
-  RoomResult,
+import {
+  VISIBILITIES,
+  type ActionResult,
+  type InviteResult,
+  type RoomError,
+  type RoomResult,
+  type Visibility,
 } from "../src/lib/room-protocol";
 import { generateRoomCode } from "./codes";
 import { dropRacer, hostContext, isStillRacing, stopRace } from "./race";
@@ -25,8 +28,23 @@ import {
 export type { AppServer, Identity } from "./room-state";
 
 const MAX_NAME_LENGTH = 20;
+const MAX_INVITES_PER_ROOM = 100;
+const INVITE_TTL_MS = 24 * 60 * 60 * 1000;
+const INVITE_TOKEN = /^[A-Za-z0-9_-]{24}$/;
 
-const fail = (error: RoomError): RoomResult => ({ ok: false, error });
+const fail = (error: RoomError) => ({ ok: false, error }) as const;
+
+class InviteRejected extends Error {}
+
+const hashToken = (token: string) =>
+  createHash("sha256").update(token).digest("hex");
+
+function inviteHash(raw: unknown): string | null {
+  return typeof raw === "string" && INVITE_TOKEN.test(raw)
+    ? hashToken(raw)
+    : null;
+}
+
 
 function isUniqueViolation(e: unknown): boolean {
   const code = (e as { code?: string })?.code;
@@ -160,6 +178,7 @@ export async function closeRoomByHost(
 export async function createRoom(
   io: AppServer,
   socket: AppSocket,
+  visibility: Visibility = "semi_public",
 ): Promise<RoomResult> {
   const { identity } = socket.data;
   if (!identity.userId) return fail("not_signed_in");
@@ -173,7 +192,7 @@ export async function createRoom(
       const roomId = await db.transaction(async (tx) => {
         const [created] = await tx
           .insert(roomTable)
-          .values({ code, hostId: identity.userId! })
+          .values({ code, hostId: identity.userId!, visibility })
           .returning({ id: roomTable.id });
         await tx.insert(roomMember).values({
           id: memberId,
@@ -198,7 +217,9 @@ export async function createRoom(
         code,
         hostKey: identity.key,
         status: "lobby",
+        visibility,
         members: new Map([[identity.key, member]]),
+        invitesIssued: 0,
         race: null,
       };
       rooms.set(code, room);
@@ -218,6 +239,7 @@ export async function joinRoom(
   socket: AppSocket,
   rawCode: unknown,
   rawGuestName: unknown,
+  rawInvite: unknown,
 ): Promise<RoomResult> {
   const code = normalizeRoomCode(rawCode);
   if (!code) return fail("bad_request");
@@ -231,6 +253,8 @@ export async function joinRoom(
 
   let member = room.members.get(identity.key);
   if (!member) {
+    const invite = room.visibility === "private" ? inviteHash(rawInvite) : null;
+    if (room.visibility === "private" && !invite) return fail("invite_required");
     const name = identity.userId
       ? identity.name
       : cleanGuestName(rawGuestName) || identity.name;
@@ -245,17 +269,35 @@ export async function joinRoom(
     };
     room.members.set(identity.key, created);
     try {
-      await db.insert(roomMember).values({
-        id: created.id,
-        roomId: room.id,
-        userId: created.userId,
-        guestName: created.userId ? null : created.name,
-        role: created.role,
+      await db.transaction(async (tx) => {
+        await tx.insert(roomMember).values({
+          id: created.id,
+          roomId: room.id,
+          userId: created.userId,
+          guestName: created.userId ? null : created.name,
+          role: created.role,
+        });
+        if (!invite) return;
+        const now = new Date();
+        const used = await tx
+          .update(inviteLink)
+          .set({ usedAt: now, usedBy: created.id })
+          .where(
+            and(
+              eq(inviteLink.roomId, room.id),
+              eq(inviteLink.tokenHash, invite),
+              isNull(inviteLink.usedAt),
+              gt(inviteLink.expiresAt, now),
+            ),
+          )
+          .returning({ id: inviteLink.id });
+        if (used.length === 0) throw new InviteRejected();
       });
     } catch (e) {
       if (room.members.get(identity.key) === created) {
         room.members.delete(identity.key);
       }
+      if (e instanceof InviteRejected) return fail("invite_required");
       console.error("[rooms] joinRoom failed", e);
       return fail("server_error");
     }
@@ -266,6 +308,47 @@ export async function joinRoom(
   attach(socket, room, member);
   broadcast(io, room);
   return { ok: true, room: toView(room), you: member.id };
+}
+
+export async function setVisibility(
+  io: AppServer,
+  socket: AppSocket,
+  payload: unknown,
+): Promise<ActionResult> {
+  const ctx = hostContext(socket);
+  if (typeof ctx === "string") return fail(ctx);
+  const visibility = (payload as { visibility?: unknown } | null)?.visibility;
+  if (!VISIBILITIES.includes(visibility as Visibility)) {
+    return fail("bad_request");
+  }
+  const { room } = ctx;
+  room.visibility = visibility as Visibility;
+  broadcast(io, room);
+  try {
+    await db
+      .update(roomTable)
+      .set({ visibility: room.visibility })
+      .where(eq(roomTable.id, room.id));
+  } catch (e) {
+    console.error("[rooms] failed to persist visibility", e);
+  }
+  return { ok: true };
+}
+
+export async function createInvite(socket: AppSocket): Promise<InviteResult> {
+  const ctx = hostContext(socket);
+  if (typeof ctx === "string") return fail(ctx);
+  const { room, member } = ctx;
+  if (room.invitesIssued >= MAX_INVITES_PER_ROOM) return fail("bad_state");
+  room.invitesIssued++;
+  const token = randomBytes(18).toString("base64url");
+  await db.insert(inviteLink).values({
+    roomId: room.id,
+    tokenHash: hashToken(token),
+    createdBy: member.userId,
+    expiresAt: new Date(Date.now() + INVITE_TTL_MS),
+  });
+  return { ok: true, token };
 }
 
 export async function closeStaleRooms() {

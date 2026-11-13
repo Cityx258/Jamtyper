@@ -179,7 +179,7 @@ const en = {
     teamTie: "The teams are tied!",
     teamAverage: "{wpm} WPM on average",
     boostYou: {
-      shortcut: "Shortcut! We skipped 2 words for you.",
+      shortcut: "Shortcut! We cut the last 2 words of your text.",
       spotlight: "You're way ahead! The text is foggy for a moment.",
     },
     boostTags: { shortcut: "shortcut", spotlight: "fogged" },

@@ -13,6 +13,7 @@ import type {
   RoomStatus,
 } from "../src/lib/room-protocol";
 import {
+  racerEnd,
   balanceTeams,
   broadcast,
   channel,
@@ -142,8 +143,7 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
           pitches: randomPitches(m.note),
           unlocked: null,
           samples: [],
-          jump: 0,
-          bonus: 0,
+          cut: 0,
           boost: null,
           lastBoostAt: 0,
         },
@@ -185,7 +185,7 @@ function beginRacing(io: AppServer, room: Room, race: Race) {
       race.dirty = true;
       if (race.settings.instantDeath && racer.mistakes > 0) {
         settle(io, room, race, racer, "eliminated");
-      } else if (racer.position >= race.text.length) {
+      } else if (racer.position >= racerEnd(race, racer)) {
         settle(io, room, race, racer, "finished");
       }
     }
@@ -298,11 +298,10 @@ export function recordProgress(
   const missedKeys = cleanMissed(missed, mistakes);
   if (!missedKeys) return;
   const elapsed = Date.now() - race.startsAt;
-  const cap =
-    Math.ceil((elapsed / 1000) * MAX_CHARS_PER_SECOND) + 5 + racer.bonus;
+  const cap = Math.ceil((elapsed / 1000) * MAX_CHARS_PER_SECOND) + 5;
   if (
     position < racer.position ||
-    position > race.text.length ||
+    position > racerEnd(race, racer) ||
     position > cap
   ) {
     return;
@@ -315,7 +314,7 @@ export function recordProgress(
   race.dirty = true;
   if (race.settings.instantDeath && racer.mistakes > 0) {
     settle(io, ctx.room, race, racer, "eliminated");
-  } else if (position === race.text.length) {
+  } else if (position === racerEnd(race, racer)) {
     settle(io, ctx.room, race, racer, "finished");
   }
 }

@@ -77,8 +77,7 @@ export interface Racer {
   pitches: number[];
   unlocked: NoteKind | null;
   samples: number[];
-  jump: number;
-  bonus: number;
+  cut: number;
   boost: BoostView | null;
   lastBoostAt: number;
 }
@@ -151,6 +150,8 @@ export function racerAccuracy(racer: Racer): number {
   return strokes === 0 ? 1 : racer.position / strokes;
 }
 
+export const racerEnd = (race: Race, racer: Racer) => race.text.length - racer.cut;
+
 export function racersView(race: Race, withSamples = false): RacerView[] {
   const now = Date.now();
   return [...race.racers.values()]
@@ -175,7 +176,7 @@ export function racersView(race: Race, withSamples = false): RacerView[] {
       place: r.place,
       timeMs: r.outcome === "finished" ? r.doneAt : null,
       missed: r.missed,
-      jump: r.jump,
+      end: racerEnd(race, r),
       boost: r.boost,
     }));
 }

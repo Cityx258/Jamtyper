@@ -1,7 +1,7 @@
 import { randomInt, randomUUID } from "node:crypto";
 import type { NoteKind } from "../src/lib/notes";
 import type { BotLevel } from "../src/lib/race-settings";
-import type { Race, Racer } from "./room-state";
+import { racerEnd, type Race, type Racer } from "./room-state";
 import { randomPitches } from "../src/lib/melody";
 
 const NAMES = [
@@ -66,8 +66,7 @@ export function createBots(
       pitches: randomPitches(note, random),
       unlocked: null,
       samples: [],
-      jump: 0,
-      bonus: 0,
+      cut: 0,
       boost: null,
       lastBoostAt: 0,
       bot: {
@@ -96,7 +95,7 @@ export function stepBot(race: Race, racer: Racer, dtMs: number): boolean {
   bot.pace += (bot.target - bot.pace) * Math.min(1, dtMs / 700);
   bot.carry += (bot.cps * bot.pace * dtMs) / 1000;
   let moved = false;
-  while (bot.carry >= 1 && racer.position < race.text.length) {
+  while (bot.carry >= 1 && racer.position < racerEnd(race, racer)) {
     bot.carry -= 1;
     if (random() < bot.typoRate) {
       const key = race.text[racer.position];

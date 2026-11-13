@@ -1,4 +1,4 @@
-import type { Race, Racer } from "./room-state";
+import { racerEnd, type Race, type Racer } from "./room-state";
 
 export const BOOST_GAP = 0.15;
 const SHORTCUT_COOLDOWN_MS = 10_000;
@@ -8,25 +8,25 @@ const SPOTLIGHT_COOLDOWN_MS = 12_000;
 const SPOTLIGHT_MS = 3_000;
 
 const fraction = (race: Race, r: Racer) =>
-  r.outcome === "finished" ? 1 : r.position / race.text.length;
+  r.outcome === "finished" ? 1 : r.position / racerEnd(race, r);
 
-function wordsAhead(text: string, from: number, words: number): number | null {
-  let at = from;
+export function cutLastWords(text: string, end: number, words: number): number | null {
+  let at = end;
   for (let i = 0; i < words; i++) {
-    const space = text.indexOf(" ", at);
-    if (space === -1) return null;
-    at = space + 1;
+    const space = text.lastIndexOf(" ", at - 1);
+    if (space <= 0) return null;
+    at = space;
   }
   return at;
 }
 
 function shortcut(race: Race, racer: Racer, now: number): boolean {
   if (now - racer.lastBoostAt < SHORTCUT_COOLDOWN_MS) return false;
-  const target = wordsAhead(race.text, racer.position, SHORTCUT_WORDS);
-  if (target === null || target >= race.text.length) return false;
-  racer.bonus += target - racer.position;
-  racer.position = target;
-  racer.jump = target;
+  const end = cutLastWords(race.text, racerEnd(race, racer), SHORTCUT_WORDS);
+  if (end === null) return false;
+  const nextSpace = race.text.indexOf(" ", racer.position);
+  if (nextSpace === -1 || end <= nextSpace) return false;
+  racer.cut = race.text.length - end;
   racer.boost = { kind: "shortcut", until: now + BADGE_MS };
   racer.lastBoostAt = now;
   return true;

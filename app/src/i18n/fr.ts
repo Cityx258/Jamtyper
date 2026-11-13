@@ -184,7 +184,7 @@ const fr: Dict = {
     teamTie: "Égalité entre les équipes!",
     teamAverage: "{wpm} MPM en moyenne",
     boostYou: {
-      shortcut: "Raccourci! On a sauté 2 mots pour toi.",
+      shortcut: "Raccourci! On a enlevé les 2 derniers mots de ton texte.",
       spotlight: "Tu es loin devant! Le texte est brouillé un instant.",
     },
     boostTags: { shortcut: "raccourci", spotlight: "brouillé" },

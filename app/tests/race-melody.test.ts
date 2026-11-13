@@ -19,7 +19,7 @@ const racer = (id: string, note: RacerView["note"], pitches: number[]): RacerVie
   place: 1,
   timeMs: null,
   missed: {},
-  jump: 0,
+  end: 100,
   boost: null,
 });
 

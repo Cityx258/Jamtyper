@@ -60,7 +60,7 @@ export interface RacerView {
   place: number | null;
   timeMs: number | null;
   missed: MissedKeys;
-  jump: number;
+  end: number;
   boost: BoostView | null;
 }
 

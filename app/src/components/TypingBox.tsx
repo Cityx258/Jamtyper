@@ -9,7 +9,6 @@ type Props = {
   text: string;
   start: number;
   startErrors?: number;
-  jump?: number;
   fogged?: boolean;
   mode?: ErrorMode;
   label: string;
@@ -112,23 +111,14 @@ function Upcoming({ text, from, fogged }: { text: string; from: number; fogged?:
 
 const textClass = "select-none font-mono text-xl leading-relaxed sm:text-2xl";
 
-function FixBox({ text, start, jump = 0, fogged, label, onProgress }: Props) {
+function FixBox({ text, start, fogged, label, onProgress }: Props) {
   const [committed, setCommitted] = useState(start);
   const [input, setInput] = useState("");
-  const [seenJump, setSeenJump] = useState(jump);
   const { mistakes, missed, record } = useMistakes();
 
   const rest = text.slice(committed);
   const correct = correctPrefix(input, rest);
   const position = committed + correct;
-
-  if (jump !== seenJump) {
-    setSeenJump(jump);
-    if (jump > position) {
-      setCommitted(jump);
-      setInput("");
-    }
-  }
   const wrong = input.length - correct;
   const done = committed >= text.length;
 
@@ -172,7 +162,6 @@ function ContinueBox({
   text,
   start,
   startErrors = 0,
-  jump = 0,
   fogged,
   label,
   onProgress,
@@ -182,21 +171,11 @@ function ContinueBox({
   const [committed, setCommitted] = useState(start);
   const [wrongBefore, setWrongBefore] = useState<number[]>([]);
   const [input, setInput] = useState("");
-  const [seenJump, setSeenJump] = useState(jump);
   const { mistakes, missed, record } = useMistakes();
 
   const rest = text.slice(committed);
   const wrongNow = wrongIndexes(input, rest, committed);
   const position = committed + input.length;
-
-  if (jump !== seenJump) {
-    setSeenJump(jump);
-    if (jump > position) {
-      setWrongBefore((w) => [...w, ...wrongNow]);
-      setCommitted(jump);
-      setInput("");
-    }
-  }
   const errors = baseErrors + wrongBefore.length + wrongNow.length;
   const done = position >= text.length;
 

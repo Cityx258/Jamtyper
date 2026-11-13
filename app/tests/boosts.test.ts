@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { applyBoosts } from "../server/boosts";
+import { applyBoosts, cutLastWords } from "../server/boosts";
 import { createBots } from "../server/bots";
 import { race, racer } from "./helpers";
 
@@ -13,15 +13,16 @@ test("no boost when the race is close", () => {
   expect(b.boost).toBeNull();
 });
 
-test("the last racer far behind skips two words, landing on a word start", () => {
+test("the last racer far behind loses the last two words of their text", () => {
   const leader = racer({ position: 150 });
   const last = racer({ position: 10 });
   const r = race([leader, last]);
   expect(applyBoosts(r, NOW)).toBe(true);
-  expect(last.position).toBe(20);
-  expect(r.text[last.position - 1]).toBe(" ");
-  expect(last.jump).toBe(20);
-  expect(last.bonus).toBe(10);
+  expect(last.position).toBe(10);
+  expect(last.cut).toBe(10);
+  expect(r.text.slice(0, r.text.length - last.cut).endsWith("word word")).toBe(true);
+  expect(r.text[r.text.length - last.cut]).toBe(" ");
+  expect(leader.cut).toBe(0);
   expect(last.boost?.kind).toBe("shortcut");
 });
 
@@ -31,9 +32,25 @@ test("the shortcut waits for its cooldown", () => {
   const r = race([leader, last]);
   applyBoosts(r, NOW);
   applyBoosts(r, NOW + 5_000);
-  expect(last.position).toBe(20);
+  expect(last.cut).toBe(10);
   applyBoosts(r, NOW + 10_000);
-  expect(last.position).toBe(30);
+  expect(last.cut).toBe(20);
+});
+
+test("the shortcut never cuts into the word being typed", () => {
+  expect(cutLastWords("one two three four", 18, 2)).toBe(7);
+  expect(cutLastWords("one two", 7, 2)).toBeNull();
+  const leader = racer({ position: 199 });
+  const last = racer({ position: 2 });
+  const r = race([leader, last], {}, "one two three four");
+  leader.position = 18;
+  leader.outcome = "finished";
+  expect(applyBoosts(r, NOW)).toBe(true);
+  expect(last.cut).toBe(11);
+  const late = racer({ position: 9 });
+  const r2 = race([racer({ position: 18, outcome: "finished" }), late], {}, "one two three four");
+  applyBoosts(r2, NOW);
+  expect(late.cut).toBe(0);
 });
 
 test("a runaway human leader gets the spotlight fog", () => {

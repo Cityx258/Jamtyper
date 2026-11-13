@@ -10,6 +10,7 @@ const view = (name: string, place: number | null, outcome: RacerOutcome): RacerV
   isBot: false,
   team: null,
   note: "whole",
+  pitch: 0,
   unlocked: null,
   samples: null,
   wpm: 0,

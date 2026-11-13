@@ -72,6 +72,7 @@ export interface Racer {
   bot: BotState | null;
   team: Team | null;
   note: NoteKind;
+  pitch: number;
   unlocked: NoteKind | null;
   samples: number[];
   jump: number;
@@ -163,6 +164,7 @@ export function racersView(race: Race, withSamples = false): RacerView[] {
       isBot: !!r.bot,
       team: r.team,
       note: r.note,
+      pitch: r.pitch,
       unlocked: r.unlocked,
       samples: withSamples ? r.samples : null,
       wpm: Math.round(racerWpm(race, r, now)),

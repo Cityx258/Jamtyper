@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import KickButton from "@/components/KickButton";
-import NoteIcon from "@/components/NoteIcon";
+import StaffLane from "@/components/StaffLane";
 import TypingBox from "@/components/TypingBox";
 import { secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
@@ -145,12 +145,11 @@ export default function RaceScreen({
         )}
       </div>
 
-      <ul className="mt-12 space-y-4">
+      <ul className="mt-12 space-y-2">
         {race.racers.map((r) => (
           <li key={r.id}>
             <div className="flex items-baseline gap-3 text-sm">
               <span className="w-6 font-mono text-muted">{r.place ?? ""}</span>
-              <NoteIcon note={r.note} size={18} className="self-center text-teal" />
               <span className="min-w-0 flex-1 truncate font-medium">
                 {r.name}
                 {r.id === you && <span className="text-muted"> ({t.you})</span>}
@@ -183,16 +182,20 @@ export default function RaceScreen({
                 {r.wpm} {t.wpm}
               </span>
             </div>
-            <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-line">
-              <div
-                className={`h-full rounded-full transition-[width] duration-200 ${
-                  r.outcome === "finished" || r.outcome === "racing"
-                    ? "bg-teal"
-                    : "bg-muted"
-                }`}
-                style={{ width: `${(r.progress / race.length) * 100}%` }}
-              />
-            </div>
+            <StaffLane
+              progress={r.progress}
+              length={race.length}
+              note={r.note}
+              pitch={r.pitch}
+              tone={
+                r.outcome === "racing" || r.outcome === "finished"
+                  ? r.id === you
+                    ? "you"
+                    : "other"
+                  : "out"
+              }
+              label={r.name}
+            />
           </li>
         ))}
       </ul>

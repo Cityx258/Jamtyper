@@ -24,11 +24,16 @@ const LEVELS: Record<BotLevel, { wpm: number; typoRate: number }> = {
 
 const random = () => randomInt(1_000_000) / 1_000_000;
 
+const PAUSE_COMPENSATION = 1.15;
+const SENTENCE_END = /[.!?;:]/;
+
 export interface BotState {
   cps: number;
   typoRate: number;
   carry: number;
   stallMs: number;
+  pace: number;
+  target: number;
 }
 
 export function createBots(
@@ -54,7 +59,14 @@ export function createBots(
       outcome: "racing",
       doneAt: null,
       place: null,
-      bot: { cps: (wpm * 5) / 60, typoRate, carry: 0, stallMs: 0 },
+      bot: {
+        cps: ((wpm * 5) / 60) * PAUSE_COMPENSATION * (0.88 + random() * 0.24),
+        typoRate,
+        carry: 0,
+        stallMs: 0,
+        pace: 0.7,
+        target: 1,
+      },
     });
   }
   return bots;
@@ -67,7 +79,11 @@ export function stepBot(race: Race, racer: Racer, dtMs: number): boolean {
     bot.stallMs -= dtMs;
     return false;
   }
-  bot.carry += (bot.cps * dtMs) / 1000;
+  if (random() < dtMs / 1200) {
+    bot.target = random() < 0.15 ? 1.35 + random() * 0.2 : 0.7 + random() * 0.6;
+  }
+  bot.pace += (bot.target - bot.pace) * Math.min(1, dtMs / 700);
+  bot.carry += (bot.cps * bot.pace * dtMs) / 1000;
   let moved = false;
   while (bot.carry >= 1 && racer.position < race.text.length) {
     bot.carry -= 1;
@@ -82,8 +98,20 @@ export function stepBot(race: Race, racer: Racer, dtMs: number): boolean {
       }
       racer.errors++;
     }
+    const typed = race.text[racer.position];
     racer.position++;
     moved = true;
+    const pause =
+      SENTENCE_END.test(typed) && random() < 0.5
+        ? 250 + randomInt(550)
+        : (typed === " " || typed === ",") && random() < 0.12
+          ? 120 + randomInt(380)
+          : 0;
+    if (pause) {
+      bot.carry = 0;
+      bot.stallMs = pause;
+      break;
+    }
   }
   return moved;
 }

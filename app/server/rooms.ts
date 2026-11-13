@@ -12,6 +12,7 @@ import {
   type RoomResult,
   type Visibility,
 } from "../src/lib/room-protocol";
+import { DEFAULT_SETTINGS } from "../src/lib/race-settings";
 import { generateRoomCode } from "./codes";
 import { dropRacer, hostContext, isStillRacing, stopRace } from "./race";
 import {
@@ -225,6 +226,7 @@ export async function createRoom(
         hostKey: identity.key,
         status: "lobby",
         visibility,
+        settings: DEFAULT_SETTINGS,
         members: new Map([[identity.key, member]]),
         banned: new Set(),
         invitesIssued: 0,

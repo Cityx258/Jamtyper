@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import KickButton from "@/components/KickButton";
 import RaceResults from "@/components/RaceResults";
 import RaceScreen from "@/components/RaceScreen";
+import RaceSettingsPanel from "@/components/RaceSettingsPanel";
 import {
   primaryButton,
   secondaryButton,
@@ -23,6 +24,7 @@ import {
   getSocket,
   requestAction,
   requestAnswerWatch,
+  requestConfigure,
   requestInvite,
   requestJoinRoom,
   requestKick,
@@ -435,6 +437,13 @@ export default function RoomLobby({
           </div>
         )}
       </section>
+
+      <RaceSettingsPanel
+        settings={room.settings}
+        editable={isHost}
+        t={t.settings}
+        onChange={(patch) => run(requestConfigure(patch))}
+      />
 
       <section className="mt-12" aria-label={t.players}>
         <h2 className="font-display text-2xl">

@@ -16,6 +16,7 @@ import {
 } from "./members";
 import {
   cancelRace,
+  configureRoom,
   forfeit,
   raceAgain,
   recordProgress,
@@ -146,6 +147,9 @@ async function main() {
       respond("room:visibility", ack, () =>
         setVisibility(io, socket, payload),
       ),
+    );
+    socket.on("room:configure", (payload, ack) =>
+      respond("room:configure", ack, () => configureRoom(io, socket, payload)),
     );
     socket.on("room:invite", (ack) =>
       respond("room:invite", ack, () => createInvite(socket)),

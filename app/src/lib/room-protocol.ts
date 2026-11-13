@@ -6,6 +6,8 @@ export type RoomStatus =
   | "results"
   | "closed";
 
+import type { SettingsView } from "./race-settings";
+
 export const VISIBILITIES = ["public", "semi_public", "private"] as const;
 export type Visibility = (typeof VISIBILITIES)[number];
 
@@ -53,6 +55,7 @@ export interface RoomView {
   code: string;
   status: RoomStatus;
   visibility: Visibility;
+  settings: SettingsView;
   members: MemberView[];
   minRacers: number;
   race: RaceView | null;
@@ -101,6 +104,10 @@ export interface ClientToServerEvents {
   "room:quickplay": (ack: (result: QuickplayResult) => void) => void;
   "room:visibility": (
     payload: { visibility: Visibility },
+    ack: (result: ActionResult) => void,
+  ) => void;
+  "room:configure": (
+    payload: Record<string, unknown>,
     ack: (result: ActionResult) => void,
   ) => void;
   "room:invite": (ack: (result: InviteResult) => void) => void;

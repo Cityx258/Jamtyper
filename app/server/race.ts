@@ -27,10 +27,10 @@ import {
   type Racer,
   type Room,
 } from "./room-state";
+import { mergeSettings } from "../src/lib/race-settings";
 import { generateText } from "../src/lib/texts";
 
 export const COUNTDOWN_MS = 5_000;
-export const TIME_LIMIT_MS = 180_000;
 export const CLOSING_MS = 30_000;
 const MAX_CHARS_PER_SECOND = 25;
 const TICK_MS = 100;
@@ -92,12 +92,16 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
   );
   if (entrants.length < MIN_RACERS) return fail("not_enough_racers");
 
+  const settings = room.settings;
+  const text = generateText(settings.length);
+
   const startsAt = Date.now() + COUNTDOWN_MS;
   const race: Race = {
     dbId: null,
-    text: generateText(),
+    text,
+    settings,
     startsAt,
-    endsAt: startsAt + TIME_LIMIT_MS,
+    endsAt: startsAt + settings.timeLimitSec * 1000,
     closesAt: null,
     endedAt: null,
     racers: new Map(
@@ -142,7 +146,7 @@ function beginRacing(io: AppServer, room: Room, race: Race) {
     .values({
       roomId: room.id,
       textBody: race.text,
-      settings: { timeLimitMs: TIME_LIMIT_MS, closingMs: CLOSING_MS },
+      settings: { ...race.settings, closingMs: CLOSING_MS },
       startedAt: new Date(race.startsAt),
     })
     .returning({ id: raceTable.id })
@@ -154,6 +158,26 @@ function beginRacing(io: AppServer, room: Room, race: Race) {
       },
     );
   broadcast(io, room);
+}
+
+export function configureRoom(
+  io: AppServer,
+  socket: AppSocket,
+  payload: unknown,
+): ActionResult {
+  const ctx = hostContext(socket);
+  if (typeof ctx === "string") return fail(ctx);
+  const { room } = ctx;
+  if (room.status !== "lobby" && room.status !== "results") {
+    return fail("bad_state");
+  }
+  room.settings = mergeSettings(room.settings, payload);
+  broadcast(io, room);
+  db.update(roomTable)
+    .set({ settings: room.settings })
+    .where(eq(roomTable.id, room.id))
+    .catch((e) => console.error("[race] failed to persist settings", e));
+  return ok;
 }
 
 export function cancelRace(io: AppServer, socket: AppSocket): ActionResult {

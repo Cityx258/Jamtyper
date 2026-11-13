@@ -11,6 +11,7 @@ import type {
   ServerToClientEvents,
   Visibility,
 } from "../src/lib/room-protocol";
+import { settingsView, type RaceSettings } from "../src/lib/race-settings";
 
 export const GRACE_MS = 30_000;
 export const MIN_RACERS = 2;
@@ -66,6 +67,7 @@ export interface Racer {
 export interface Race {
   dbId: Promise<string | null> | null;
   text: string;
+  settings: RaceSettings;
   startsAt: number;
   endsAt: number;
   closesAt: number | null;
@@ -82,6 +84,7 @@ export interface Room {
   hostKey: string;
   status: RoomStatus;
   visibility: Visibility;
+  settings: RaceSettings;
   members: Map<string, Member>;
   banned: Set<string>;
   invitesIssued: number;
@@ -156,6 +159,7 @@ export function toView(room: Room): RoomView {
     code: room.code,
     status: room.status,
     visibility: room.visibility,
+    settings: settingsView(room.settings),
     minRacers: MIN_RACERS,
     members: members.map((m) => ({
       id: m.id,

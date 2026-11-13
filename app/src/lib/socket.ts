@@ -110,6 +110,9 @@ async function guarded<T extends { ok: boolean }>(
 export const requestVisibility = (visibility: Visibility) =>
   guarded((s) => s.emitWithAck("room:visibility", { visibility }));
 
+export const requestConfigure = (patch: Record<string, unknown>) =>
+  guarded((s) => s.emitWithAck("room:configure", patch));
+
 export const requestInvite = (): Promise<InviteResult> =>
   guarded((s) => s.emitWithAck("room:invite"));
 

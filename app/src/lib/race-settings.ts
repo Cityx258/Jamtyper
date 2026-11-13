@@ -12,6 +12,8 @@ export const DIFFICULTIES = ["easy", "medium", "hard"] as const;
 export type Difficulty = (typeof DIFFICULTIES)[number];
 export const ERROR_MODES = ["fix", "continue"] as const;
 export type ErrorMode = (typeof ERROR_MODES)[number];
+export const BOT_LEVELS = ["easy", "medium", "expert", "impossible"] as const;
+export type BotLevel = (typeof BOT_LEVELS)[number];
 export const TEXT_THEMES = ["general", "music", "nature", "science"] as const;
 export type TextTheme = (typeof TEXT_THEMES)[number];
 export const CUSTOM_MAX = 1000;
@@ -31,6 +33,7 @@ export interface RaceSettings {
   priority: string;
   errorMode: ErrorMode;
   bots: boolean;
+  botLevel: BotLevel;
   customText: string;
   length: number;
   timeLimitSec: number;
@@ -51,6 +54,7 @@ export const DEFAULT_SETTINGS: RaceSettings = {
   priority: "",
   errorMode: "fix",
   bots: true,
+  botLevel: "medium",
   customText: "",
   length: 30,
   timeLimitSec: 180,
@@ -91,6 +95,7 @@ export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettin
     priority: cleanChars(p.priority, current.priority),
     errorMode: pick(ERROR_MODES, p.errorMode, current.errorMode),
     bots: bool(p.bots, current.bots),
+    botLevel: pick(BOT_LEVELS, p.botLevel, current.botLevel),
     customText: cleanCustom(p.customText, current.customText),
     length: clampInt(p.length, LENGTH_MIN, LENGTH_MAX, current.length),
     timeLimitSec: pick(TIME_LIMITS, p.timeLimitSec, current.timeLimitSec),

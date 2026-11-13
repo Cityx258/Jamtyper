@@ -132,7 +132,7 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
     timers: [],
   };
   const names = new Set(entrants.map((m) => m.name));
-  for (const bot of createBots(Math.max(0, needed), names)) {
+  for (const bot of createBots(Math.max(0, needed), names, settings.botLevel)) {
     race.racers.set(bot.id, bot);
   }
   room.race = race;

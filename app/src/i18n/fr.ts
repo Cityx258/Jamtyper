@@ -110,6 +110,8 @@ const fr: Dict = {
       impossible: "Rien ne correspond à ces paramètres. Retire des caractères interdits ou choisis un autre thème.",
       bots: "Bots",
       botsHint: "Des bots se joignent quand il n'y a pas assez de joueurs.",
+      botLevel: "Niveau des bots",
+      botLevels: { easy: "Facile", medium: "Moyen", expert: "Expert", impossible: "Impossible" },
       errorMode: "Fautes de frappe",
       errorModes: { fix: "À corriger", continue: "On continue" },
       errorModeHints: {

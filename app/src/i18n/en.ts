@@ -108,6 +108,8 @@ const en = {
       impossible: "Nothing matches these settings. Remove some banned characters or pick another theme.",
       bots: "Bots",
       botsHint: "Bots join when there aren't enough players to race.",
+      botLevel: "Bot level",
+      botLevels: { easy: "Easy", medium: "Medium", expert: "Expert", impossible: "Impossible" },
       errorMode: "Typos",
       errorModes: { fix: "Must fix", continue: "Keep going" },
       errorModeHints: {

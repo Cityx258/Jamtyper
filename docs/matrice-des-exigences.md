@@ -11,7 +11,7 @@ Chaque exigence du cahier des charges, sa priorité et où elle en est. Les num�
 | 3 | Gestion des salles | Fait |
 | 4 | Options avancées de course | Fait |
 | 5 | Bots et boosts | Fait |
-| 6 | Écrans de fin, statistiques, récompenses | Partiel : il manque le graphique de progression et la page de paramètres |
+| 6 | Écrans de fin, statistiques, récompenses | Partiel : il manque le graphique de progression |
 | 7 | Bilinguisme, thèmes, responsive, optionnel | Fait, sauf la direction artistique (en cours) |
 | 8 | Tests, déploiement, sécurité, documentation | Fait |
 
@@ -41,7 +41,7 @@ Le cahier des charges a deux exigences numérotées 7.2 (thème, puis responsive
 | 1.3 | Décourager le mot de passe au profit d'OAuth | 1 | Fait | Navigateur | OAuth est proposé en premier; l'inscription par mot de passe est derrière un lien. |
 | 1.4 | Participer à une course sans compte | 2 | Fait | Navigateur | Un invité choisit un nom et rejoint par code, par lien ou par course rapide. Il ne peut pas être hôte et ses courses ne sont pas enregistrées. |
 | 1.5 | Page de statistiques personnelles | 6 | Fait | Navigateur | Page `/profile` : courses, victoires, meilleure et moyenne MPM, précision, carte des touches manquées, courses récentes. |
-| 1.6 | Page de paramètres pour ajouter une seconde méthode | 6 | À faire | | Le schéma `account` permet déjà plusieurs méthodes par compte. |
+| 1.6 | Page de paramètres pour ajouter une seconde méthode | 6 | Fait | Navigateur, tests | Page `/settings`, liée depuis le profil. On y lie ou délie Discord et GitHub; un compte Discord ou GitHub peut ajouter un nom d'utilisateur et un mot de passe (et reçoit alors un code de récupération). On ne peut pas retirer sa dernière méthode de connexion. Testé sans vraies clés Discord : le lien envoie bien vers Discord. |
 | 1.7 | Récupération de mot de passe (comptes à mot de passe) | 8 | Fait | Navigateur, tests | Code de récupération montré une fois à l'inscription (pas de courriel : voir `docs/securite.md`). Page « Mot de passe oublié? », nouveau code sur le profil. Une réinitialisation ferme toutes les sessions et remplace le code. 5 essais par 15 minutes. |
 
 ## 2. Fonctionnement d'une course

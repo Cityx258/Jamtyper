@@ -116,7 +116,7 @@ erDiagram
 |---|---|---|
 | `user` | Compte utilisateur | `username` et `display_username` viennent du plugin *username* de Better Auth. |
 | `session` | Sessions ouvertes | Jeton unique, expiration, supprimées avec l'utilisateur. |
-| `account` | Méthodes d'authentification d'un utilisateur | Une ligne par méthode : `credential`, `discord`, `github`. C'est ce qui permettra d'ajouter une seconde méthode (exigence 1.6) sans changer le schéma. |
+| `account` | Méthodes d'authentification d'un utilisateur | Une ligne par méthode : `credential`, `discord`, `github`. Un joueur peut en avoir plusieurs (exigence 1.6, page `/settings`). |
 | `verification` | Jetons de vérification de Better Auth | Gérée par Better Auth; pas utilisée par la récupération de mot de passe. |
 | `recovery_code` | Code de récupération d'un compte à mot de passe (exigence 1.7) | Une ligne par utilisateur. Seul le hachage SHA-256 est stocké; le code est montré une seule fois et remplacé à chaque utilisation. |
 | `room` | Une salle : code, hôte, visibilité, état, paramètres | Exigences 2.1, 2.7, 5.1 à 5.4. |

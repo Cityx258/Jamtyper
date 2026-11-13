@@ -13,6 +13,7 @@ Ce que le site fait pour protéger les comptes, les sessions et les données (ex
 - Better Auth hache les mots de passe et gère les sessions. Le code du site ne voit jamais un mot de passe en clair hors du formulaire.
 - Better Auth limite le nombre de requêtes d'authentification en production (connexion, inscription).
 - **Récupération de mot de passe** : un code de 16 caractères (environ 80 bits d'aléa) est montré une seule fois à l'inscription. Seul son hachage SHA-256 est stocké, et la comparaison se fait en temps constant. Un code utilisé est remplacé tout de suite. Une réinitialisation ferme toutes les sessions du compte. Les essais sont limités à 5 par 15 minutes, par nom d'utilisateur et par adresse IP.
+- **Méthodes de connexion** : un joueur peut lier Discord ou GitHub à son compte depuis `/settings`. Comme les comptes avec mot de passe ont une adresse fictive, le courriel du fournisseur n'a pas à correspondre. Un compte Discord ou GitHub déjà lié à un autre joueur est refusé. Délier demande une session de moins d'un jour, et Better Auth refuse de retirer la dernière méthode.
 - Pas de courriel : les joueurs ont de 12 à 17 ans, et le site ne demande aucune donnée personnelle au-delà d'un nom d'utilisateur.
 
 ## Temps réel (socket.io)

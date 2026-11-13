@@ -30,6 +30,7 @@ import {
   requestKick,
   requestLeaveRoom,
   requestPromote,
+  requestTeam,
   requestVisibility,
   requestWatch,
 } from "@/lib/socket";
@@ -307,8 +308,19 @@ export default function RoomLobby({
   const readyRacers = room.members.filter(
     (m) => m.role === "racer" && m.connected,
   ).length;
-  const canStart = room.settings.bots ? readyRacers >= 1 : readyRacers >= room.minRacers;
-  const botsJoin = room.settings.bots && readyRacers >= 1 && readyRacers < room.minRacers;
+  const teams = room.settings.teams;
+  const teamSizes = [0, 1].map(
+    (team) =>
+      room.members.filter((m) => m.role === "racer" && m.connected && m.team === team).length,
+  );
+  const emptyTeam = teams && teamSizes.includes(0);
+  const canStart = room.settings.bots
+    ? readyRacers >= 1
+    : readyRacers >= room.minRacers && !emptyTeam;
+  const botsJoin =
+    room.settings.bots &&
+    readyRacers >= 1 &&
+    (teams ? teamSizes[0] !== teamSizes[1] || readyRacers < room.minRacers : readyRacers < room.minRacers);
   const banner = (
     <>
       {!live && (
@@ -465,14 +477,33 @@ export default function RoomLobby({
               >
                 <QuarterNote />
                 <span className="min-w-0 truncate font-medium">{m.name}</span>
+                {teams && <Tag>{t.teamNames[m.team]}</Tag>}
                 {m.isHost && <Tag>{t.host}</Tag>}
                 {m.id === you && <Tag>{t.you}</Tag>}
                 {m.role === "spectator" && <Tag>{t.spectator}</Tag>}
                 {m.watchRequested && <Tag>{t.wantsToWatch}</Tag>}
                 {!m.connected && <Tag>{t.reconnecting}</Tag>}
               </span>
+              {isHost && teams && m.id === you && (
+                <button
+                  type="button"
+                  onClick={() => run(requestTeam(m.id, m.team === 0 ? 1 : 0))}
+                  className={smallButton}
+                >
+                  {t.switchTeam}
+                </button>
+              )}
               {isHost && m.id !== you && (
                 <span className="flex w-full flex-wrap justify-end gap-2 sm:w-auto">
+                  {teams && (
+                    <button
+                      type="button"
+                      onClick={() => run(requestTeam(m.id, m.team === 0 ? 1 : 0))}
+                      className={smallButton}
+                    >
+                      {t.switchTeam}
+                    </button>
+                  )}
                   {m.watchRequested && (
                     <>
                       <button
@@ -550,10 +581,16 @@ export default function RoomLobby({
             <p className="mt-3 text-sm text-muted">
               {room.settings.bots
                 ? t.needOneRacer
-                : t.needPlayers.replace("{n}", String(room.minRacers))}
+                : readyRacers < room.minRacers
+                  ? t.needPlayers.replace("{n}", String(room.minRacers))
+                  : t.errors.empty_team}
             </p>
           )}
-          {botsJoin && <p className="mt-3 text-sm text-muted">{t.botsWillJoin}</p>}
+          {botsJoin && (
+            <p className="mt-3 text-sm text-muted">
+              {teams ? t.botsEvenTeams : t.botsWillJoin}
+            </p>
+          )}
         </div>
       ) : (
         <p className="mt-6 text-teal">{t.waitingHost}</p>

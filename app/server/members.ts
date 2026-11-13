@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "../src/db";
 import { roomMember } from "../src/db/rooms";
 import type { ActionResult, RoomError } from "../src/lib/room-protocol";
+import { isTeam } from "../src/lib/teams";
 import { context, hostContext, kickRacer } from "./race";
 import {
   broadcast,
@@ -115,6 +116,22 @@ export async function promoteMember(
     target.watching = true;
     persistRole(target);
   }
+  broadcast(io, ctx.room);
+  return ok;
+}
+
+export function setTeam(
+  io: AppServer,
+  socket: AppSocket,
+  payload: unknown,
+): ActionResult {
+  const ctx = hostContext(socket);
+  if (typeof ctx === "string") return fail(ctx);
+  const target = findMember(ctx.room, field(payload, "memberId"));
+  const team = field(payload, "team");
+  if (!target || !isTeam(team)) return fail("bad_request");
+  if (ctx.room.status !== "lobby") return fail("bad_state");
+  target.team = team;
   broadcast(io, ctx.room);
   return ok;
 }

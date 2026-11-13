@@ -150,6 +150,11 @@ export default function RaceScreen({
                 {r.id === you && <span className="text-muted"> ({t.you})</span>}
                 {r.isBot && <span className="text-muted"> ({t.bot})</span>}
               </span>
+              {r.team !== null && (
+                <span className="font-mono text-xs uppercase tracking-wider text-muted">
+                  {t.teamNames[r.team]}
+                </span>
+              )}
               {r.boost && r.boost.until > serverNow && (
                 <span className="rounded-full border border-teal px-2 font-mono text-[10px] uppercase tracking-wider text-teal">
                   {t.boostTags[r.boost.kind]}

@@ -13,6 +13,7 @@ import type {
   RoomStatus,
 } from "../src/lib/room-protocol";
 import {
+  balanceTeams,
   broadcast,
   channel,
   MIN_RACERS,
@@ -31,6 +32,7 @@ import { mergeSettings, settingsView } from "../src/lib/race-settings";
 import { generateText } from "../src/lib/texts";
 import { createBots, stepBot } from "./bots";
 import { applyBoosts } from "./boosts";
+import { teamGaps, type Team } from "../src/lib/teams";
 
 export const COUNTDOWN_MS = 5_000;
 export const CLOSING_MS = 30_000;
@@ -97,6 +99,12 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
   if (entrants.length === 0 || (needed > 0 && !settings.bots)) {
     return fail("not_enough_racers");
   }
+  const sizes: [number, number] = [0, 0];
+  for (const m of entrants) sizes[m.team]++;
+  const gaps = settings.teams ? teamGaps(sizes) : null;
+  if (gaps && !settings.bots && sizes.includes(0)) {
+    return fail("empty_team");
+  }
 
   const generated = generateText(settings);
   if (!generated) return fail("no_text");
@@ -126,6 +134,7 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
           doneAt: null,
           place: null,
           bot: null,
+          team: settings.teams ? m.team : null,
           jump: 0,
           bonus: 0,
           boost: null,
@@ -137,9 +146,16 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
     timers: [],
   };
   const names = new Set(entrants.map((m) => m.name));
-  for (const bot of createBots(Math.max(0, needed), names, settings.botLevel)) {
+  const botTeams: (Team | null)[] =
+    gaps && settings.bots
+      ? [...Array(gaps[0]).fill(0), ...Array(gaps[1]).fill(1)]
+      : Array(Math.max(0, needed)).fill(null);
+  const bots = createBots(botTeams.length, names, settings.botLevel);
+  bots.forEach((bot, i) => {
+    bot.team = botTeams[i];
+    names.add(bot.name);
     race.racers.set(bot.id, bot);
-  }
+  });
   room.race = race;
   setStatus(room, "countdown");
   race.timers.push(setTimeout(() => beginRacing(io, room, race), COUNTDOWN_MS));
@@ -207,7 +223,9 @@ export function configureRoom(
   if (room.status !== "lobby" && room.status !== "results") {
     return fail("bad_state");
   }
+  const before = room.settings.teams;
   room.settings = mergeSettings(room.settings, payload);
+  if (room.settings.teams && !before) balanceTeams(room);
   broadcast(io, room);
   db.update(roomTable)
     .set({ settings: room.settings })

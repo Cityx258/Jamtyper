@@ -59,6 +59,7 @@ export function createBots(
       outcome: "racing",
       doneAt: null,
       place: null,
+      team: null,
       jump: 0,
       bonus: 0,
       boost: null,

@@ -21,6 +21,7 @@ import {
   GRACE_MS,
   memberRole,
   rooms,
+  smallerTeam,
   toView,
   type AppServer,
   type AppSocket,
@@ -217,6 +218,7 @@ export async function createRoom(
         name: identity.name,
         watching: false,
         watchRequested: false,
+        team: 0,
         joinedAt: Date.now(),
         sockets: new Set(),
       };
@@ -276,6 +278,7 @@ export async function joinRoom(
       name,
       watching: false,
       watchRequested: false,
+      team: smallerTeam(room),
       joinedAt: Date.now(),
       sockets: new Set(),
     };

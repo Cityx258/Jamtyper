@@ -4,6 +4,7 @@ import KeyHeatmap from "@/components/KeyHeatmap";
 import { primaryButton, secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import type { RacerView, RaceView } from "@/lib/room-protocol";
+import { teamScores, winningTeam } from "@/lib/teams";
 
 const seconds = (ms: number) => `${(ms / 1000).toFixed(1)} s`;
 
@@ -30,6 +31,8 @@ export default function RaceResults({
   const goalMs = race.timeGoalSec * 1000;
   const metGoal = (r: RacerView) => r.timeMs !== null && r.timeMs <= goalMs;
   const goalCount = race.racers.filter(metGoal).length;
+  const scores = race.teams ? teamScores(race.racers) : null;
+  const winner = scores ? winningTeam(scores) : null;
   return (
     <div className="w-full">
       <h1 className="font-display text-4xl">{t.results}</h1>
@@ -39,6 +42,31 @@ export default function RaceResults({
             .replace("{n}", String(goalCount))
             .replace("{goal}", seconds(goalMs))}
         </p>
+      )}
+
+      {scores && (
+        <section className="mt-8" aria-label={t.teamNames.join(" / ")}>
+          <p className="font-display text-2xl text-teal">
+            {winner === null ? t.teamTie : t.teamWins.replace("{team}", t.teamNames[winner])}
+          </p>
+          <div className="mt-4 grid max-w-xl grid-cols-2 gap-3">
+            {scores.map((s) => (
+              <div
+                key={s.team}
+                className={`rounded-lg border px-4 py-3 ${
+                  s.team === winner ? "border-teal bg-teal/10" : "border-line"
+                }`}
+              >
+                <p className="font-mono text-xs uppercase tracking-wider text-muted">
+                  {t.teamNames[s.team]}
+                </p>
+                <p className="mt-1 font-mono text-lg">
+                  {t.teamAverage.replace("{wpm}", String(s.wpm))}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       <div className="mt-8 overflow-x-auto">
@@ -60,6 +88,11 @@ export default function RaceResults({
                 <td className="py-3 pr-4 font-medium">
                   {r.name}
                   {r.isBot && <span className="text-muted"> ({t.bot})</span>}
+                  {r.team !== null && (
+                    <span className="ml-2 font-mono text-xs uppercase tracking-wider text-muted">
+                      {t.teamNames[r.team]}
+                    </span>
+                  )}
                 </td>
                 <td className="py-3 pr-4 text-right font-mono">{r.wpm}</td>
                 <td className="py-3 pr-4 text-right font-mono">

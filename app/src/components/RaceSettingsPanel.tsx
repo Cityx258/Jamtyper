@@ -390,6 +390,16 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
             onFlip={(v) => onChange({ boosts: v })}
           />
         </Field>
+        <Field label={t.teams} hint={t.teamsHint}>
+          <Toggle
+            on={settings.teams}
+            label={t.teams}
+            editable={editable}
+            onLabel={t.on}
+            offLabel={t.off}
+            onFlip={(v) => onChange({ teams: v })}
+          />
+        </Field>
         <Field label={t.instantDeath} hint={t.instantDeathHint}>
           <Toggle
             on={settings.instantDeath}

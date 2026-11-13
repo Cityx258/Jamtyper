@@ -7,6 +7,7 @@ export type RoomStatus =
   | "closed";
 
 import type { ErrorMode, SettingsView } from "./race-settings";
+import type { Team } from "./teams";
 
 export const VISIBILITIES = ["public", "semi_public", "private"] as const;
 export type Visibility = (typeof VISIBILITIES)[number];
@@ -21,6 +22,7 @@ export interface MemberView {
   isGuest: boolean;
   connected: boolean;
   watchRequested: boolean;
+  team: Team;
 }
 
 export type RacerOutcome =
@@ -44,6 +46,7 @@ export interface RacerView {
   progress: number;
   errors: number;
   isBot: boolean;
+  team: Team | null;
   wpm: number;
   accuracy: number;
   outcome: RacerOutcome;
@@ -60,6 +63,7 @@ export interface RaceView {
   errorMode: ErrorMode;
   instantDeath: boolean;
   timeGoalSec: number;
+  teams: boolean;
   length: number;
   startsAt: number;
   endsAt: number;
@@ -86,6 +90,7 @@ export type RoomError =
   | "not_enough_racers"
   | "invite_required"
   | "no_text"
+  | "empty_team"
   | "kicked"
   | "no_public_room"
   | "bad_state"
@@ -144,6 +149,10 @@ export interface ClientToServerEvents {
   ) => void;
   "member:promote": (
     payload: { memberId: string },
+    ack: (result: ActionResult) => void,
+  ) => void;
+  "member:team": (
+    payload: { memberId: string; team: Team },
     ack: (result: ActionResult) => void,
   ) => void;
   "room:leave": (ack?: () => void) => void;

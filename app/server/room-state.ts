@@ -13,6 +13,7 @@ import type {
   Visibility,
 } from "../src/lib/room-protocol";
 import { settingsView, type RaceSettings } from "../src/lib/race-settings";
+import type { Team } from "../src/lib/teams";
 import type { BotState } from "./bots";
 
 export const GRACE_MS = 30_000;
@@ -49,6 +50,7 @@ export interface Member {
   name: string;
   watching: boolean;
   watchRequested: boolean;
+  team: Team;
   joinedAt: number;
   sockets: Set<string>;
   graceTimer?: NodeJS.Timeout;
@@ -66,6 +68,7 @@ export interface Racer {
   doneAt: number | null;
   place: number | null;
   bot: BotState | null;
+  team: Team | null;
   jump: number;
   bonus: number;
   boost: BoostView | null;
@@ -117,6 +120,17 @@ export function findMember(room: Room, id: unknown): Member | undefined {
   return undefined;
 }
 
+export function smallerTeam(room: Room): Team {
+  let first = 0;
+  for (const m of room.members.values()) first += m.team === 0 ? 1 : -1;
+  return first > 0 ? 1 : 0;
+}
+
+export function balanceTeams(room: Room) {
+  const members = [...room.members.values()].sort((a, b) => a.joinedAt - b.joinedAt);
+  members.forEach((m, i) => (m.team = (i % 2) as Team));
+}
+
 export function racerWpm(race: Race, racer: Racer, now = Date.now()): number {
   const elapsed =
     racer.doneAt ?? Math.min(race.endedAt ?? now, race.endsAt) - race.startsAt;
@@ -142,6 +156,7 @@ export function racersView(race: Race): RacerView[] {
       progress: r.position,
       errors: r.errors,
       isBot: !!r.bot,
+      team: r.team,
       wpm: Math.round(racerWpm(race, r, now)),
       accuracy: racerAccuracy(r),
       outcome: r.outcome,
@@ -160,6 +175,7 @@ function raceView(room: Room, race: Race): RaceView {
     errorMode: race.settings.errorMode,
     instantDeath: race.settings.instantDeath,
     timeGoalSec: race.settings.timeGoalSec,
+    teams: race.settings.teams,
     length: race.text.length,
     startsAt: race.startsAt,
     endsAt: race.endsAt,
@@ -187,6 +203,7 @@ export function toView(room: Room): RoomView {
       isGuest: !m.userId,
       connected: m.sockets.size > 0,
       watchRequested: m.watchRequested,
+      team: m.team,
     })),
     race: room.race ? raceView(room, room.race) : null,
   };

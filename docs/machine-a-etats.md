@@ -112,12 +112,13 @@ Les messages reçus dans un état qui ne les accepte pas sont ignorés et journa
 ## Bots
 
 - Le minimum de 2 coureurs inclut les bots : un joueur seul peut lancer une course contre un bot si l'hôte a laissé les bots activés. Il faut toujours au moins un humain parmi les coureurs.
+- Nombre de bots : en « Auto », seulement ceux qu'il faut pour atteindre le minimum. Si l'hôte choisit un nombre (1 à 9), au moins ce nombre de bots s'ajoute, ou plus si le minimum ou l'égalité des équipes l'exige.
 - Les bots ne retiennent pas la course : dès qu'aucun humain n'est encore en course (tous ont fini ou abandonné), la course passe à `results`.
 
 ## Équipes
 
 - Quand l'hôte active les équipes, les joueurs sont répartis en deux équipes (Sol et Fa) dans l'ordre d'arrivée. Un joueur qui arrive ensuite rejoint la plus petite. L'hôte peut déplacer n'importe qui dans le lobby.
-- Au départ, si les bots sont activés, des bots s'ajoutent à la plus petite équipe jusqu'à l'égalité. Sans bots, chaque équipe doit avoir au moins un coureur connecté (erreur `empty_team`), mais des équipes de tailles différentes sont permises.
+- Au départ, si les bots sont activés, des bots s'ajoutent à la plus petite équipe jusqu'à l'égalité. Les bots en plus du nombre choisi vont ensuite à tour de rôle dans la plus petite équipe. Sans bots, chaque équipe doit avoir au moins un coureur connecté (erreur `empty_team`), mais des équipes de tailles différentes sont permises.
 - L'équipe gagnante est celle dont la vitesse moyenne (MPM net) est la plus haute. Une moyenne ne désavantage pas une équipe plus petite.
 
 ## Points à valider

@@ -83,7 +83,7 @@ Tous ces réglages sont dans le panneau « Paramètres de la course » du lobby.
 | 3.12 | Mode mort instantanée | 7 | Fait | Navigateur | La première faute élimine le joueur (bots compris). Un bandeau rappelle le mode pendant la course. |
 | 3.13 | Objectif de temps | 7 | Fait | Navigateur | 30 s à 2 min. Affiché pendant la course; les résultats montrent le temps de chacun et qui a battu l'objectif. |
 | 3.14 | Équipes | 7 | Fait | Navigateur | Deux équipes (Sol et Fa), réparties automatiquement, modifiables par l'hôte. Les bots équilibrent les équipes. L'équipe avec la meilleure moyenne MPM gagne. |
-| 3.15 | Bots ajoutés automatiquement si pas assez de joueurs | 5 | Fait | Script | Option « Bots », activée par défaut. Étiquette « bot », pas d'expulsion, exclus des statistiques du joueur. |
+| 3.15 | Bots ajoutés automatiquement si pas assez de joueurs | 5 | Fait | Script | Option « Bots », activée par défaut. L'hôte choisit aussi le nombre de bots : « Auto » (juste assez pour courir) ou de 1 à 9 (au moins ce nombre, plus ceux qu'il faut pour le minimum ou pour égaliser les équipes). Le lobby annonce combien de bots vont se joindre. Étiquette « bot », pas d'expulsion, exclus des statistiques du joueur. |
 | 3.16 | Difficulté des bots configurable | 5 | Fait | Script | Facile, moyen, expert, impossible (environ 25, 45, 75 et 140 MPM), avec des fautes. |
 | 3.17 | Vitesse des bots variable dans le temps | 5 | Fait | Script | Départ lent, rythme qui change, accélérations brèves, pauses après les espaces et la ponctuation. |
 

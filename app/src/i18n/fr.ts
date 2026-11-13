@@ -209,6 +209,12 @@ const fr: Dict = {
     goalBeatOne: "1 joueur a fini sous l'objectif de {goal}.",
     goalBeatNone: "Personne n'a fini sous l'objectif de {goal}.",
     yourMisses: "Tes touches manquées",
+    melody: {
+      title: "La mélodie de la course",
+      hint: "Chaque coureur est une note, jouée dans l'ordre d'arrivée. Chaque course fait une nouvelle mélodie.",
+      play: "Jouer la mélodie",
+      playing: "Lecture…",
+    },
     graph: {
       title: "Vitesse pendant la course",
       you: "Toi",

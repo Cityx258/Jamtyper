@@ -204,6 +204,12 @@ const en = {
     goalBeatOne: "1 player finished under the {goal} goal.",
     goalBeatNone: "Nobody finished under the {goal} goal.",
     yourMisses: "Your missed keys",
+    melody: {
+      title: "This race's melody",
+      hint: "Every racer is a note, played in the order you finished. A new race makes a new melody.",
+      play: "Play the melody",
+      playing: "Playing…",
+    },
     graph: {
       title: "Speed during the race",
       you: "You",

@@ -4,6 +4,7 @@ import KeyHeatmap from "@/components/KeyHeatmap";
 import NoteIcon from "@/components/NoteIcon";
 import Podium from "@/components/Podium";
 import RaceGraph from "@/components/RaceGraph";
+import RaceMelody from "@/components/RaceMelody";
 import { primaryButton, secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import type { RacerView, RaceView } from "@/lib/room-protocol";
@@ -51,6 +52,7 @@ export default function RaceResults({
         </p>
       )}
       <Podium racers={race.racers} you={you} t={t} />
+      <RaceMelody racers={race.racers} you={you} raceKey={race.startsAt} t={t.melody} />
 
       {goalMs > 0 && (
         <p className="mt-3 text-muted">

@@ -1,6 +1,7 @@
 "use client";
 
 import KeyHeatmap from "@/components/KeyHeatmap";
+import NoteIcon from "@/components/NoteIcon";
 import { primaryButton, secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import type { RacerView, RaceView } from "@/lib/room-protocol";
@@ -14,6 +15,7 @@ type Props = {
   isHost: boolean;
   t: Dict["room"];
   heatmapT: Dict["profile"]["heatmap"];
+  noteNames: Dict["profile"]["notes"]["names"];
   onAgain: () => void;
   onClose: () => void;
 };
@@ -24,6 +26,7 @@ export default function RaceResults({
   isHost,
   t,
   heatmapT,
+  noteNames,
   onAgain,
   onClose,
 }: Props) {
@@ -36,6 +39,15 @@ export default function RaceResults({
   return (
     <div className="w-full">
       <h1 className="font-display text-4xl">{t.results}</h1>
+      {me?.unlocked && (
+        <p
+          role="status"
+          className="mt-4 flex items-center gap-3 rounded-lg border border-teal bg-teal/10 px-4 py-3 text-ink"
+        >
+          <NoteIcon note={me.unlocked} size={28} className="text-teal" />
+          {t.unlockedNote.replace("{note}", noteNames[me.unlocked].toLowerCase())}
+        </p>
+      )}
       {goalMs > 0 && (
         <p className="mt-3 text-muted">
           {(goalCount === 0 ? t.goalBeatNone : goalCount === 1 ? t.goalBeatOne : t.goalBeat)
@@ -86,6 +98,7 @@ export default function RaceResults({
               <tr key={r.id} className={r.id === you ? "text-teal" : ""}>
                 <td className="py-3 pr-3 sm:pr-4 font-mono">{r.place}</td>
                 <td className="py-3 pr-3 sm:pr-4 font-medium">
+                  <NoteIcon note={r.note} size={16} className="mr-2 inline-block align-[-2px] text-teal" />
                   {r.name}
                   {r.isBot && <span className="text-muted"> ({t.bot})</span>}
                   {r.team !== null && (

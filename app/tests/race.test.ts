@@ -37,6 +37,7 @@ function member(key: string, patch: Partial<Member> = {}): Member {
     watching: false,
     watchRequested: false,
     team: 0,
+    note: "whole",
     joinedAt: Date.now(),
     sockets: new Set(["s"]),
     ...patch,

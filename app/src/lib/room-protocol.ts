@@ -7,6 +7,7 @@ export type RoomStatus =
   | "closed";
 
 import type { ErrorMode, SettingsView } from "./race-settings";
+import type { NoteKind } from "./notes";
 import type { Team } from "./teams";
 
 export const VISIBILITIES = ["public", "semi_public", "private"] as const;
@@ -23,6 +24,7 @@ export interface MemberView {
   connected: boolean;
   watchRequested: boolean;
   team: Team;
+  note: NoteKind;
 }
 
 export type RacerOutcome =
@@ -47,6 +49,8 @@ export interface RacerView {
   errors: number;
   isBot: boolean;
   team: Team | null;
+  note: NoteKind;
+  unlocked: NoteKind | null;
   wpm: number;
   accuracy: number;
   outcome: RacerOutcome;

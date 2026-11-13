@@ -15,6 +15,8 @@ export function racer(patch: Partial<Racer> = {}): Racer {
     place: null,
     bot: null,
     team: null,
+    note: "whole",
+    unlocked: null,
     jump: 0,
     bonus: 0,
     boost: null,

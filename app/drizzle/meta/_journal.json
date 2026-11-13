@@ -36,6 +36,13 @@
       "when": 1794533599567,
       "tag": "0004_recovery_codes",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794534963838,
+      "tag": "0005_player_notes",
+      "breakpoints": true
     }
   ]
 }

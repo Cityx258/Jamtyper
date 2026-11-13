@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import KickButton from "@/components/KickButton";
+import NoteIcon from "@/components/NoteIcon";
 import RaceResults from "@/components/RaceResults";
 import RaceScreen from "@/components/RaceScreen";
 import RaceSettingsPanel from "@/components/RaceSettingsPanel";
@@ -41,6 +42,7 @@ type Props = {
   accountName: string | null;
   t: Dict["room"];
   heatmapT: Dict["profile"]["heatmap"];
+  noteNames: Dict["profile"]["notes"]["names"];
 };
 
 const NAME_KEY = "jt-guest-name";
@@ -55,22 +57,6 @@ function readStoredName(): string | null {
 
 const noSubscribe = () => () => {};
 const noStoredName = () => null;
-
-function QuarterNote() {
-  return (
-    <svg
-      viewBox="0 0 28 40"
-      width="14"
-      height="20"
-      fill="currentColor"
-      aria-hidden="true"
-      className="shrink-0 text-teal"
-    >
-      <ellipse cx="9" cy="33" rx="7" ry="5" transform="rotate(-22 9 33)" />
-      <rect x="14.2" y="4" width="2" height="29" rx="1" />
-    </svg>
-  );
-}
 
 function Tag({ children }: { children: React.ReactNode }) {
   return (
@@ -110,6 +96,7 @@ export default function RoomLobby({
   accountName,
   t,
   heatmapT,
+  noteNames,
 }: Props) {
   const router = useRouter();
   const storedName = useSyncExternalStore(
@@ -347,6 +334,7 @@ export default function RoomLobby({
             isHost={isHost}
             t={t}
             heatmapT={heatmapT}
+            noteNames={noteNames}
             onAgain={() => act("race:again")}
             onClose={() => act("room:close")}
           />
@@ -475,7 +463,7 @@ export default function RoomLobby({
               <span
                 className={`flex min-w-0 flex-1 items-center gap-3 ${m.connected ? "" : "opacity-50"}`}
               >
-                <QuarterNote />
+                <NoteIcon note={m.note} className="text-teal" label={noteNames[m.note]} />
                 <span className="min-w-0 truncate font-medium">{m.name}</span>
                 {teams && <Tag>{t.teamNames[m.team]}</Tag>}
                 {m.isHost && <Tag>{t.host}</Tag>}

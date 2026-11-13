@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import KickButton from "@/components/KickButton";
+import NoteIcon from "@/components/NoteIcon";
 import TypingBox from "@/components/TypingBox";
 import { secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
@@ -149,6 +150,7 @@ export default function RaceScreen({
           <li key={r.id}>
             <div className="flex items-baseline gap-3 text-sm">
               <span className="w-6 font-mono text-muted">{r.place ?? ""}</span>
+              <NoteIcon note={r.note} size={18} className="self-center text-teal" />
               <span className="min-w-0 flex-1 truncate font-medium">
                 {r.name}
                 {r.id === you && <span className="text-muted"> ({t.you})</span>}

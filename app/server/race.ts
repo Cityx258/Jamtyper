@@ -33,6 +33,8 @@ import { generateText } from "../src/lib/texts";
 import { createBots, stepBot } from "./bots";
 import { applyBoosts } from "./boosts";
 import { teamGaps, type Team } from "../src/lib/teams";
+import { newlyUnlocked } from "../src/lib/notes";
+import { currentNote, winCount } from "../src/db/notes";
 
 export const COUNTDOWN_MS = 5_000;
 export const CLOSING_MS = 30_000;
@@ -135,6 +137,8 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
           place: null,
           bot: null,
           team: settings.teams ? m.team : null,
+          note: m.note,
+          unlocked: null,
           jump: 0,
           bonus: 0,
           boost: null,
@@ -420,12 +424,28 @@ async function endRace(io: AppServer, room: Room, race: Race) {
 
   setStatus(room, "results");
   broadcast(io, room);
-  await saveResults(race, ranked);
+  if (!(await saveResults(race, ranked))) return;
+  await announceUnlocks(io, room, race).catch((e) =>
+    console.error("[race] failed to check unlocked notes", e),
+  );
 }
 
-async function saveResults(race: Race, ranked: Racer[]) {
+async function announceUnlocks(io: AppServer, room: Room, race: Race) {
+  let changed = false;
+  for (const r of race.racers.values()) {
+    if (!r.userId || r.place !== 1 || r.outcome !== "finished") continue;
+    const wins = await winCount(r.userId);
+    r.unlocked = newlyUnlocked(wins - 1, wins);
+    const member = [...room.members.values()].find((m) => m.id === r.id);
+    if (member) member.note = await currentNote(r.userId);
+    changed = true;
+  }
+  if (changed && room.race === race) broadcast(io, room);
+}
+
+async function saveResults(race: Race, ranked: Racer[]): Promise<boolean> {
   const raceId = await race.dbId;
-  if (!raceId) return;
+  if (!raceId) return false;
   try {
     await db.transaction(async (tx) => {
       await tx.insert(raceResult).values(
@@ -446,7 +466,9 @@ async function saveResults(race: Race, ranked: Racer[]) {
         .set({ endedAt: new Date(race.endedAt ?? Date.now()) })
         .where(eq(raceTable.id, raceId));
     });
+    return true;
   } catch (e) {
     console.error("[race] failed to persist results", e);
+    return false;
   }
 }

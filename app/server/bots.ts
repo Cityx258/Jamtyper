@@ -1,4 +1,5 @@
 import { randomInt, randomUUID } from "node:crypto";
+import type { NoteKind } from "../src/lib/notes";
 import type { BotLevel } from "../src/lib/race-settings";
 import type { Race, Racer } from "./room-state";
 
@@ -15,11 +16,11 @@ const NAMES = [
   "Andante",
 ];
 
-const LEVELS: Record<BotLevel, { wpm: number; typoRate: number }> = {
-  easy: { wpm: 25, typoRate: 0.06 },
-  medium: { wpm: 45, typoRate: 0.03 },
-  expert: { wpm: 75, typoRate: 0.015 },
-  impossible: { wpm: 140, typoRate: 0.003 },
+const LEVELS: Record<BotLevel, { wpm: number; typoRate: number; note: NoteKind }> = {
+  easy: { wpm: 25, typoRate: 0.06, note: "half" },
+  medium: { wpm: 45, typoRate: 0.03, note: "quarter" },
+  expert: { wpm: 75, typoRate: 0.015, note: "sixteenth" },
+  impossible: { wpm: 140, typoRate: 0.003, note: "thirtySecond" },
 };
 
 const random = () => randomInt(1_000_000) / 1_000_000;
@@ -41,7 +42,7 @@ export function createBots(
   taken: Set<string>,
   level: BotLevel,
 ): Racer[] {
-  const { wpm, typoRate } = LEVELS[level];
+  const { wpm, typoRate, note } = LEVELS[level];
   const names = NAMES.filter((n) => !taken.has(n));
   const bots: Racer[] = [];
   for (let i = 0; i < count; i++) {
@@ -60,6 +61,8 @@ export function createBots(
       doneAt: null,
       place: null,
       team: null,
+      note,
+      unlocked: null,
       jump: 0,
       bonus: 0,
       boost: null,

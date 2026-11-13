@@ -13,6 +13,7 @@ import {
   type Visibility,
 } from "../src/lib/room-protocol";
 import { DEFAULT_SETTINGS } from "../src/lib/race-settings";
+import { currentNote } from "../src/db/notes";
 import { generateRoomCode } from "./codes";
 import { dropRacer, hostContext, isStillRacing, stopRace } from "./race";
 import {
@@ -219,6 +220,7 @@ export async function createRoom(
         watching: false,
         watchRequested: false,
         team: 0,
+        note: await currentNote(identity.userId!),
         joinedAt: Date.now(),
         sockets: new Set(),
       };
@@ -279,6 +281,7 @@ export async function joinRoom(
       watching: false,
       watchRequested: false,
       team: smallerTeam(room),
+      note: identity.userId ? await currentNote(identity.userId) : "whole",
       joinedAt: Date.now(),
       sockets: new Set(),
     };

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import KeyHeatmap from "@/components/KeyHeatmap";
+import NotePicker from "@/components/NotePicker";
 import RecoveryCodeSection from "@/components/RecoveryCodeSection";
 import SignOutButton from "@/components/SignOutButton";
 import { primaryButton, secondaryButton } from "@/components/ui";
@@ -10,6 +11,8 @@ import { getProfile } from "@/db/profile";
 import { getDict, getLocale } from "@/i18n";
 import { auth } from "@/lib/auth";
 import { hasPassword } from "@/lib/recovery";
+import { chosenNote } from "@/db/notes";
+import { noteFor } from "@/lib/notes";
 
 export async function generateMetadata() {
   return { title: `${(await getDict()).profile.title} | JamTyper` };
@@ -19,11 +22,12 @@ export default async function ProfilePage() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/login");
 
-  const [dict, locale, profile, withPassword] = await Promise.all([
+  const [dict, locale, profile, withPassword, chosen] = await Promise.all([
     getDict(),
     getLocale(),
     getProfile(session.user.id),
     hasPassword(session.user.id),
+    chosenNote(session.user.id),
   ]);
   const t = dict.profile;
   const name = session.user.displayUsername ?? session.user.name;
@@ -146,6 +150,8 @@ export default async function ProfilePage() {
             </div>
           )}
         </section>
+
+        <NotePicker wins={profile.wins} current={noteFor(profile.wins, chosen)} t={t.notes} />
 
         {withPassword && <RecoveryCodeSection t={dict.login.recovery} />}
       </main>

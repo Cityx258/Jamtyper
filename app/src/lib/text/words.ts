@@ -111,4 +111,12 @@ export const CODE_WORDS: Record<CodeLanguage, string[]> = {
     "try", "catch", "throw", "throws", "import", "package", "==", "!=",
     "&&", "||", "{}", "[]", "();",
   ],
+  csharp: [
+    "public", "private", "static", "void", "class", "interface", "namespace",
+    "using", "new", "return", "if", "else", "for", "foreach", "while", "in",
+    "var", "int", "double", "bool", "string", "null", "true", "false",
+    "async", "await", "Task", "List", "Dictionary", "Console.WriteLine()",
+    "Main()", "Count", "Add()", "get;", "set;", "this", "base", "override",
+    "try", "catch", "throw", "=>", "==", "!=", "&&", "||", "{}", "[]", "();",
+  ],
 };

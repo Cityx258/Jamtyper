@@ -90,4 +90,16 @@ export const QUOTES: Record<Language, Quote[]> = {
     { text: "while (!queue.isEmpty()) { process(queue.poll()); }" },
     { text: "public class Racer { private final String name; }" },
   ],
+  csharp: [
+    { text: "public static int Add(int a, int b) => a + b;" },
+    { text: "foreach (var score in scores) total += score;" },
+    { text: "Console.WriteLine($\"Hello, {name}!\");" },
+    { text: "var names = new List<string>();" },
+    { text: "if (score > best) { best = score; }" },
+    { text: "var fast = players.Where(p => p.Wpm > 60).ToList();" },
+    { text: "public string Name { get; set; }" },
+    { text: "var wins = new Dictionary<string, int>();" },
+    { text: "string word = sentence.ToLower().Trim();" },
+    { text: "var user = await client.GetUserAsync(id);" },
+  ],
 };

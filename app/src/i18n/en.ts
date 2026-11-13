@@ -88,7 +88,7 @@ const en = {
       source: "Text",
       sources: { words: "Random words", quote: "Quotes", custom: "Custom text" },
       language: "Language",
-      languages: { en: "English", fr: "French", javascript: "JavaScript", python: "Python", java: "Java" },
+      languages: { en: "English", fr: "French", javascript: "JavaScript", python: "Python", java: "Java", csharp: "C#" },
       theme: "Theme",
       themes: { general: "Anything", music: "Music", nature: "Nature", science: "Science" },
       difficulty: "Difficulty",

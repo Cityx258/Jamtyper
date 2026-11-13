@@ -90,7 +90,7 @@ const fr: Dict = {
       source: "Texte",
       sources: { words: "Mots aléatoires", quote: "Citations", custom: "Texte personnalisé" },
       language: "Langue",
-      languages: { en: "Anglais", fr: "Français", javascript: "JavaScript", python: "Python", java: "Java" },
+      languages: { en: "Anglais", fr: "Français", javascript: "JavaScript", python: "Python", java: "Java", csharp: "C#" },
       theme: "Thème",
       themes: { general: "Tout", music: "Musique", nature: "Nature", science: "Science" },
       difficulty: "Difficulté",

@@ -75,7 +75,7 @@ describe("generateText", () => {
   });
 
   test("code languages give code", () => {
-    for (const language of ["javascript", "python", "java"] as const) {
+    for (const language of ["javascript", "python", "java", "csharp"] as const) {
       const text = generateText(settings({ language, length: 40 }))!.text;
       expect(text).toMatch(/[(){};=.]/);
     }
@@ -87,6 +87,14 @@ describe("generateText", () => {
       seen.add(generateText(settings({ source: "quote", language: "java", length: 10 }))!.text);
     }
     expect([...seen].some((t) => /System\.out|public|new /.test(t))).toBe(true);
+  });
+
+  test("c# quotes are c#", () => {
+    const seen = new Set<string>();
+    for (let i = 0; i < 60; i++) {
+      seen.add(generateText(settings({ source: "quote", language: "csharp", length: 10 }))!.text);
+    }
+    expect([...seen].some((t) => /Console\.WriteLine|var |get; set;/.test(t))).toBe(true);
   });
 
   test("custom text is used as is, after cleanup", () => {

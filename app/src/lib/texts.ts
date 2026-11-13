@@ -43,11 +43,42 @@ function shuffle<T>(list: T[]): T[] {
   return list;
 }
 
-function randomWords(pool: string[], count: number): string {
+function randomWords(pool: string[], count: number): string[] {
   const words: string[] = [];
   while (words.length < count) {
     const word = pool[randomInt(pool.length)];
     if (pool.length === 1 || word !== words[words.length - 1]) words.push(word);
+  }
+  return words;
+}
+
+const stripAccents = (word: string) =>
+  word.normalize("NFD").replace(/\p{M}/gu, "").normalize("NFC");
+
+const ENDINGS = [".", ".", ".", "!", "?"];
+
+function punctuate(words: string[]): string[] {
+  let sentence = 0;
+  let target = 4 + randomInt(7);
+  return words.map((word, i) => {
+    let w = sentence === 0 ? word[0].toUpperCase() + word.slice(1) : word;
+    sentence++;
+    if (i === words.length - 1 || sentence >= target) {
+      w += ENDINGS[randomInt(ENDINGS.length)];
+      sentence = 0;
+      target = 4 + randomInt(7);
+    } else if (randomInt(6) === 0) {
+      w += ",";
+    }
+    return w;
+  });
+}
+
+function wordsText(s: RaceSettings): string {
+  let words = randomWords(wordPool(s), s.length);
+  if (!isCodeLanguage(s.language)) {
+    if (!s.accents) words = words.map(stripAccents);
+    if (s.punctuation) words = punctuate(words);
   }
   return words.join(" ");
 }
@@ -87,7 +118,7 @@ export function generateText(s: RaceSettings): GeneratedText | null {
   } else if (s.source === "quote") {
     out = chainQuotes(quotePool(s), s.length);
   } else {
-    out = { text: randomWords(wordPool(s), s.length), by: null };
+    out = { text: wordsText(s), by: null };
   }
   if (!out) return null;
   const text = typeable(out.text);

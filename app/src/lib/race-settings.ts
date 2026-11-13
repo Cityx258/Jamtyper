@@ -19,6 +19,8 @@ export interface RaceSettings {
   source: TextSource;
   language: Language;
   theme: TextTheme;
+  accents: boolean;
+  punctuation: boolean;
   customText: string;
   length: number;
   timeLimitSec: number;
@@ -32,10 +34,15 @@ export const DEFAULT_SETTINGS: RaceSettings = {
   source: "words",
   language: "en",
   theme: "general",
+  accents: true,
+  punctuation: false,
   customText: "",
   length: 30,
   timeLimitSec: 180,
 };
+
+const bool = (value: unknown, fallback: boolean) =>
+  typeof value === "boolean" ? value : fallback;
 
 const pick = <T>(list: readonly T[], value: unknown, fallback: T): T =>
   list.includes(value as T) ? (value as T) : fallback;
@@ -56,6 +63,8 @@ export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettin
     source: pick(SOURCES, p.source, current.source),
     language: pick(LANGUAGES, p.language, current.language),
     theme: pick(TEXT_THEMES, p.theme, current.theme),
+    accents: bool(p.accents, current.accents),
+    punctuation: bool(p.punctuation, current.punctuation),
     customText: cleanCustom(p.customText, current.customText),
     length: clampInt(p.length, LENGTH_MIN, LENGTH_MAX, current.length),
     timeLimitSec: pick(TIME_LIMITS, p.timeLimitSec, current.timeLimitSec),

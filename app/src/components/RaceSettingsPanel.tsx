@@ -95,6 +95,47 @@ export function Choice<V extends string | number>({
   );
 }
 
+export function Toggle({
+  on,
+  label,
+  editable,
+  onLabel,
+  offLabel,
+  onFlip,
+}: {
+  on: boolean;
+  label: string;
+  editable: boolean;
+  onLabel: string;
+  offLabel: string;
+  onFlip: (v: boolean) => void;
+}) {
+  if (!editable) return <span className="font-medium">{on ? onLabel : offLabel}</span>;
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      onClick={() => onFlip(!on)}
+      className="flex items-center gap-3 self-start text-sm"
+    >
+      <span
+        className={`relative h-6 w-11 rounded-full border transition-colors ${
+          on ? "border-teal bg-teal/30" : "border-line bg-bg/70"
+        }`}
+      >
+        <span
+          className={`absolute top-0.5 h-4.5 w-4.5 rounded-full transition-all ${
+            on ? "left-5.5 bg-teal" : "left-0.5 bg-muted"
+          }`}
+        />
+      </span>
+      <span className={on ? "text-ink" : "text-muted"}>{on ? onLabel : offLabel}</span>
+    </button>
+  );
+}
+
 function timeLabel(sec: number, t: T) {
   return sec < 60
     ? t.seconds.replace("{n}", String(sec))
@@ -150,6 +191,30 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
               label={(v) => t.themes[v]}
               editable={editable}
               onPick={(v) => onChange({ theme: v })}
+            />
+          </Field>
+        )}
+        {settings.source === "words" && !isCodeLanguage(settings.language) && (
+          <Field label={t.punctuation} hint={t.punctuationHint}>
+            <Toggle
+              on={settings.punctuation}
+              label={t.punctuation}
+              editable={editable}
+              onLabel={t.on}
+              offLabel={t.off}
+              onFlip={(v) => onChange({ punctuation: v })}
+            />
+          </Field>
+        )}
+        {settings.source === "words" && settings.language === "fr" && (
+          <Field label={t.accents} hint={t.accentsHint}>
+            <Toggle
+              on={settings.accents}
+              label={t.accents}
+              editable={editable}
+              onLabel={t.on}
+              offLabel={t.off}
+              onFlip={(v) => onChange({ accents: v })}
             />
           </Field>
         )}

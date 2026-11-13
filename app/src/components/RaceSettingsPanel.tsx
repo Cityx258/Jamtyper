@@ -5,6 +5,7 @@ import type { Dict } from "@/i18n/en";
 import {
   CHARS_MAX,
   CUSTOM_MAX,
+  BOT_COUNTS,
   BOT_LEVELS,
   DIFFICULTIES,
   ERROR_MODES,
@@ -369,6 +370,17 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
             onFlip={(v) => onChange({ bots: v })}
           />
         </Field>
+        {settings.bots && (
+          <Field label={t.botCount} hint={t.botCountHint}>
+            <Choice
+              options={BOT_COUNTS}
+              value={settings.botCount as (typeof BOT_COUNTS)[number]}
+              label={(v) => (v === 0 ? t.botAuto : String(v))}
+              editable={editable}
+              onPick={(v) => onChange({ botCount: v })}
+            />
+          </Field>
+        )}
         {settings.bots && (
           <Field label={t.botLevel}>
             <Choice

@@ -23,6 +23,7 @@ export const LENGTH_MIN = 10;
 export const LENGTH_MAX = 200;
 export const TIME_LIMITS = [30, 60, 120, 180, 300, 600] as const;
 export const TIME_GOALS = [0, 30, 45, 60, 90, 120] as const;
+export const BOT_COUNTS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
 export interface RaceSettings {
   source: TextSource;
@@ -35,6 +36,7 @@ export interface RaceSettings {
   priority: string;
   errorMode: ErrorMode;
   bots: boolean;
+  botCount: number;
   botLevel: BotLevel;
   boosts: boolean;
   instantDeath: boolean;
@@ -60,6 +62,7 @@ export const DEFAULT_SETTINGS: RaceSettings = {
   priority: "",
   errorMode: "fix",
   bots: true,
+  botCount: 0,
   botLevel: "medium",
   boosts: true,
   instantDeath: false,
@@ -105,6 +108,7 @@ export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettin
     priority: cleanChars(p.priority, current.priority),
     errorMode: pick(ERROR_MODES, p.errorMode, current.errorMode),
     bots: bool(p.bots, current.bots),
+    botCount: pick(BOT_COUNTS, p.botCount, current.botCount as (typeof BOT_COUNTS)[number]),
     botLevel: pick(BOT_LEVELS, p.botLevel, current.botLevel),
     boosts: bool(p.boosts, current.boosts),
     instantDeath: bool(p.instantDeath, current.instantDeath),

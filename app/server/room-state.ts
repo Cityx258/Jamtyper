@@ -15,10 +15,11 @@ import type {
 import { settingsView, type RaceSettings } from "../src/lib/race-settings";
 import type { NoteKind } from "../src/lib/notes";
 import type { Team } from "../src/lib/teams";
+import { MIN_RACERS } from "../src/lib/bot-plan";
 import type { BotState } from "./bots";
 
 export const GRACE_MS = 30_000;
-export const MIN_RACERS = 2;
+export { MIN_RACERS };
 
 export interface Identity {
   key: string;

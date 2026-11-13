@@ -21,6 +21,7 @@ import {
   type RoomError,
   type RoomView,
 } from "@/lib/room-protocol";
+import { botPlan } from "@/lib/bot-plan";
 import {
   getSocket,
   requestAction,
@@ -304,10 +305,7 @@ export default function RoomLobby({
   const canStart = room.settings.bots
     ? readyRacers >= 1
     : readyRacers >= room.minRacers && !emptyTeam;
-  const botsJoin =
-    room.settings.bots &&
-    readyRacers >= 1 &&
-    (teams ? teamSizes[0] !== teamSizes[1] || readyRacers < room.minRacers : readyRacers < room.minRacers);
+  const botsJoin = botPlan([teamSizes[0], teamSizes[1]], room.settings).length;
   const banner = (
     <>
       {!live && (
@@ -576,7 +574,11 @@ export default function RoomLobby({
           )}
           {botsJoin && (
             <p className="mt-3 text-sm text-muted">
-              {teams ? t.botsEvenTeams : t.botsWillJoin}
+              {teams && teamSizes[0] !== teamSizes[1]
+                ? t.botsEvenTeams
+                : botsJoin === 1
+                  ? t.botsWillJoin
+                  : t.botsWillJoinMany.replace("{n}", String(botsJoin))}
             </p>
           )}
         </div>

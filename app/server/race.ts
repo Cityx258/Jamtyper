@@ -34,7 +34,7 @@ import { createBots, stepBot } from "./bots";
 import { applyBoosts } from "./boosts";
 import { sampleRace, sampleRacer } from "./samples";
 import { randomPitches } from "../src/lib/melody";
-import { teamGaps, type Team } from "../src/lib/teams";
+import { botPlan } from "../src/lib/bot-plan";
 import { newlyUnlocked } from "../src/lib/notes";
 import { currentNote, winCount } from "../src/db/notes";
 
@@ -105,8 +105,7 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
   }
   const sizes: [number, number] = [0, 0];
   for (const m of entrants) sizes[m.team]++;
-  const gaps = settings.teams ? teamGaps(sizes) : null;
-  if (gaps && !settings.bots && sizes.includes(0)) {
+  if (settings.teams && !settings.bots && sizes.includes(0)) {
     return fail("empty_team");
   }
 
@@ -154,10 +153,7 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
     timers: [],
   };
   const names = new Set(entrants.map((m) => m.name));
-  const botTeams: (Team | null)[] =
-    gaps && settings.bots
-      ? [...Array(gaps[0]).fill(0), ...Array(gaps[1]).fill(1)]
-      : Array(Math.max(0, needed)).fill(null);
+  const botTeams = botPlan(sizes, settings);
   const bots = createBots(botTeams.length, names, settings.botLevel);
   bots.forEach((bot, i) => {
     bot.team = botTeams[i];

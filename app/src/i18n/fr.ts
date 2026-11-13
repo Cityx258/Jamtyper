@@ -286,6 +286,12 @@ const fr: Dict = {
     again: "Recommencer",
     backHome: "Retour à l'accueil",
   },
+  notFound: {
+    title: "Page introuvable",
+    heading: "Fausse note.",
+    text: "Cette page n'existe pas. Le lien est peut-être brisé ou la page a été déplacée.",
+    home: "Retour à l'accueil",
+  },
   login: {
     tablistLabel: "Se connecter ou créer un compte",
     tabSignIn: "Connexion",

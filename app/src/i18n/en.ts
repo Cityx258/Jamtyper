@@ -281,6 +281,12 @@ const en = {
     again: "Practice again",
     backHome: "Back to home",
   },
+  notFound: {
+    title: "Page not found",
+    heading: "Wrong note.",
+    text: "This page doesn't exist. The link may be broken or the page may have moved.",
+    home: "Back to home",
+  },
   login: {
     tablistLabel: "Sign in or create an account",
     tabSignIn: "Sign in",

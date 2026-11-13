@@ -251,6 +251,14 @@ export function isStillRacing(room: Room, member: Member): boolean {
   );
 }
 
+export function kickRacer(io: AppServer, room: Room, member: Member) {
+  const race = room.race;
+  const racer = race?.racers.get(member.id);
+  if (race && racer && isLive(room.status) && racer.outcome === "racing") {
+    settle(io, room, race, racer, "kicked");
+  }
+}
+
 export function dropRacer(io: AppServer, room: Room, member: Member) {
   const race = room.race;
   const racer = race?.racers.get(member.id);

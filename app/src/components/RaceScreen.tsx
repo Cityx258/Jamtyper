@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import KickButton from "@/components/KickButton";
 import TypingBox from "@/components/TypingBox";
 import { secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
@@ -17,6 +18,7 @@ type Props = {
   t: Dict["room"];
   onCancel: () => void;
   onForfeit: () => void;
+  onKick: (memberId: string) => void;
 };
 
 function clock(seconds: number) {
@@ -33,6 +35,7 @@ export default function RaceScreen({
   t,
   onCancel,
   onForfeit,
+  onKick,
 }: Props) {
   const [now, setNow] = useState(() => Date.now());
 
@@ -124,6 +127,9 @@ export default function RaceScreen({
                 <span className="font-mono text-xs uppercase text-muted">
                   {t.outcomes[r.outcome]}
                 </span>
+              )}
+              {isHost && r.id !== you && r.outcome === "racing" && (
+                <KickButton name={r.name} t={t} onKick={() => onKick(r.id)} />
               )}
               <span className="w-20 text-right font-mono">
                 {r.wpm} {t.wpm}

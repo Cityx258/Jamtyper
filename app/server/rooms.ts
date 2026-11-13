@@ -97,7 +97,7 @@ async function closeRoom(io: AppServer, room: Room) {
   }
 }
 
-async function removeMember(io: AppServer, room: Room, member: Member) {
+export async function removeMember(io: AppServer, room: Room, member: Member) {
   if (room.members.get(member.key) !== member) return;
   if (member.graceTimer) clearTimeout(member.graceTimer);
   room.members.delete(member.key);
@@ -222,6 +222,7 @@ export async function createRoom(
         status: "lobby",
         visibility,
         members: new Map([[identity.key, member]]),
+        banned: new Set(),
         invitesIssued: 0,
         race: null,
       };
@@ -256,6 +257,7 @@ export async function joinRoom(
 
   let member = room.members.get(identity.key);
   if (!member) {
+    if (room.banned.has(identity.key)) return fail("kicked");
     const invite = room.visibility === "private" ? inviteHash(rawInvite) : null;
     if (room.visibility === "private" && !invite) return fail("invite_required");
     const name = identity.userId
@@ -319,7 +321,9 @@ export async function quickplay(
   socket: AppSocket,
 ): Promise<QuickplayResult> {
   const { identity } = socket.data;
-  const open = [...rooms.values()].filter((r) => r.visibility === "public");
+  const open = [...rooms.values()].filter(
+    (r) => r.visibility === "public" && !r.banned.has(identity.key),
+  );
   const busiest = (list: Room[]) =>
     list.sort((a, b) => b.members.size - a.members.size)[0];
 

@@ -83,6 +83,7 @@ export interface Room {
   status: RoomStatus;
   visibility: Visibility;
   members: Map<string, Member>;
+  banned: Set<string>;
   invitesIssued: number;
   race: Race | null;
 }

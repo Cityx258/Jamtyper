@@ -2,14 +2,16 @@ import { eq } from "drizzle-orm";
 import { db } from "../src/db";
 import { roomMember } from "../src/db/rooms";
 import type { ActionResult, RoomError } from "../src/lib/room-protocol";
-import { context, hostContext } from "./race";
+import { context, hostContext, kickRacer } from "./race";
 import {
   broadcast,
+  channel,
   findMember,
   type AppServer,
   type AppSocket,
   type Member,
 } from "./room-state";
+import { removeMember } from "./rooms";
 
 const ok: ActionResult = { ok: true };
 const fail = (error: RoomError): ActionResult => ({ ok: false, error });
@@ -68,5 +70,30 @@ export function answerWatchRequest(
   if (approve) target.watching = true;
   persistRole(target);
   broadcast(io, ctx.room);
+  return ok;
+}
+
+export async function kickMember(
+  io: AppServer,
+  socket: AppSocket,
+  payload: unknown,
+): Promise<ActionResult> {
+  const ctx = hostContext(socket);
+  if (typeof ctx === "string") return fail(ctx);
+  const { room } = ctx;
+  const target = findMember(room, field(payload, "memberId"));
+  if (!target || target.key === room.hostKey) return fail("bad_request");
+
+  room.banned.add(target.key);
+  kickRacer(io, room, target);
+  for (const id of target.sockets) {
+    const s = io.sockets.sockets.get(id);
+    if (!s) continue;
+    s.data.roomCode = undefined;
+    void s.leave(channel(room.code));
+    s.emit("room:kicked");
+  }
+  target.sockets.clear();
+  await removeMember(io, room, target);
   return ok;
 }

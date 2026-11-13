@@ -64,6 +64,7 @@ export type RoomError =
   | "not_host"
   | "not_enough_racers"
   | "invite_required"
+  | "kicked"
   | "no_public_room"
   | "bad_state"
   | "server_error";
@@ -110,6 +111,10 @@ export interface ClientToServerEvents {
     payload: { memberId: string; approve: boolean },
     ack: (result: ActionResult) => void,
   ) => void;
+  "member:kick": (
+    payload: { memberId: string },
+    ack: (result: ActionResult) => void,
+  ) => void;
   "room:leave": (ack?: () => void) => void;
   "room:close": (ack: (result: ActionResult) => void) => void;
   "race:start": (ack: (result: ActionResult) => void) => void;
@@ -122,5 +127,6 @@ export interface ClientToServerEvents {
 export interface ServerToClientEvents {
   "room:state": (room: RoomView) => void;
   "room:closed": () => void;
+  "room:kicked": () => void;
   "race:positions": (racers: RacerView[]) => void;
 }

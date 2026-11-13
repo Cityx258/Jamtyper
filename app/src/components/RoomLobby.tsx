@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import KickButton from "@/components/KickButton";
 import RaceResults from "@/components/RaceResults";
 import RaceScreen from "@/components/RaceScreen";
 import {
@@ -24,6 +25,7 @@ import {
   requestAnswerWatch,
   requestInvite,
   requestJoinRoom,
+  requestKick,
   requestLeaveRoom,
   requestVisibility,
   requestWatch,
@@ -165,12 +167,14 @@ export default function RoomLobby({
     const onPositions = (racers: RacerView[]) =>
       setRoom((r) => (r?.race ? { ...r, race: { ...r.race, racers } } : r));
     const onClosed = () => setClosed(true);
+    const onKicked = () => setError("kicked");
     const onDisconnect = () => setLive(false);
 
     socket.on("connect", join);
     socket.on("disconnect", onDisconnect);
     socket.on("room:state", onState);
     socket.on("room:closed", onClosed);
+    socket.on("room:kicked", onKicked);
     socket.on("race:positions", onPositions);
     if (socket.connected) void join();
     else socket.connect();
@@ -181,6 +185,7 @@ export default function RoomLobby({
       socket.off("disconnect", onDisconnect);
       socket.off("room:state", onState);
       socket.off("room:closed", onClosed);
+      socket.off("room:kicked", onKicked);
       socket.off("race:positions", onPositions);
       socket.disconnect();
     };
@@ -339,6 +344,7 @@ export default function RoomLobby({
             t={t}
             onCancel={() => act("race:cancel")}
             onForfeit={() => act("race:forfeit")}
+            onKick={(id) => run(requestKick(id))}
           />
         )}
         <button type="button" onClick={leave} className={`mt-10 ${secondaryButton}`}>
@@ -473,6 +479,7 @@ export default function RoomLobby({
                       </button>
                     </>
                   )}
+                  <KickButton name={m.name} t={t} onKick={() => run(requestKick(m.id))} />
                 </span>
               )}
             </li>

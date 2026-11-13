@@ -119,6 +119,9 @@ export const requestWatch = (watching: boolean) =>
 export const requestAnswerWatch = (memberId: string, approve: boolean) =>
   guarded((s) => s.emitWithAck("member:approve", { memberId, approve }));
 
+export const requestKick = (memberId: string) =>
+  guarded((s) => s.emitWithAck("member:kick", { memberId }));
+
 export function sendProgress(progress: ProgressPayload) {
   getSocket().emit("race:progress", progress);
 }

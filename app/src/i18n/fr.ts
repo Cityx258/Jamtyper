@@ -90,6 +90,8 @@ const fr: Dict = {
     youWatch: "Tu regarderas la prochaine course.",
     approve: "Accepter",
     decline: "Refuser",
+    kick: "Expulser",
+    confirmKick: "Expulser {name}?",
     waiting:
       "Partage le code et attends tes amis. Une course demande au moins 2 joueurs.",
     waitingInvite:
@@ -140,6 +142,7 @@ const fr: Dict = {
       not_host: "Seul l'hôte peut faire ça.",
       not_enough_racers: "Il faut au moins 2 joueurs connectés pour lancer la course.",
       invite_required: "Cette salle est sur invitation. Demande un lien à l'hôte.",
+      kicked: "L'hôte t'a retiré de cette salle.",
       no_public_room: "Aucune course publique pour le moment.",
       bad_state: "Impossible pour le moment.",
       server_error: "Une erreur est survenue. Réessaie.",

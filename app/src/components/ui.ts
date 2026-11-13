@@ -6,3 +6,6 @@ export const secondaryButton =
 
 export const smallButton =
   "rounded-full border border-line px-3 py-1 text-xs font-medium text-muted transition-colors hover:border-teal hover:text-ink disabled:opacity-60";
+
+export const smallDangerButton =
+  "rounded-full border border-danger px-3 py-1 text-xs font-medium text-danger transition-colors hover:bg-danger hover:text-bg";

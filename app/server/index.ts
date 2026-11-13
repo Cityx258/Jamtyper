@@ -8,7 +8,7 @@ import type {
   RoomError,
   ServerToClientEvents,
 } from "../src/lib/room-protocol";
-import { answerWatchRequest, setWatching } from "./members";
+import { answerWatchRequest, kickMember, setWatching } from "./members";
 import {
   cancelRace,
   forfeit,
@@ -153,6 +153,9 @@ async function main() {
       respond("member:approve", ack, () =>
         answerWatchRequest(io, socket, payload),
       ),
+    );
+    socket.on("member:kick", (payload, ack) =>
+      respond("member:kick", ack, () => kickMember(io, socket, payload)),
     );
 
     socket.on("room:leave", async (ack) => {

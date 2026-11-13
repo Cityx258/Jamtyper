@@ -43,6 +43,7 @@ export interface RacerView {
 
 export interface RaceView {
   text: string | null;
+  by: string | null;
   length: number;
   startsAt: number;
   endsAt: number;
@@ -68,6 +69,7 @@ export type RoomError =
   | "not_host"
   | "not_enough_racers"
   | "invite_required"
+  | "no_text"
   | "kicked"
   | "no_public_room"
   | "bad_state"

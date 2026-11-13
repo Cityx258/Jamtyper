@@ -1,15 +1,31 @@
+import { typeable } from "./texts";
+
+export const SOURCES = ["words", "quote", "custom"] as const;
+export type TextSource = (typeof SOURCES)[number];
+export const LANGUAGES = ["en", "fr", "javascript", "python"] as const;
+export type Language = (typeof LANGUAGES)[number];
+export const CODE_LANGUAGES: readonly Language[] = ["javascript", "python"];
+export const CUSTOM_MAX = 1000;
 export const LENGTH_MIN = 10;
 export const LENGTH_MAX = 200;
 export const TIME_LIMITS = [30, 60, 120, 180, 300, 600] as const;
 
 export interface RaceSettings {
+  source: TextSource;
+  language: Language;
+  customText: string;
   length: number;
   timeLimitSec: number;
 }
 
-export type SettingsView = RaceSettings;
+export type SettingsView = Omit<RaceSettings, "customText"> & {
+  customLength: number;
+};
 
 export const DEFAULT_SETTINGS: RaceSettings = {
+  source: "words",
+  language: "en",
+  customText: "",
   length: 30,
   timeLimitSec: 180,
 };
@@ -22,14 +38,23 @@ function clampInt(value: unknown, min: number, max: number, fallback: number) {
   return Math.min(max, Math.max(min, Math.round(value)));
 }
 
+function cleanCustom(value: unknown, fallback: string): string {
+  if (typeof value !== "string") return fallback;
+  return typeable(value).slice(0, CUSTOM_MAX).trim();
+}
+
 export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettings {
   const p = (patch && typeof patch === "object" ? patch : {}) as Record<string, unknown>;
   return {
+    source: pick(SOURCES, p.source, current.source),
+    language: pick(LANGUAGES, p.language, current.language),
+    customText: cleanCustom(p.customText, current.customText),
     length: clampInt(p.length, LENGTH_MIN, LENGTH_MAX, current.length),
     timeLimitSec: pick(TIME_LIMITS, p.timeLimitSec, current.timeLimitSec),
   };
 }
 
 export function settingsView(settings: RaceSettings): SettingsView {
-  return { ...settings };
+  const { customText, ...rest } = settings;
+  return { ...rest, customLength: customText.length };
 }

@@ -3,8 +3,11 @@
 import { useRef, useState } from "react";
 import type { Dict } from "@/i18n/en";
 import {
+  CUSTOM_MAX,
+  LANGUAGES,
   LENGTH_MAX,
   LENGTH_MIN,
+  SOURCES,
   TIME_LIMITS,
   type SettingsView,
 } from "@/lib/race-settings";
@@ -98,6 +101,17 @@ function timeLabel(sec: number, t: T) {
 
 export default function RaceSettingsPanel({ settings, editable, t, onChange }: Props) {
   const [length, setLength] = useDraft(settings.length, (v) => onChange({ length: v }));
+  const [custom, setCustom] = useState("");
+  const customTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const isCustom = settings.source === "custom";
+  const lengthText = (n: number) =>
+    (settings.source === "quote" ? t.lengthAbout : t.lengthWords).replace("{n}", String(n));
+
+  function editCustom(value: string) {
+    setCustom(value);
+    clearTimeout(customTimer.current);
+    customTimer.current = setTimeout(() => onChange({ customText: value }), 400);
+  }
 
   return (
     <section className="mt-10" aria-labelledby="settings-title">
@@ -106,29 +120,75 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
       </h2>
       {!editable && <p className="mt-1 text-sm text-muted">{t.hostOnly}</p>}
       <div className="mt-5 grid gap-6 sm:grid-cols-2">
-        <Field label={t.length}>
-          {editable ? (
-            <div className="flex items-center gap-4">
-              <input
-                type="range"
-                min={LENGTH_MIN}
-                max={LENGTH_MAX}
-                step={5}
-                value={length}
-                onChange={(e) => setLength(Number(e.target.value))}
-                aria-label={t.length}
-                className="w-full max-w-64 accent-teal"
-              />
-              <span className="w-24 font-mono text-sm">
-                {t.lengthWords.replace("{n}", String(length))}
-              </span>
-            </div>
-          ) : (
-            <span className="font-medium">
-              {t.lengthWords.replace("{n}", String(settings.length))}
-            </span>
-          )}
+        <Field label={t.source}>
+          <Choice
+            options={SOURCES}
+            value={settings.source}
+            label={(v) => t.sources[v]}
+            editable={editable}
+            onPick={(v) => onChange({ source: v })}
+          />
         </Field>
+        {!isCustom && (
+          <Field label={t.language}>
+            <Choice
+              options={LANGUAGES}
+              value={settings.language}
+              label={(v) => t.languages[v]}
+              editable={editable}
+              onPick={(v) => onChange({ language: v })}
+            />
+          </Field>
+        )}
+        {isCustom && (
+          <div className="sm:col-span-2">
+            <Field
+              label={t.customLabel}
+              hint={
+                editable
+                  ? t.customSaved.replace("{n}", String(settings.customLength))
+                  : undefined
+              }
+            >
+              {editable ? (
+                <textarea
+                  value={custom}
+                  onChange={(e) => editCustom(e.target.value)}
+                  maxLength={CUSTOM_MAX}
+                  rows={4}
+                  placeholder={t.customPlaceholder}
+                  aria-label={t.customLabel}
+                  className="w-full rounded-lg border border-line bg-bg/70 px-4 py-3 text-ink focus:border-teal focus:outline-none"
+                />
+              ) : (
+                <span className="text-muted">
+                  {t.customHidden.replace("{n}", String(settings.customLength))}
+                </span>
+              )}
+            </Field>
+          </div>
+        )}
+        {!isCustom && (
+          <Field label={t.length}>
+            {editable ? (
+              <div className="flex items-center gap-4">
+                <input
+                  type="range"
+                  min={LENGTH_MIN}
+                  max={LENGTH_MAX}
+                  step={5}
+                  value={length}
+                  onChange={(e) => setLength(Number(e.target.value))}
+                  aria-label={t.length}
+                  className="w-full max-w-64 accent-teal"
+                />
+                <span className="w-32 font-mono text-sm">{lengthText(length)}</span>
+              </div>
+            ) : (
+              <span className="font-medium">{lengthText(settings.length)}</span>
+            )}
+          </Field>
+        )}
         <Field label={t.timeLimit}>
           <Choice
             options={TIME_LIMITS}

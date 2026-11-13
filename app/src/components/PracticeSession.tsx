@@ -7,6 +7,7 @@ import TypingBox from "@/components/TypingBox";
 import { primaryButton, secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import type { ProgressPayload } from "@/lib/room-protocol";
+import { DEFAULT_SETTINGS } from "@/lib/race-settings";
 import { generateText } from "@/lib/texts";
 
 const COUNTDOWN_MS = 3_000;
@@ -53,7 +54,7 @@ export default function PracticeSession({ t, heatmapT }: Props) {
 
   function start() {
     setSession({
-      text: generateText(),
+      text: generateText(DEFAULT_SETTINGS)!.text,
       startsAt: Date.now() + COUNTDOWN_MS,
       finishedAt: null,
     });

@@ -27,7 +27,7 @@ import {
   type Racer,
   type Room,
 } from "./room-state";
-import { mergeSettings } from "../src/lib/race-settings";
+import { mergeSettings, settingsView } from "../src/lib/race-settings";
 import { generateText } from "../src/lib/texts";
 
 export const COUNTDOWN_MS = 5_000;
@@ -93,12 +93,14 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
   if (entrants.length < MIN_RACERS) return fail("not_enough_racers");
 
   const settings = room.settings;
-  const text = generateText(settings.length);
+  const generated = generateText(settings);
+  if (!generated) return fail("no_text");
 
   const startsAt = Date.now() + COUNTDOWN_MS;
   const race: Race = {
     dbId: null,
-    text,
+    text: generated.text,
+    by: generated.by,
     settings,
     startsAt,
     endsAt: startsAt + settings.timeLimitSec * 1000,
@@ -146,7 +148,7 @@ function beginRacing(io: AppServer, room: Room, race: Race) {
     .values({
       roomId: room.id,
       textBody: race.text,
-      settings: { ...race.settings, closingMs: CLOSING_MS },
+      settings: { ...settingsView(race.settings), closingMs: CLOSING_MS },
       startedAt: new Date(race.startsAt),
     })
     .returning({ id: raceTable.id })

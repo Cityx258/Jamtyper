@@ -67,6 +67,7 @@ export interface Racer {
 export interface Race {
   dbId: Promise<string | null> | null;
   text: string;
+  by: string | null;
   settings: RaceSettings;
   startsAt: number;
   endsAt: number;
@@ -142,6 +143,7 @@ export function racersView(race: Race): RacerView[] {
 function raceView(room: Room, race: Race): RaceView {
   return {
     text: room.status === "countdown" ? null : race.text,
+    by: race.by,
     length: race.text.length,
     startsAt: race.startsAt,
     endsAt: race.endsAt,

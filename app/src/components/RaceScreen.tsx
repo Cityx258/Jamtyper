@@ -107,6 +107,9 @@ export default function RaceScreen({
             </p>
           </>
         )}
+        {race.by && (
+          <p className="mt-4 text-sm text-muted">{t.quoteBy.replace("{by}", race.by)}</p>
+        )}
       </div>
 
       <ul className="mt-12 space-y-4">

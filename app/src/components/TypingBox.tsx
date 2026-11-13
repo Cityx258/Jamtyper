@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ErrorMode } from "@/lib/race-settings";
 import type { MissedKeys, ProgressPayload } from "@/lib/room-protocol";
+import { play } from "@/lib/sound";
 
 type Props = {
   text: string;
@@ -42,6 +43,7 @@ function useMistakes() {
       if (typed[i] !== expected[i]) keys.push(expected[i] ?? "");
     }
     if (!keys.length) return;
+    play("typo");
     setMistakes((m) => m + keys.length);
     setMissed((prev) => {
       const next = { ...prev };

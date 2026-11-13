@@ -8,7 +8,9 @@ import { primaryButton, secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import type { ProgressPayload } from "@/lib/room-protocol";
 import { DEFAULT_SETTINGS } from "@/lib/race-settings";
+import { countdownCue } from "@/lib/sound";
 import { generateText } from "@/lib/texts";
+import { useCue } from "@/lib/use-cue";
 
 const COUNTDOWN_MS = 3_000;
 
@@ -51,6 +53,10 @@ export default function PracticeSession({ t, heatmapT }: Props) {
     const id = setInterval(() => setNow(Date.now()), 100);
     return () => clearInterval(id);
   }, [session]);
+
+  const counting = session && !session.finishedAt && now > 0;
+  useCue(counting ? Math.max(0, Math.ceil((session.startsAt - now) / 1000)) : 0, countdownCue);
+  useCue(!!session?.finishedAt, (finished) => (finished ? "finish" : null));
 
   function start() {
     setSession({

@@ -13,6 +13,8 @@ const fr: Dict = {
     languageShort: "EN",
     switchToLight: "Passer au thème clair",
     switchToDark: "Passer au thème sombre",
+    soundOn: "Effets sonores activés. Clique pour couper.",
+    soundOff: "Effets sonores coupés. Clique pour activer.",
   },
   home: {
     kicker: "La frappe, en rythme",

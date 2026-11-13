@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { setLocale, setTheme } from "@/app/actions";
 import SignOutButton from "@/components/SignOutButton";
+import SoundToggle from "@/components/SoundToggle";
 import { getDict, getLocale, getTheme } from "@/i18n";
 import { auth } from "@/lib/auth";
 
@@ -80,6 +81,11 @@ export default async function Header() {
             </svg>
           </button>
         </form>
+        <SoundToggle
+          className={iconButton}
+          onLabel={t.header.soundOn}
+          offLabel={t.header.soundOff}
+        />
         {session ? (
           <>
             <Link

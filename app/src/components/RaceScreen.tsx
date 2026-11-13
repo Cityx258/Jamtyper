@@ -7,6 +7,8 @@ import { secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import type { MemberView, RaceView, RoomStatus } from "@/lib/room-protocol";
 import { sendProgress } from "@/lib/socket";
+import { countdownCue } from "@/lib/sound";
+import { useCue } from "@/lib/use-cue";
 
 type Props = {
   status: RoomStatus;
@@ -50,6 +52,8 @@ export default function RaceScreen({
   const me = race.racers.find((r) => r.id === you);
   const myBoost =
     me?.boost && me.boost.until > serverNow ? me.boost.kind : null;
+  useCue(status === "countdown" ? secondsTo(race.startsAt) : 0, countdownCue);
+  useCue(me?.outcome, (o) => (o === "finished" ? "finish" : o === "eliminated" ? "out" : null));
   const offline = new Set(members.filter((m) => !m.connected).map((m) => m.id));
 
   if (status === "countdown") {

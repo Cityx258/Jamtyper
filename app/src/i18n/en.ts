@@ -11,6 +11,8 @@ const en = {
     languageShort: "FR",
     switchToLight: "Switch to light theme",
     switchToDark: "Switch to dark theme",
+    soundOn: "Sound effects on. Click to mute.",
+    soundOff: "Sound effects off. Click to turn on.",
   },
   home: {
     kicker: "Typing, in tempo",

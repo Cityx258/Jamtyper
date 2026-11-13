@@ -105,7 +105,11 @@ L'hôte peut changer la visibilité à tout moment; tous les joueurs la voient.
 
 Les messages reçus dans un état qui ne les accepte pas sont ignorés et journalisés.
 
+## Bots
+
+- Le minimum de 2 coureurs inclut les bots : un joueur seul peut lancer une course contre un bot si l'hôte a laissé les bots activés. Il faut toujours au moins un humain parmi les coureurs.
+- Les bots ne retiennent pas la course : dès qu'aucun humain n'est encore en course (tous ont fini ou abandonné), la course passe à `results`.
+
 ## Points à valider
 
-- Le minimum de 2 coureurs inclut-il les bots pour le départ? On suppose que oui, tout en les excluant des statistiques du joueur (hypothèse 1 du cahier des charges).
 - Durée de la minuterie de clôture (30 secondes proposées) et du délai de grâce de reconnexion (30 secondes proposées).

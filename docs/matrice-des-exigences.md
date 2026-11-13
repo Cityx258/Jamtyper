@@ -71,17 +71,17 @@ Tous ces paramètres sont dans le panneau « Paramètres de la course » du lobb
 
 ## Bots
 
-| N° | Exigence | Priorité | État |
-|---|---|---|---|
-| 3.15 | Bots ajoutés automatiquement si pas assez de joueurs | 5 | À faire |
-| 3.16 | Difficulté des bots configurable | 5 | À faire |
-| 3.17 | Vitesse des bots variable dans le temps | 5 | À faire |
+| N° | Exigence | Priorité | État | Remarque |
+|---|---|---|---|---|
+| 3.15 | Bots ajoutés automatiquement si pas assez de joueurs | 5 | Vérifié (requêtes) | Option « Bots » (activée par défaut). Au départ, un bot comble la place manquante pour atteindre 2 coureurs. Étiquette « bot », pas de bouton d'expulsion, `is_bot` en base, exclus des statistiques du joueur. |
+| 3.16 | Difficulté des bots configurable | 5 | Vérifié (requêtes) | Facile, moyen, expert, impossible (environ 25, 45, 75 et 140 MPM). Les bots font des fautes : en mode « À corriger », ils s'arrêtent pour corriger; en mode « On continue », la faute compte. |
+| 3.17 | Vitesse des bots variable dans le temps | 5 | Vérifié (requêtes) | Départ lent, rythme qui dérive vers une cible aléatoire, accélérations brèves, pauses après les espaces et la ponctuation. Écart mesuré de plus de 15 % d'une seconde à l'autre. |
 
 ## Boosts
 
-| N° | Exigence | Priorité | État |
-|---|---|---|---|
-| 4.1 | Au moins deux mécanismes de boost | 5 | À faire |
+| N° | Exigence | Priorité | État | Remarque |
+|---|---|---|---|---|
+| 4.1 | Au moins deux mécanismes de boost | 5 | Vérifié (navigateur) | Option « Boosts » (activée par défaut). Raccourci : le dernier coureur, à 15 % ou plus du meneur, saute 2 mots (au plus aux 10 s). Brouillard : un meneur humain à 15 % ou plus devant tous les autres voit le texte flou après le mot en cours pendant 3 s (au plus aux 12 s). Les deux restent légers pour ne pas devenir injustes ni distrayants. |
 
 ## Rejoindre une course
 
@@ -133,7 +133,7 @@ Tous ces paramètres sont dans le panneau « Paramètres de la course » du lobb
 | 2 | Course de base à 2 joueurs | À faire |
 | 3 | Gestion des salles | Vérifié (requêtes) : codes, salles publiques, semi-publiques et privées, spectateurs, expulsion, reconnexion, changement d'hôte |
 | 4 | Options avancées de course | Vérifié : sources, langues, thèmes, critères, difficulté, longueur, liste noire, priorité, limite de temps, mode de faute |
-| 5 | Bots et boosts | À faire |
+| 5 | Bots et boosts | Vérifié : bots automatiques, 4 niveaux, vitesse variable, boosts raccourci et brouillard |
 | 6 | Écrans de fin, statistiques, récompenses | À faire |
 | 7 | Bilinguisme, thèmes, responsive, optionnel | Bilinguisme et thèmes vérifiés (requêtes) |
 | 8 | Tests, déploiement, sécurité, documentation | À faire |

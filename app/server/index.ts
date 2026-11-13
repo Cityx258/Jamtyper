@@ -50,6 +50,8 @@ const app = next({
 const handle = app.getRequestHandler();
 
 const GUEST_ID = /^[A-Za-z0-9_-]{8,64}$/;
+const MAX_MESSAGE_BYTES = 16_000;
+const EVENTS_PER_SECOND = 40;
 
 const serverError = { ok: false, error: "server_error" } as const satisfies {
   ok: false;
@@ -74,13 +76,21 @@ async function respond<T>(
 async function main() {
   await closeStaleRooms();
   await app.prepare();
-  httpServer.on("request", (req, res) => void handle(req, res));
+  httpServer.on("request", (req, res) => {
+    if (!dev && req.headers["x-forwarded-proto"] === "http" && req.headers.host) {
+      res.writeHead(301, { location: `https://${req.headers.host}${req.url ?? "/"}` });
+      res.end();
+      return;
+    }
+    void handle(req, res);
+  });
 
   const io: AppServer = new Server<
     ClientToServerEvents,
     ServerToClientEvents
   >(httpServer, {
     destroyUpgrade: false,
+    maxHttpBufferSize: MAX_MESSAGE_BYTES,
     allowRequest: (req, callback) => {
       const origin = req.headers.origin;
       if (!origin) return callback(null, true);
@@ -127,6 +137,18 @@ async function main() {
   });
 
   io.on("connection", (socket) => {
+    let windowStart = Date.now();
+    let count = 0;
+    socket.use((_packet, nextPacket) => {
+      const now = Date.now();
+      if (now - windowStart >= 1000) {
+        windowStart = now;
+        count = 0;
+      }
+      if (++count > EVENTS_PER_SECOND) return;
+      nextPacket();
+    });
+
     socket.on("room:create", (ack) =>
       respond("room:create", ack, () => createRoom(io, socket)),
     );

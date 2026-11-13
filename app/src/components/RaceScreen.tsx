@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import TypingBox from "@/components/TypingBox";
 import { secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
-import type { RaceView, RoomStatus } from "@/lib/room-protocol";
+import type { MemberView, RaceView, RoomStatus } from "@/lib/room-protocol";
 import { sendProgress } from "@/lib/socket";
 
 type Props = {
@@ -12,6 +12,7 @@ type Props = {
   race: RaceView;
   you: string | null;
   offset: number;
+  members: MemberView[];
   isHost: boolean;
   t: Dict["room"];
   onCancel: () => void;
@@ -27,6 +28,7 @@ export default function RaceScreen({
   race,
   you,
   offset,
+  members,
   isHost,
   t,
   onCancel,
@@ -43,6 +45,7 @@ export default function RaceScreen({
   const secondsTo = (ts: number) =>
     Math.max(0, Math.ceil((ts - serverNow) / 1000));
   const me = race.racers.find((r) => r.id === you);
+  const offline = new Set(members.filter((m) => !m.connected).map((m) => m.id));
 
   if (status === "countdown") {
     return (
@@ -112,6 +115,11 @@ export default function RaceScreen({
                 {r.name}
                 {r.id === you && <span className="text-muted"> ({t.you})</span>}
               </span>
+              {r.outcome === "racing" && offline.has(r.id) && (
+                <span className="font-mono text-xs uppercase text-muted">
+                  {t.reconnecting}
+                </span>
+              )}
               {r.outcome !== "racing" && (
                 <span className="font-mono text-xs uppercase text-muted">
                   {t.outcomes[r.outcome]}

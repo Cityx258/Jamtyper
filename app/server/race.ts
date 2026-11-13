@@ -247,6 +247,15 @@ export function forfeit(io: AppServer, socket: AppSocket): ActionResult {
   return ok;
 }
 
+export function isStillRacing(room: Room, member: Member): boolean {
+  const racer = room.race?.racers.get(member.id);
+  return (
+    !!racer &&
+    racer.outcome === "racing" &&
+    (room.status === "countdown" || isLive(room.status))
+  );
+}
+
 export function dropRacer(io: AppServer, room: Room, member: Member) {
   const race = room.race;
   const racer = race?.racers.get(member.id);

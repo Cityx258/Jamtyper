@@ -282,6 +282,7 @@ export default function RoomLobby({ code, accountName, t, heatmapT }: Props) {
             race={room.race}
             you={you}
             offset={offset}
+            members={room.members}
             isHost={isHost}
             t={t}
             onCancel={() => act("race:cancel")}

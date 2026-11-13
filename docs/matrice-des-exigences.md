@@ -39,7 +39,7 @@ Les numéros reprennent ceux du cahier des charges. Celui-ci contient deux exige
 | 2.4 | Demande pour devenir spectateur, avec approbation | 3 | Vérifié (requêtes) | « Demander à regarder », puis l'hôte accepte ou refuse. Revenir comme coureur est libre. |
 | 2.5 | Positions en temps réel | 2 | À faire | ADR 0001. |
 | 2.6 | Compte à rebours avant le départ | 2 | À faire | |
-| 2.7 | Paramètres visibles de tous pendant la configuration | 2 | À faire | |
+| 2.7 | Paramètres visibles de tous pendant la configuration | 2 | Vérifié (navigateur) | Les joueurs voient les mêmes paramètres en lecture seule, mis à jour en direct. Le texte personnalisé reste caché (seule sa longueur est montrée) jusqu'au départ. |
 | 2.8 | Copier-coller désactivé | 2 | À faire | |
 | 2.9 | Statistiques en temps réel par coureur | 2 | À faire | |
 | 2.10 | Reconnexion pendant une course | 3 | Vérifié (requêtes) | Un coureur déconnecté reste en course jusqu'à la fin, même au-delà des 30 s de grâce, et reprend sa progression en revenant. Les autres le voient « reconnexion ». |
@@ -50,19 +50,21 @@ Les numéros reprennent ceux du cahier des charges. Celui-ci contient deux exige
 
 ## Configuration de course (hôte)
 
-| N° | Exigence | Priorité | État |
-|---|---|---|---|
-| 3.1 | Source du texte (citation, mots aléatoires, personnalisé) | 4 | À faire |
-| 3.2 | Critères des mots aléatoires (accents, ponctuation) | 4 | À faire |
-| 3.3 | Langue du texte, y compris langages de programmation | 4 | À faire |
-| 3.4 | Thème du texte | 4 | À faire |
-| 3.5 | Niveau de difficulté | 4 | À faire |
-| 3.6 | Longueur de la course | 4 | À faire |
-| 3.7 | Liste noire de caractères | 4 | À faire |
-| 3.8 | Priorité de caractères | 4 | À faire |
-| 3.9 | Limite de temps | 4 | À faire |
-| 3.10 | Texte généré par algorithme, différent à chaque course | 4 | À faire |
-| 3.11 | Continuer ou non après une erreur, sans pénalité disproportionnée | 4 | À faire |
+Tous ces paramètres sont dans le panneau « Paramètres de la course » du lobby, validés par le serveur (`src/lib/race-settings.ts`) et générés par `src/lib/texts.ts`. Vérifiés de bout en bout contre un serveur réel (scripts socket.io), plus une course jouée dans Chromium sans interface en mode « On continue ».
+
+| N° | Exigence | Priorité | État | Remarque |
+|---|---|---|---|---|
+| 3.1 | Source du texte (citation, mots aléatoires, personnalisé) | 4 | Vérifié (requêtes) | Citations du domaine public avec leur auteur. Texte personnalisé limité à 1000 caractères et nettoyé (œ devient oe, guillemets typographiques, tirets). |
+| 3.2 | Critères des mots aléatoires (accents, ponctuation) | 4 | Vérifié (requêtes) | Accents (français seulement) et ponctuation (majuscules, virgules, fins de phrase). |
+| 3.3 | Langue du texte, y compris langages de programmation | 4 | Vérifié (requêtes) | Anglais, français, JavaScript, Python. Le code est en une ligne, car la zone de frappe n'a qu'une ligne. |
+| 3.4 | Thème du texte | 4 | Vérifié (requêtes) | Tout, musique, nature, science, pour les mots et les citations. Ne s'applique pas au code. |
+| 3.5 | Niveau de difficulté | 4 | Vérifié (requêtes) | Facile (mots de 5 lettres ou moins), moyen, difficile (chiffres, symboles, majuscules). S'applique aux mots aléatoires seulement : une citation n'est pas modifiée. |
+| 3.6 | Longueur de la course | 4 | Vérifié (requêtes) | 10 à 200 mots. Pour les citations, on en enchaîne jusqu'à atteindre environ cette longueur. |
+| 3.7 | Liste noire de caractères | 4 | Vérifié (requêtes) | Aussi respectée par la ponctuation et le mode difficile. Si plus rien n'est possible, l'hôte est averti et le départ est refusé (`no_text`). |
+| 3.8 | Priorité de caractères | 4 | Vérifié (requêtes) | Tirage pondéré : un mot vaut 1 + 3 par caractère prioritaire qu'il contient. |
+| 3.9 | Limite de temps | 4 | Vérifié (requêtes) | 30 s, 1, 2, 3, 5 ou 10 minutes. |
+| 3.10 | Texte généré par algorithme, différent à chaque course | 4 | Vérifié (requêtes) | Tirage aléatoire cryptographique à chaque départ. |
+| 3.11 | Continuer ou non après une erreur, sans pénalité disproportionnée | 4 | Vérifié (navigateur) | « À corriger » ou « On continue ». En mode continu, une faute fait avancer mais ne compte pas dans la vitesse (MPM net), et les arrivants sont classés par MPM net : une faute coûte un caractère, pas plus. |
 | 3.12 | Mode mort instantanée | 7 | Optionnel |
 | 3.13 | Objectif de temps | 7 | Optionnel |
 | 3.14 | Équipes | 7 | Optionnel |
@@ -130,7 +132,7 @@ Les numéros reprennent ceux du cahier des charges. Celui-ci contient deux exige
 | 1 | HTTPS, authentification, début de la direction artistique | Authentification vérifiée (requêtes), direction artistique en cours, HTTPS à faire |
 | 2 | Course de base à 2 joueurs | À faire |
 | 3 | Gestion des salles | Vérifié (requêtes) : codes, salles publiques, semi-publiques et privées, spectateurs, expulsion, reconnexion, changement d'hôte |
-| 4 | Options avancées de course | À faire |
+| 4 | Options avancées de course | Vérifié : sources, langues, thèmes, critères, difficulté, longueur, liste noire, priorité, limite de temps, mode de faute |
 | 5 | Bots et boosts | À faire |
 | 6 | Écrans de fin, statistiques, récompenses | À faire |
 | 7 | Bilinguisme, thèmes, responsive, optionnel | Bilinguisme et thèmes vérifiés (requêtes) |

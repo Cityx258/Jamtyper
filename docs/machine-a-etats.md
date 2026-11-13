@@ -95,7 +95,7 @@ L'hôte peut changer la visibilité à tout moment; tous les joueurs la voient.
 | client vers serveur | `member:approve` | hôte seulement |
 | client vers serveur | `member:kick` | hôte seulement |
 | client vers serveur | `member:promote` | hôte seulement, cible avec un compte |
-| client vers serveur | `room:configure` (prévu, priorité 4) | `lobby`, hôte seulement |
+| client vers serveur | `room:configure` (paramètres partiels, validés et fusionnés par le serveur) | `lobby` et `results`, hôte seulement |
 | client vers serveur | `race:start` | `lobby`, hôte seulement |
 | client vers serveur | `race:progress` (position dans le texte) | `racing`, `finishing` |
 | client vers serveur | `race:forfeit` | `racing`, `finishing` |

@@ -5,9 +5,9 @@ services:
     dockerfilePath: ./app/Dockerfile
     dockerContext: ./app
     plan: free
+    autoDeployTrigger: checksPass
     healthCheckPath: /api/auth/ok
     envVars:
-      # Paste the Postgres connection string in the Render dashboard.
       - key: DATABASE_URL
         sync: false
       - key: BETTER_AUTH_SECRET

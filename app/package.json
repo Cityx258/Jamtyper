@@ -9,7 +9,7 @@
     "build:server": "bun build server/index.ts --target node --packages external --env disable --outfile dist/server.mjs",
     "start": "NODE_ENV=production node --env-file-if-exists=.env dist/server.mjs",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "bun test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

@@ -23,6 +23,7 @@ erDiagram
     USER ||--o{ ROOM_MEMBER : "participe"
     USER ||--o{ RACE_RESULT : "obtient"
     USER ||--o{ USER_ITEM : "débloque"
+    USER ||--o| RECOVERY_CODE : "garde"
     ROOM ||--o{ ROOM_MEMBER : "contient"
     ROOM ||--o{ RACE : "accueille"
     ROOM ||--o{ INVITE_LINK : "génère"
@@ -109,6 +110,11 @@ erDiagram
         text item_id PK
         timestamp unlocked_at
     }
+    RECOVERY_CODE {
+        text user_id PK, FK
+        text code_hash "SHA-256 du code, jamais le code lui-même"
+        timestamp created_at
+    }
 ```
 
 ## Tables existantes
@@ -118,22 +124,21 @@ erDiagram
 | `user` | Compte utilisateur | `username` et `display_username` viennent du plugin *username* de Better Auth. |
 | `session` | Sessions ouvertes | Jeton unique, expiration, supprimées avec l'utilisateur. |
 | `account` | Méthodes d'authentification d'un utilisateur | Une ligne par méthode : `credential`, `discord`, `github`. C'est ce qui permettra d'ajouter une seconde méthode (exigence 1.6) sans changer le schéma. |
-| `verification` | Jetons de vérification | Prévue pour la récupération de mot de passe (exigence 1.7). |
+| `verification` | Jetons de vérification de Better Auth | Gérée par Better Auth; pas utilisée par la récupération de mot de passe. |
+| `recovery_code` | Code de récupération d'un compte à mot de passe (exigence 1.7) | Une ligne par utilisateur. Seul le hachage SHA-256 est stocké; le code est montré une seule fois et remplacé à chaque utilisation. |
+| `room` | Une salle : code, hôte, visibilité, état, paramètres | Exigences 2.1, 2.7, 5.1 à 5.4. |
+| `room_member` | Qui est dans la salle et avec quel rôle (coureur ou spectateur) | `user_id` est nul pour un invité. Exigences 1.4, 2.3, 2.4, 2.13. |
+| `invite_link` | Lien d'invitation à usage unique pour une course privée | Seul le hachage du jeton est stocké; le lien est consommé dans la même transaction que l'ajout du membre, ce qui empêche deux personnes d'utiliser le même lien. Exigence 5.3. |
+| `race` | Une course jouée dans une salle : le texte et les paramètres au départ | Exigences 3.10, 6.6. |
+| `race_result` | Le résultat d'un joueur ou d'un bot pour une course | `outcome` vaut `finished`, `forfeited`, `kicked`, `eliminated` ou `timed_out`. Exigences 1.5, 6.3 à 6.5. |
 
-Comme Better Auth exige un courriel, les comptes créés avec nom d'utilisateur et mot de passe reçoivent une adresse interne de la forme `nom@users.invalid`. Elle n'est jamais utilisée pour envoyer un message.
+Comme Better Auth exige un courriel, les comptes créés avec nom d'utilisateur et mot de passe reçoivent une adresse interne de la forme `nom@users.invalid`. Elle n'est jamais utilisée pour envoyer un message. C'est pour ça que la récupération de mot de passe passe par un code plutôt que par courriel.
 
 ## Tables prévues
 
-| Table | Rôle | Exigences | Priorité |
+| Table | Rôle | Exigence | Priorité |
 |---|---|---|---|
-| `room` | Une salle : code, hôte, visibilité, état, paramètres | 2.1, 2.7, 5.1 à 5.4 | 2 et 3 |
-| `room_member` | Qui est dans la salle et avec quel rôle (coureur ou spectateur). `user_id` est nul pour un invité. | 1.4, 2.3, 2.4, 2.13 | 2 et 3 |
-| `invite_link` | Lien d'invitation à usage unique pour une course privée. Créée (migration `0003_invite_links`). Seul le hachage du jeton est stocké; le lien est consommé dans la même transaction que l'ajout du membre, ce qui empêche deux personnes d'utiliser le même lien. | 5.3 | 3 |
-| `race` | Une course jouée dans une salle (le texte et les paramètres au départ) | 3.10, 6.6 | 2 |
-| `race_result` | Le résultat d'un joueur ou d'un bot pour une course | 1.5, 6.3 à 6.5 | 6 |
 | `item`, `user_item` | Objets déblocables et ceux que chaque joueur possède | 6.7 | 6 |
-
-Pour le point de contrôle 1, seules `room` et `room_member` sont nécessaires (créer une salle et la rejoindre par code).
 
 ## Choix de conception
 

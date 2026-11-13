@@ -13,7 +13,7 @@ Chaque exigence du cahier des charges, sa priorité et où elle en est. Les num�
 | 5 | Bots et boosts | Fait |
 | 6 | Écrans de fin, statistiques, récompenses | Partiel : il manque le podium, les graphiques, les récompenses et la page de paramètres |
 | 7 | Bilinguisme, thèmes, responsive, optionnel | Fait, sauf la direction artistique (en cours) |
-| 8 | Tests, déploiement, sécurité, documentation | À faire |
+| 8 | Tests, déploiement, sécurité, documentation | Fait |
 
 ## Comment lire les tableaux
 
@@ -28,7 +28,7 @@ Chaque exigence du cahier des charges, sa priorité et où elle en est. Les num�
 
 - **Navigateur** : essayé dans Chromium avec plusieurs joueurs, et regardé en captures d'écran.
 - **Script** : essayé contre un vrai serveur et la base locale avec un script qui joue plusieurs joueurs (socket.io ou requêtes HTTP).
-- **Tests** : couvert par la suite de tests automatisés.
+- **Tests** : couvert par la suite de tests automatisés (`bun test`, lancée à chaque poussée).
 
 Le cahier des charges a deux exigences numérotées 7.2 (thème, puis responsive) et aucune 8.2; la seconde 7.2 est notée **7.2 bis**.
 
@@ -42,20 +42,20 @@ Le cahier des charges a deux exigences numérotées 7.2 (thème, puis responsive
 | 1.4 | Participer à une course sans compte | 2 | Fait | Navigateur | Un invité choisit un nom et rejoint par code, par lien ou par course rapide. Il ne peut pas être hôte et ses courses ne sont pas enregistrées. |
 | 1.5 | Page de statistiques personnelles | 6 | Fait | Navigateur | Page `/profile` : courses, victoires, meilleure et moyenne MPM, précision, carte des touches manquées, courses récentes. |
 | 1.6 | Page de paramètres pour ajouter une seconde méthode | 6 | À faire | | Le schéma `account` permet déjà plusieurs méthodes par compte. |
-| 1.7 | Récupération de mot de passe (comptes à mot de passe) | 8 | À faire | | |
+| 1.7 | Récupération de mot de passe (comptes à mot de passe) | 8 | Fait | Navigateur, tests | Code de récupération montré une fois à l'inscription (pas de courriel : voir `docs/securite.md`). Page « Mot de passe oublié? », nouveau code sur le profil. Une réinitialisation ferme toutes les sessions et remplace le code. 5 essais par 15 minutes. |
 
 ## 2. Fonctionnement d'une course
 
 | N° | Exigence | Priorité | État | Vérifié par | Remarque |
 |---|---|---|---|---|---|
 | 2.1 | Tout utilisateur connecté peut créer une course | 2 | Fait | Navigateur | Refusé aux invités. |
-| 2.2 | Minimum 2 coureurs, pas de maximum | 2 | Fait | Script | Les bots comptent dans le minimum, mais il faut au moins un humain (voir la machine à états). |
+| 2.2 | Minimum 2 coureurs, pas de maximum | 2 | Fait | Script, tests | Les bots comptent dans le minimum, mais il faut au moins un humain (voir la machine à états). |
 | 2.3 | L'hôte peut courir ou seulement observer | 3 | Fait | Navigateur | Bouton « Regarder plutôt » dans le lobby, sans approbation pour l'hôte. |
 | 2.4 | Demande pour devenir spectateur, avec approbation | 3 | Fait | Script | L'hôte accepte ou refuse. Revenir comme coureur est libre. |
 | 2.5 | Positions en temps réel | 2 | Fait | Navigateur | socket.io, voir l'ADR 0001. |
 | 2.6 | Compte à rebours avant le départ | 2 | Fait | Navigateur | 5 secondes, annulable par l'hôte. |
 | 2.7 | Paramètres visibles de tous pendant la configuration | 2 | Fait | Navigateur | En lecture seule pour les joueurs, mis à jour en direct. Un texte personnalisé reste caché jusqu'au départ. |
-| 2.8 | Copier-coller désactivé | 2 | Fait | Navigateur | Coller, déposer, copier et couper sont bloqués. Le serveur refuse aussi une progression trop rapide pour un humain. |
+| 2.8 | Copier-coller désactivé | 2 | Fait | Navigateur, tests | Coller, déposer, copier et couper sont bloqués. Le serveur refuse aussi une progression trop rapide pour un humain. |
 | 2.9 | Statistiques en temps réel par coureur | 2 | Fait | Navigateur | MPM et progression de chaque coureur pendant la course. |
 | 2.10 | Reconnexion pendant une course | 3 | Fait | Script | Un coureur déconnecté reste en course jusqu'à la fin et reprend où il était. Les autres le voient « reconnexion ». |
 | 2.11 | Abandon d'une course | 3 | Fait | Script | Bouton « Abandonner »; le joueur est classé après les arrivants. |
@@ -78,8 +78,8 @@ Tous ces réglages sont dans le panneau « Paramètres de la course » du lobby.
 | 3.7 | Liste noire de caractères | 4 | Fait | Script | Si plus aucun texte n'est possible, l'hôte est averti et le départ est refusé. |
 | 3.8 | Priorité de caractères | 4 | Fait | Script | Tirage pondéré : un mot vaut 1 + 3 par caractère prioritaire qu'il contient. |
 | 3.9 | Limite de temps | 4 | Fait | Script | 30 s, 1, 2, 3, 5 ou 10 minutes. |
-| 3.10 | Texte généré par algorithme, différent à chaque course | 4 | Fait | Script | Tirage aléatoire cryptographique à chaque départ. |
-| 3.11 | Continuer ou non après une erreur, sans pénalité disproportionnée | 4 | Fait | Navigateur | « À corriger » ou « On continue ». En mode continu, une faute ne compte pas dans la vitesse (MPM net) : elle coûte un caractère, pas plus. |
+| 3.10 | Texte généré par algorithme, différent à chaque course | 4 | Fait | Script, tests | Tirage aléatoire cryptographique à chaque départ. |
+| 3.11 | Continuer ou non après une erreur, sans pénalité disproportionnée | 4 | Fait | Navigateur, tests | « À corriger » ou « On continue ». En mode continu, une faute ne compte pas dans la vitesse (MPM net) : elle coûte un caractère, pas plus. |
 | 3.12 | Mode mort instantanée | 7 | Fait | Navigateur | La première faute élimine le joueur (bots compris). Un bandeau rappelle le mode pendant la course. |
 | 3.13 | Objectif de temps | 7 | Fait | Navigateur | 30 s à 2 min. Affiché pendant la course; les résultats montrent le temps de chacun et qui a battu l'objectif. |
 | 3.14 | Équipes | 7 | Fait | Navigateur | Deux équipes (Sol et Fa), réparties automatiquement, modifiables par l'hôte. Les bots équilibrent les équipes. L'équipe avec la meilleure moyenne MPM gagne. |
@@ -130,8 +130,8 @@ Tous ces réglages sont dans le panneau « Paramètres de la course » du lobby.
 | N° | Exigence | Priorité | État | Vérifié par | Remarque |
 |---|---|---|---|---|---|
 | 8.1 | React, Next.js, Tailwind CSS, PostgreSQL | 1 | Fait | | Next.js 16, React 19, Tailwind 4, PostgreSQL 17, Drizzle. |
-| 8.3 | Accès en HTTPS seulement | 1 | Partiel | | Hébergé sur Render (`render.yaml`), qui sert le site en HTTPS. Le serveur n'impose pas encore HTTPS lui-même. |
+| 8.3 | Accès en HTTPS seulement | 1 | Fait | Script | Render sert le site en HTTPS. Le serveur redirige aussi toute requête HTTP vers HTTPS et envoie `Strict-Transport-Security`. |
 | 8.4 | Outils gratuits dans la mesure du possible | 1 | Fait | | Render (offre gratuite), GitHub, et des bibliothèques libres. |
-| 8.5 | Tests automatisés; chaque poussée sur la branche principale lance les tests et déploie | 8 | À faire | | |
-| 8.6 | Sécurité (authentification, sessions, données) | 8 | Partiel | | Better Auth gère le hachage et les sessions. Pas encore de revue de sécurité. |
-| 8.7 | Structure maintenable et évolutive | 8 | Partiel | | Code séparé en `db`, `lib`, `i18n`, `components` et `server`. Documentation dans `docs/`. |
+| 8.5 | Tests automatisés; chaque poussée sur la branche principale lance les tests et déploie | 8 | Fait | | 57 tests unitaires (`app/tests`) : paramètres, textes, bots, boosts, équipes, codes, règles de course. GitHub Actions lance lint, types, tests et construction à chaque poussée; Render ne déploie que si tout passe (`autoDeployTrigger: checksPass`). |
+| 8.6 | Sécurité (authentification, sessions, données) | 8 | Fait | Script | Revue faite, détail dans `docs/securite.md` : HTTPS forcé, en-têtes de sécurité, limites de taille et de débit sur socket.io, secrets hachés, dépendances auditées (Next.js mis à jour pour des failles critiques). |
+| 8.7 | Structure maintenable et évolutive | 8 | Fait | | Code séparé en `db`, `lib`, `i18n`, `components` et `server`. `README.md` explique l'installation, les scripts, les tests et le déploiement. Documentation dans `docs/`. |

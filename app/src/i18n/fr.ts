@@ -271,6 +271,17 @@ const fr: Dict = {
       eliminated: "éliminé",
       timed_out: "temps écoulé",
     },
+    progress: {
+      title: "Ta vitesse dans le temps",
+      hint: "Chaque point est une course que tu as terminée. La ligne suit ta vitesse moyenne de chaque jour.",
+      race: "Une course",
+      daily: "Moyenne du jour",
+      thisRace: "Cette course",
+      dayAverage: "Moyenne du jour ({n} courses)",
+      dayAverageOne: "Moyenne du jour (1 course)",
+      wpm: "MPM",
+      summary: "{count} courses terminées. Ta moyenne du jour est passée de {first} à {last} MPM.",
+    },
     notes: {
       title: "Tes notes",
       progress: "Gagne encore {n} courses pour débloquer la {note}.",

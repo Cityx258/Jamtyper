@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import KeyHeatmap from "@/components/KeyHeatmap";
 import NotePicker from "@/components/NotePicker";
+import ProgressGraph from "@/components/ProgressGraph";
 import RecoveryCodeSection from "@/components/RecoveryCodeSection";
 import SignOutButton from "@/components/SignOutButton";
 import { primaryButton, secondaryButton } from "@/components/ui";
@@ -95,6 +96,8 @@ export default async function ProfilePage() {
             </div>
           ))}
         </section>
+
+        <ProgressGraph points={profile.history} locale={locale} t={t.progress} />
 
         <section className="mt-16">
           <h2 className="font-display text-3xl">{t.heatmapTitle}</h2>

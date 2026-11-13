@@ -266,6 +266,17 @@ const en = {
       eliminated: "out on a typo",
       timed_out: "out of time",
     },
+    progress: {
+      title: "Speed over time",
+      hint: "Each dot is a race you finished. The line follows your average speed for each day.",
+      race: "One race",
+      daily: "Daily average",
+      thisRace: "This race",
+      dayAverage: "Day average ({n} races)",
+      dayAverageOne: "Day average (1 race)",
+      wpm: "WPM",
+      summary: "{count} finished races. Your daily average went from {first} to {last} WPM.",
+    },
     notes: {
       title: "Your notes",
       progress: "Win {n} more races to unlock the {note}.",

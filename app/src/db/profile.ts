@@ -1,12 +1,13 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { race, raceResult } from "@/db/rooms";
 import type { MissedKeys } from "@/lib/room-protocol";
 
 const RECENT_LIMIT = 10;
+const HISTORY_LIMIT = 200;
 
 export async function getProfile(userId: string) {
-  const [summaryRows, recent, keyRows] = await Promise.all([
+  const [summaryRows, recent, keyRows, history] = await Promise.all([
     db
       .select({
         races: sql<number>`count(*)::int`,
@@ -38,6 +39,13 @@ export async function getProfile(userId: string) {
       where ${raceResult.userId} = ${userId}
       group by k.key
     `),
+    db
+      .select({ startedAt: race.startedAt, wpm: raceResult.wpm })
+      .from(raceResult)
+      .innerJoin(race, eq(race.id, raceResult.raceId))
+      .where(and(eq(raceResult.userId, userId), eq(raceResult.outcome, "finished")))
+      .orderBy(desc(race.startedAt))
+      .limit(HISTORY_LIMIT),
   ]);
 
   const summary = summaryRows[0];
@@ -54,5 +62,6 @@ export async function getProfile(userId: string) {
     avgAccuracy: num(summary?.avgAccuracy ?? null),
     recent,
     missed,
+    history: history.reverse().map((h) => ({ at: h.startedAt.getTime(), wpm: Number(h.wpm) })),
   };
 }

@@ -5,6 +5,7 @@ import { auth } from "../src/lib/auth";
 import type {
   ActionResult,
   ClientToServerEvents,
+  RoomError,
   ServerToClientEvents,
 } from "../src/lib/room-protocol";
 import {
@@ -38,6 +39,27 @@ const app = next({
 const handle = app.getRequestHandler();
 
 const GUEST_ID = /^[A-Za-z0-9_-]{8,64}$/;
+
+const serverError = { ok: false, error: "server_error" } as const satisfies {
+  ok: false;
+  error: RoomError;
+};
+
+async function respond<T>(
+  event: string,
+  ack: unknown,
+  run: () => T | Promise<T>,
+) {
+  if (typeof ack !== "function") return;
+  const reply = ack as (result: T | typeof serverError) => void;
+  try {
+    reply(await run());
+  } catch (e) {
+    console.error(`[socket] ${event}`, e);
+    reply(serverError);
+  }
+}
+
 
 async function main() {
   await closeStaleRooms();
@@ -95,25 +117,14 @@ async function main() {
   });
 
   io.on("connection", (socket) => {
-    socket.on("room:create", async (ack) => {
-      if (typeof ack !== "function") return;
-      try {
-        ack(await createRoom(io, socket));
-      } catch (e) {
-        console.error("[socket] room:create", e);
-        ack({ ok: false, error: "server_error" });
-      }
-    });
-
-    socket.on("room:join", async (payload, ack) => {
-      if (typeof ack !== "function") return;
-      try {
-        ack(await joinRoom(io, socket, payload?.code, payload?.guestName));
-      } catch (e) {
-        console.error("[socket] room:join", e);
-        ack({ ok: false, error: "server_error" });
-      }
-    });
+    socket.on("room:create", (ack) =>
+      respond("room:create", ack, () => createRoom(io, socket)),
+    );
+    socket.on("room:join", (payload, ack) =>
+      respond("room:join", ack, () =>
+        joinRoom(io, socket, payload?.code, payload?.guestName),
+      ),
+    );
 
     socket.on("room:leave", async (ack) => {
       try {
@@ -128,15 +139,7 @@ async function main() {
       event: "race:start" | "race:cancel" | "race:again" | "race:forfeit",
       run: (io: AppServer, socket: AppSocket) => ActionResult,
     ) => {
-      socket.on(event, (ack) => {
-        if (typeof ack !== "function") return;
-        try {
-          ack(run(io, socket));
-        } catch (e) {
-          console.error(`[socket] ${event}`, e);
-          ack({ ok: false, error: "server_error" });
-        }
-      });
+      socket.on(event, (ack) => respond(event, ack, () => run(io, socket)));
     };
     action("race:start", startRace);
     action("race:cancel", cancelRace);
@@ -151,15 +154,9 @@ async function main() {
       }
     });
 
-    socket.on("room:close", async (ack) => {
-      if (typeof ack !== "function") return;
-      try {
-        ack(await closeRoomByHost(io, socket));
-      } catch (e) {
-        console.error("[socket] room:close", e);
-        ack({ ok: false, error: "server_error" });
-      }
-    });
+    socket.on("room:close", (ack) =>
+      respond("room:close", ack, () => closeRoomByHost(io, socket)),
+    );
 
     socket.on("disconnect", () => {
       leaveRoom(io, socket, { immediate: false }).catch((e) =>

@@ -11,7 +11,7 @@ Chaque exigence du cahier des charges, sa priorité et où elle en est. Les num�
 | 3 | Gestion des salles | Fait |
 | 4 | Options avancées de course | Fait |
 | 5 | Bots et boosts | Fait |
-| 6 | Écrans de fin, statistiques, récompenses | Partiel : il manque le graphique de progression |
+| 6 | Écrans de fin, statistiques, récompenses | Fait |
 | 7 | Bilinguisme, thèmes, responsive, optionnel | Fait, sauf la direction artistique (en cours) |
 | 8 | Tests, déploiement, sécurité, documentation | Fait |
 
@@ -112,7 +112,7 @@ Tous ces réglages sont dans le panneau « Paramètres de la course » du lobby.
 | 6.4 | Écran de statistiques | 6 | Fait | Navigateur, tests | MPM, précision et temps de chaque coureur, plus un graphique de la vitesse de chacun pendant la course (10 points par seconde, à partir de la 1re seconde). Ta ligne est en couleur, les autres en gris; un survol montre le temps et la vitesse de chacun. Les points ne sont envoyés qu'à la fin de la course et ne sont pas gardés en base. |
 | 6.5 | Carte de chaleur des touches manquées | 6 | Fait | Navigateur | À la fin de chaque course et cumulée sur le profil. |
 | 6.6 | Relancer avec les mêmes participants ou fermer la salle | 6 | Fait | Script | Boutons « Relancer » et « Fermer la salle » pour l'hôte. |
-| 6.7 | Récompenses et objets déblocables | 6 | Partiel | Navigateur, tests | Chaque joueur est une note de musique, affichée à côté de son nom (lobby, course, résultats). Ronde au départ, puis une nouvelle note toutes les 5 victoires : blanche, noire, croche, double croche, triple croche (25 victoires). L'écran de résultats annonce un déblocage; le profil permet de choisir parmi les notes débloquées. Les invités sont des rondes; les bots ont une note selon leur niveau. Il manque le graphique de progression. |
+| 6.7 | Récompenses et objets déblocables | 6 | Fait | Navigateur, tests | Chaque joueur est une note de musique, affichée à côté de son nom (lobby, course, résultats). Ronde au départ, puis une nouvelle note toutes les 5 victoires : blanche, noire, croche, double croche, triple croche (25 victoires). L'écran de résultats annonce un déblocage; le profil permet de choisir parmi les notes débloquées. Les invités sont des rondes; les bots ont une note selon leur niveau. Le profil montre aussi la vitesse dans le temps : un point par course terminée (les 200 dernières) et une ligne qui suit la moyenne de chaque jour (selon le fuseau du joueur), avec un survol qui donne la course et la moyenne du jour. |
 
 ## 7. Langues, apparence et accessibilité
 

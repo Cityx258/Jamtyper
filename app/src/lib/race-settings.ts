@@ -4,7 +4,12 @@ export const SOURCES = ["words", "quote", "custom"] as const;
 export type TextSource = (typeof SOURCES)[number];
 export const LANGUAGES = ["en", "fr", "javascript", "python"] as const;
 export type Language = (typeof LANGUAGES)[number];
-export const CODE_LANGUAGES: readonly Language[] = ["javascript", "python"];
+export type CodeLanguage = "javascript" | "python";
+export type NaturalLanguage = Exclude<Language, CodeLanguage>;
+export const isCodeLanguage = (l: Language): l is CodeLanguage =>
+  l === "javascript" || l === "python";
+export const TEXT_THEMES = ["general", "music", "nature", "science"] as const;
+export type TextTheme = (typeof TEXT_THEMES)[number];
 export const CUSTOM_MAX = 1000;
 export const LENGTH_MIN = 10;
 export const LENGTH_MAX = 200;
@@ -13,6 +18,7 @@ export const TIME_LIMITS = [30, 60, 120, 180, 300, 600] as const;
 export interface RaceSettings {
   source: TextSource;
   language: Language;
+  theme: TextTheme;
   customText: string;
   length: number;
   timeLimitSec: number;
@@ -25,6 +31,7 @@ export type SettingsView = Omit<RaceSettings, "customText"> & {
 export const DEFAULT_SETTINGS: RaceSettings = {
   source: "words",
   language: "en",
+  theme: "general",
   customText: "",
   length: 30,
   timeLimitSec: 180,
@@ -48,6 +55,7 @@ export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettin
   return {
     source: pick(SOURCES, p.source, current.source),
     language: pick(LANGUAGES, p.language, current.language),
+    theme: pick(TEXT_THEMES, p.theme, current.theme),
     customText: cleanCustom(p.customText, current.customText),
     length: clampInt(p.length, LENGTH_MIN, LENGTH_MAX, current.length),
     timeLimitSec: pick(TIME_LIMITS, p.timeLimitSec, current.timeLimitSec),

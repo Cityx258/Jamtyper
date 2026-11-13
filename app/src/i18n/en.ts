@@ -87,6 +87,8 @@ const en = {
       sources: { words: "Random words", quote: "Quotes", custom: "Custom text" },
       language: "Language",
       languages: { en: "English", fr: "French", javascript: "JavaScript", python: "Python" },
+      theme: "Theme",
+      themes: { general: "Anything", music: "Music", nature: "Nature", science: "Science" },
       customLabel: "Your text",
       customPlaceholder: "Paste or write the text everyone will type.",
       customSaved: "{n} characters saved. Typing here replaces it.",

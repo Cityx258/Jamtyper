@@ -1,6 +1,6 @@
-import type { RaceSettings } from "./race-settings";
+import { isCodeLanguage, type RaceSettings } from "./race-settings";
 import { QUOTES, type Quote } from "./text/quotes";
-import { WORDS } from "./text/words";
+import { CODE_WORDS, THEMED_WORDS } from "./text/words";
 
 export interface GeneratedText {
   text: string;
@@ -68,14 +68,26 @@ function chainQuotes(pool: Quote[], targetWords: number): GeneratedText | null {
   };
 }
 
+function wordPool(s: RaceSettings): string[] {
+  return isCodeLanguage(s.language)
+    ? CODE_WORDS[s.language]
+    : THEMED_WORDS[s.language][s.theme];
+}
+
+function quotePool(s: RaceSettings): Quote[] {
+  const all = QUOTES[s.language];
+  if (isCodeLanguage(s.language) || s.theme === "general") return all;
+  return all.filter((q) => q.theme === s.theme);
+}
+
 export function generateText(s: RaceSettings): GeneratedText | null {
   let out: GeneratedText | null;
   if (s.source === "custom") {
     out = s.customText ? { text: s.customText, by: null } : null;
   } else if (s.source === "quote") {
-    out = chainQuotes(QUOTES[s.language], s.length);
+    out = chainQuotes(quotePool(s), s.length);
   } else {
-    out = { text: randomWords(WORDS[s.language], s.length), by: null };
+    out = { text: randomWords(wordPool(s), s.length), by: null };
   }
   if (!out) return null;
   const text = typeable(out.text);

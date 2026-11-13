@@ -89,6 +89,8 @@ const fr: Dict = {
       sources: { words: "Mots aléatoires", quote: "Citations", custom: "Texte personnalisé" },
       language: "Langue",
       languages: { en: "Anglais", fr: "Français", javascript: "JavaScript", python: "Python" },
+      theme: "Thème",
+      themes: { general: "Tout", music: "Musique", nature: "Nature", science: "Science" },
       customLabel: "Ton texte",
       customPlaceholder: "Colle ou écris le texte que tout le monde va taper.",
       customSaved: "{n} caractères enregistrés. Écrire ici le remplace.",

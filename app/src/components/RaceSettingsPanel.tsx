@@ -8,7 +8,9 @@ import {
   LENGTH_MAX,
   LENGTH_MIN,
   SOURCES,
+  TEXT_THEMES,
   TIME_LIMITS,
+  isCodeLanguage,
   type SettingsView,
 } from "@/lib/race-settings";
 
@@ -137,6 +139,17 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
               label={(v) => t.languages[v]}
               editable={editable}
               onPick={(v) => onChange({ language: v })}
+            />
+          </Field>
+        )}
+        {!isCustom && !isCodeLanguage(settings.language) && (
+          <Field label={t.theme}>
+            <Choice
+              options={TEXT_THEMES}
+              value={settings.theme}
+              label={(v) => t.themes[v]}
+              editable={editable}
+              onPick={(v) => onChange({ theme: v })}
             />
           </Field>
         )}

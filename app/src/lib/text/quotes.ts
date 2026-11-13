@@ -1,8 +1,9 @@
-import type { Language } from "../race-settings";
+import type { Language, TextTheme } from "../race-settings";
 
 export interface Quote {
   text: string;
   by?: string;
+  theme?: TextTheme;
 }
 
 export const QUOTES: Record<Language, Quote[]> = {
@@ -19,19 +20,21 @@ export const QUOTES: Record<Language, Quote[]> = {
     { text: "The unexamined life is not worth living.", by: "Socrates" },
     { text: "I think, therefore I am.", by: "René Descartes" },
     { text: "Knowledge is power.", by: "Francis Bacon" },
-    { text: "If music be the food of love, play on.", by: "William Shakespeare" },
-    { text: "Music is the universal language of mankind.", by: "Henry Wadsworth Longfellow" },
-    { text: "Where words fail, music speaks.", by: "Hans Christian Andersen" },
-    { text: "If I have seen further it is by standing on the shoulders of giants.", by: "Isaac Newton" },
-    { text: "Nothing in life is to be feared, it is only to be understood.", by: "Marie Curie" },
-    { text: "Imagination is more important than knowledge.", by: "Albert Einstein" },
-    { text: "In every walk with nature one receives far more than he seeks.", by: "John Muir" },
-    { text: "Adopt the pace of nature: her secret is patience.", by: "Ralph Waldo Emerson" },
+    { text: "If music be the food of love, play on.", by: "William Shakespeare", theme: "music" },
+    { text: "Music is the universal language of mankind.", by: "Henry Wadsworth Longfellow", theme: "music" },
+    { text: "Where words fail, music speaks.", by: "Hans Christian Andersen", theme: "music" },
+    { text: "If I have seen further it is by standing on the shoulders of giants.", by: "Isaac Newton", theme: "science" },
+    { text: "Nothing in life is to be feared, it is only to be understood.", by: "Marie Curie", theme: "science" },
+    { text: "Imagination is more important than knowledge.", by: "Albert Einstein", theme: "science" },
+    { text: "In every walk with nature one receives far more than he seeks.", by: "John Muir", theme: "nature" },
+    { text: "Adopt the pace of nature: her secret is patience.", by: "Ralph Waldo Emerson", theme: "nature" },
+    { text: "The clearest way into the Universe is through a forest wilderness.", by: "John Muir", theme: "nature" },
+    { text: "Music expresses that which cannot be said and on which it is impossible to be silent.", by: "Victor Hugo", theme: "music" },
   ],
   fr: [
     { text: "Je pense, donc je suis.", by: "René Descartes" },
     { text: "Le cœur a ses raisons que la raison ne connaît point.", by: "Blaise Pascal" },
-    { text: "Il faut cultiver notre jardin.", by: "Voltaire" },
+    { text: "Il faut cultiver notre jardin.", by: "Voltaire", theme: "nature" },
     { text: "Rien ne sert de courir; il faut partir à point.", by: "Jean de La Fontaine" },
     { text: "La raison du plus fort est toujours la meilleure.", by: "Jean de La Fontaine" },
     { text: "Patience et longueur de temps font plus que force ni que rage.", by: "Jean de La Fontaine" },
@@ -42,11 +45,14 @@ export const QUOTES: Record<Language, Quote[]> = {
     { text: "Tout est pour le mieux dans le meilleur des mondes possibles.", by: "Voltaire" },
     { text: "On ne voit bien qu'avec le cœur. L'essentiel est invisible pour les yeux.", by: "Antoine de Saint-Exupéry" },
     { text: "Le temps est un grand maître, dit-on; le malheur est qu'il tue ses élèves.", by: "Hector Berlioz" },
-    { text: "Sans la musique, la vie serait une erreur.", by: "Friedrich Nietzsche" },
-    { text: "La science n'a pas de patrie.", by: "Louis Pasteur" },
-    { text: "Dans les champs de l'observation, le hasard ne favorise que les esprits préparés.", by: "Louis Pasteur" },
-    { text: "Rien ne se perd, rien ne se crée, tout se transforme.", by: "Antoine Lavoisier" },
-    { text: "La nature fait bien les choses.", by: "Proverbe" },
+    { text: "Sans la musique, la vie serait une erreur.", by: "Friedrich Nietzsche", theme: "music" },
+    { text: "La science n'a pas de patrie.", by: "Louis Pasteur", theme: "science" },
+    { text: "Dans les champs de l'observation, le hasard ne favorise que les esprits préparés.", by: "Louis Pasteur", theme: "science" },
+    { text: "Rien ne se perd, rien ne se crée, tout se transforme.", by: "Antoine Lavoisier", theme: "science" },
+    { text: "La nature fait bien les choses.", by: "Proverbe", theme: "nature" },
+    { text: "La musique exprime ce qui ne peut être dit et sur quoi il est impossible de rester silencieux.", by: "Victor Hugo", theme: "music" },
+    { text: "Là où s'arrêtent les mots commence la musique.", by: "Heinrich Heine", theme: "music" },
+    { text: "Adopte le rythme de la nature: son secret est la patience.", by: "Ralph Waldo Emerson", theme: "nature" },
   ],
   javascript: [
     { text: "const sum = (a, b) => a + b;" },

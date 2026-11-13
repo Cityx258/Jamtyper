@@ -29,6 +29,7 @@ import {
 } from "./room-state";
 import { mergeSettings, settingsView } from "../src/lib/race-settings";
 import { generateText } from "../src/lib/texts";
+import { createBots, stepBot } from "./bots";
 
 export const COUNTDOWN_MS = 5_000;
 export const CLOSING_MS = 30_000;
@@ -90,9 +91,12 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
   const entrants = [...room.members.values()].filter(
     (m) => !m.watching && m.sockets.size > 0,
   );
-  if (entrants.length < MIN_RACERS) return fail("not_enough_racers");
-
   const settings = room.settings;
+  const needed = MIN_RACERS - entrants.length;
+  if (entrants.length === 0 || (needed > 0 && !settings.bots)) {
+    return fail("not_enough_racers");
+  }
+
   const generated = generateText(settings);
   if (!generated) return fail("no_text");
 
@@ -120,12 +124,17 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
           outcome: "racing",
           doneAt: null,
           place: null,
+          bot: null,
         },
       ]),
     ),
     dirty: false,
     timers: [],
   };
+  const names = new Set(entrants.map((m) => m.name));
+  for (const bot of createBots(Math.max(0, needed), names)) {
+    race.racers.set(bot.id, bot);
+  }
   room.race = race;
   setStatus(room, "countdown");
   race.timers.push(setTimeout(() => beginRacing(io, room, race), COUNTDOWN_MS));
@@ -139,7 +148,19 @@ function beginRacing(io: AppServer, room: Room, race: Race) {
   race.timers.push(
     setTimeout(() => void endRace(io, room, race), race.endsAt - Date.now()),
   );
+  let last = Date.now();
   race.ticker = setInterval(() => {
+    const now = Date.now();
+    const dt = now - last;
+    last = now;
+    for (const racer of race.racers.values()) {
+      if (room.race !== race || !isLive(room.status)) return;
+      if (!stepBot(race, racer, dt)) continue;
+      race.dirty = true;
+      if (racer.position >= race.text.length) {
+        settle(io, room, race, racer, "finished");
+      }
+    }
     if (!race.dirty) return;
     race.dirty = false;
     io.to(channel(room.code)).emit("race:positions", racersView(race));
@@ -318,7 +339,7 @@ function settle(
     racer.place = racers.filter((r) => r.outcome === "finished").length;
   }
 
-  if (racers.every((r) => r.outcome !== "racing")) {
+  if (!racers.some((r) => !r.bot && r.outcome === "racing")) {
     void endRace(io, room, race);
     return;
   }
@@ -381,6 +402,7 @@ async function saveResults(race: Race, ranked: Racer[]) {
           accuracy: Math.round(racerAccuracy(r) * 10_000) / 10_000,
           missedKeys: r.missed,
           outcome: r.outcome as Exclude<RacerOutcome, "racing">,
+          isBot: !!r.bot,
         })),
       );
       await tx

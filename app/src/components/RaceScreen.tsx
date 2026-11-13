@@ -122,6 +122,7 @@ export default function RaceScreen({
               <span className="min-w-0 flex-1 truncate font-medium">
                 {r.name}
                 {r.id === you && <span className="text-muted"> ({t.you})</span>}
+                {r.isBot && <span className="text-muted"> ({t.bot})</span>}
               </span>
               {r.outcome === "racing" && offline.has(r.id) && (
                 <span className="font-mono text-xs uppercase text-muted">
@@ -133,7 +134,7 @@ export default function RaceScreen({
                   {t.outcomes[r.outcome]}
                 </span>
               )}
-              {isHost && r.id !== you && r.outcome === "racing" && (
+              {isHost && !r.isBot && r.id !== you && r.outcome === "racing" && (
                 <KickButton name={r.name} t={t} onKick={() => onKick(r.id)} />
               )}
               <span className="w-20 text-right font-mono">

@@ -108,6 +108,8 @@ const fr: Dict = {
       priorityHint: "Les mots et citations contenant ces caractères reviennent plus souvent.",
       noChars: "Aucun",
       impossible: "Rien ne correspond à ces paramètres. Retire des caractères interdits ou choisis un autre thème.",
+      bots: "Bots",
+      botsHint: "Des bots se joignent quand il n'y a pas assez de joueurs.",
       errorMode: "Fautes de frappe",
       errorModes: { fix: "À corriger", continue: "On continue" },
       errorModeHints: {
@@ -156,6 +158,9 @@ const fr: Dict = {
     start: "Lancer la course",
     needPlayers: "Il faut au moins {n} joueurs connectés pour lancer la course.",
     waitingHost: "En attente du lancement par l'hôte.",
+    needOneRacer: "Au moins 1 joueur connecté doit courir.",
+    botsWillJoin: "Un bot va se joindre pour que tu aies quelqu'un à affronter.",
+    bot: "bot",
     getReady: "Prépare-toi",
     cancel: "Annuler",
     timeLeft: "Temps restant",

@@ -307,6 +307,8 @@ export default function RoomLobby({
   const readyRacers = room.members.filter(
     (m) => m.role === "racer" && m.connected,
   ).length;
+  const canStart = room.settings.bots ? readyRacers >= 1 : readyRacers >= room.minRacers;
+  const botsJoin = room.settings.bots && readyRacers >= 1 && readyRacers < room.minRacers;
   const banner = (
     <>
       {!live && (
@@ -539,16 +541,19 @@ export default function RoomLobby({
           <button
             type="button"
             onClick={() => act("race:start")}
-            disabled={readyRacers < room.minRacers}
+            disabled={!canStart}
             className={primaryButton}
           >
             {t.start}
           </button>
-          {readyRacers < room.minRacers && (
+          {!canStart && (
             <p className="mt-3 text-sm text-muted">
-              {t.needPlayers.replace("{n}", String(room.minRacers))}
+              {room.settings.bots
+                ? t.needOneRacer
+                : t.needPlayers.replace("{n}", String(room.minRacers))}
             </p>
           )}
+          {botsJoin && <p className="mt-3 text-sm text-muted">{t.botsWillJoin}</p>}
         </div>
       ) : (
         <p className="mt-6 text-teal">{t.waitingHost}</p>

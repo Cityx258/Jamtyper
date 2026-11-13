@@ -44,7 +44,10 @@ export default function RaceResults({
             {race.racers.map((r) => (
               <tr key={r.id} className={r.id === you ? "text-teal" : ""}>
                 <td className="py-3 pr-4 font-mono">{r.place}</td>
-                <td className="py-3 pr-4 font-medium">{r.name}</td>
+                <td className="py-3 pr-4 font-medium">
+                  {r.name}
+                  {r.isBot && <span className="text-muted"> ({t.bot})</span>}
+                </td>
                 <td className="py-3 pr-4 text-right font-mono">{r.wpm}</td>
                 <td className="py-3 pr-4 text-right font-mono">
                   {Math.round(r.accuracy * 100)}%

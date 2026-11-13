@@ -12,6 +12,7 @@ import type {
   Visibility,
 } from "../src/lib/room-protocol";
 import { settingsView, type RaceSettings } from "../src/lib/race-settings";
+import type { BotState } from "./bots";
 
 export const GRACE_MS = 30_000;
 export const MIN_RACERS = 2;
@@ -63,6 +64,7 @@ export interface Racer {
   outcome: RacerOutcome;
   doneAt: number | null;
   place: number | null;
+  bot: BotState | null;
 }
 
 export interface Race {
@@ -134,6 +136,7 @@ export function racersView(race: Race): RacerView[] {
       name: r.name,
       progress: r.position,
       errors: r.errors,
+      isBot: !!r.bot,
       wpm: Math.round(racerWpm(race, r, now)),
       accuracy: racerAccuracy(r),
       outcome: r.outcome,

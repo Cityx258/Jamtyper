@@ -106,6 +106,8 @@ const en = {
       priorityHint: "Words and quotes with these characters show up more often.",
       noChars: "None",
       impossible: "Nothing matches these settings. Remove some banned characters or pick another theme.",
+      bots: "Bots",
+      botsHint: "Bots join when there aren't enough players to race.",
       errorMode: "Typos",
       errorModes: { fix: "Must fix", continue: "Keep going" },
       errorModeHints: {
@@ -151,6 +153,9 @@ const en = {
     start: "Start race",
     needPlayers: "At least {n} connected players are needed to start.",
     waitingHost: "Waiting for the host to start the race.",
+    needOneRacer: "At least 1 connected player has to race.",
+    botsWillJoin: "A bot will join so you have someone to race.",
+    bot: "bot",
     getReady: "Get ready",
     cancel: "Cancel",
     timeLeft: "Time left",

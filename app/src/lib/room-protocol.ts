@@ -35,6 +35,7 @@ export interface RacerView {
   name: string;
   progress: number;
   errors: number;
+  isBot: boolean;
   wpm: number;
   accuracy: number;
   outcome: RacerOutcome;

@@ -357,6 +357,16 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
             />
           </Field>
         )}
+        <Field label={t.bots} hint={t.botsHint}>
+          <Toggle
+            on={settings.bots}
+            label={t.bots}
+            editable={editable}
+            onLabel={t.on}
+            offLabel={t.off}
+            onFlip={(v) => onChange({ bots: v })}
+          />
+        </Field>
         <Field label={t.errorMode} hint={t.errorModeHints[settings.errorMode]}>
           <Choice
             options={ERROR_MODES}

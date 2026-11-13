@@ -30,6 +30,7 @@ export interface RaceSettings {
   blacklist: string;
   priority: string;
   errorMode: ErrorMode;
+  bots: boolean;
   customText: string;
   length: number;
   timeLimitSec: number;
@@ -49,6 +50,7 @@ export const DEFAULT_SETTINGS: RaceSettings = {
   blacklist: "",
   priority: "",
   errorMode: "fix",
+  bots: true,
   customText: "",
   length: 30,
   timeLimitSec: 180,
@@ -88,6 +90,7 @@ export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettin
     blacklist: cleanChars(p.blacklist, current.blacklist),
     priority: cleanChars(p.priority, current.priority),
     errorMode: pick(ERROR_MODES, p.errorMode, current.errorMode),
+    bots: bool(p.bots, current.bots),
     customText: cleanCustom(p.customText, current.customText),
     length: clampInt(p.length, LENGTH_MIN, LENGTH_MAX, current.length),
     timeLimitSec: pick(TIME_LIMITS, p.timeLimitSec, current.timeLimitSec),

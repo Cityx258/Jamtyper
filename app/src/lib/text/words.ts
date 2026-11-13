@@ -102,4 +102,13 @@ export const CODE_WORDS: Record<CodeLanguage, string[]> = {
     "items()", "keys()", "pass", "break", "continue", "global", "==", "!=",
     "**", "//", "[]", "{}", "():",
   ],
+  java: [
+    "public", "private", "static", "void", "class", "interface", "extends",
+    "implements", "new", "return", "if", "else", "for", "while", "switch",
+    "case", "break", "final", "this", "super", "null", "true", "false",
+    "int", "double", "boolean", "String", "List", "Map", "ArrayList",
+    "HashMap", "System.out.println()", "main()", "size()", "add()", "get()",
+    "try", "catch", "throw", "throws", "import", "package", "==", "!=",
+    "&&", "||", "{}", "[]", "();",
+  ],
 };

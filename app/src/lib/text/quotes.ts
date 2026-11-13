@@ -78,4 +78,16 @@ export const QUOTES: Record<Language, Quote[]> = {
     { text: "print(f\"{name} typed {wpm} words per minute\")" },
     { text: "players.sort(key=lambda p: p.wpm, reverse=True)" },
   ],
+  java: [
+    { text: "public static int add(int a, int b) { return a + b; }" },
+    { text: "for (int i = 0; i < scores.length; i++) total += scores[i];" },
+    { text: "System.out.println(\"Hello, \" + name + \"!\");" },
+    { text: "List<String> names = new ArrayList<>();" },
+    { text: "if (score > best) { best = score; }" },
+    { text: "Map<String, Integer> wins = new HashMap<>();" },
+    { text: "players.sort((a, b) -> b.getWpm() - a.getWpm());" },
+    { text: "String word = sentence.toLowerCase().trim();" },
+    { text: "while (!queue.isEmpty()) { process(queue.poll()); }" },
+    { text: "public class Racer { private final String name; }" },
+  ],
 };

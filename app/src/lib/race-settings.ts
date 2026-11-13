@@ -2,12 +2,13 @@ import { typeable } from "./texts";
 
 export const SOURCES = ["words", "quote", "custom"] as const;
 export type TextSource = (typeof SOURCES)[number];
-export const LANGUAGES = ["en", "fr", "javascript", "python"] as const;
+export const CODE_LANGUAGES = ["javascript", "python", "java"] as const;
+export type CodeLanguage = (typeof CODE_LANGUAGES)[number];
+export const LANGUAGES = ["en", "fr", ...CODE_LANGUAGES] as const;
 export type Language = (typeof LANGUAGES)[number];
-export type CodeLanguage = "javascript" | "python";
 export type NaturalLanguage = Exclude<Language, CodeLanguage>;
 export const isCodeLanguage = (l: Language): l is CodeLanguage =>
-  l === "javascript" || l === "python";
+  (CODE_LANGUAGES as readonly string[]).includes(l);
 export const DIFFICULTIES = ["easy", "medium", "hard"] as const;
 export type Difficulty = (typeof DIFFICULTIES)[number];
 export const ERROR_MODES = ["fix", "continue"] as const;

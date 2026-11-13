@@ -11,6 +11,8 @@ Les tables sont séparées en deux groupes :
 
 L'état d'une course en cours (position de chaque coureur, progression de la frappe, minuteries) change plusieurs fois par seconde. Il vit **en mémoire dans le serveur temps réel** (voir [ADR 0001](adr/0001-temps-reel.md)) et n'est pas écrit dans PostgreSQL à chaque frappe.
 
+Les hauteurs de note tirées pour chaque coureur (la mélodie de la course) restent aussi en mémoire : elles ne servent qu'à l'écran de course et de résultats.
+
 PostgreSQL conserve ce qui doit survivre à un redémarrage : comptes, salles, résultats de course, statistiques et objets débloqués. Le résultat d'une course est écrit une seule fois, quand elle se termine.
 
 ## Diagramme

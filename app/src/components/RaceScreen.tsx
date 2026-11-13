@@ -10,6 +10,7 @@ import type { MemberView, RaceView, RoomStatus } from "@/lib/room-protocol";
 import { sendProgress } from "@/lib/socket";
 import { countdownCue } from "@/lib/sound";
 import { useCue } from "@/lib/use-cue";
+import { useFinishNotes } from "@/lib/use-finish-notes";
 
 type Props = {
   status: RoomStatus;
@@ -54,7 +55,8 @@ export default function RaceScreen({
   const myBoost =
     me?.boost && me.boost.until > serverNow ? me.boost.kind : null;
   useCue(status === "countdown" ? secondsTo(race.startsAt) : 0, countdownCue);
-  useCue(me?.outcome, (o) => (o === "finished" ? "finish" : o === "eliminated" ? "out" : null));
+  useCue(me?.outcome, (o) => (o === "eliminated" ? "out" : null));
+  useFinishNotes(race.racers);
   const offline = new Set(members.filter((m) => !m.connected).map((m) => m.id));
 
   if (status === "countdown") {

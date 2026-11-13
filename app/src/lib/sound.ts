@@ -1,5 +1,7 @@
 "use client";
 
+import { schedule, type MelodyNote } from "./melody";
+
 export type Cue = "tick" | "go" | "typo" | "finish" | "out";
 
 const KEY = "jamtyper-sound";
@@ -35,21 +37,57 @@ export function subscribeSound(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
-export function play(cue: Cue) {
-  if (!soundOn() || typeof AudioContext === "undefined") return;
+function audio(): AudioContext | null {
+  if (typeof AudioContext === "undefined") return null;
   ctx ??= new AudioContext();
   if (ctx.state === "suspended") void ctx.resume();
+  return ctx;
+}
+
+export function playMelody(notes: MelodyNote[], force = false): number {
+  const ac = (force || soundOn()) && audio();
+  const timed = schedule(notes);
+  if (!ac) return 0;
+  const start = ac.currentTime + 0.05;
+  for (const { freq, at, length } of timed) {
+    const from = start + at;
+    const ring = Math.max(length, 0.35);
+    for (const [mult, level, type] of [
+      [1, 0.11, "triangle"],
+      [2, 0.025, "sine"],
+    ] as const) {
+      const osc = ac.createOscillator();
+      const amp = ac.createGain();
+      osc.type = type;
+      osc.frequency.value = freq * mult;
+      amp.gain.setValueAtTime(0.0001, from);
+      amp.gain.exponentialRampToValueAtTime(level, from + 0.015);
+      amp.gain.exponentialRampToValueAtTime(level * 0.45, from + Math.min(0.25, length));
+      amp.gain.exponentialRampToValueAtTime(0.0001, from + ring);
+      osc.connect(amp).connect(ac.destination);
+      osc.start(from);
+      osc.stop(from + ring + 0.02);
+    }
+  }
+  const last = timed[timed.length - 1];
+  return last ? last.at + last.length : 0;
+}
+
+export function play(cue: Cue) {
+  if (!soundOn()) return;
+  const ctx = audio();
+  if (!ctx) return;
   const { freqs, step, length, type, gain } = NOTES[cue];
   const start = ctx.currentTime;
   freqs.forEach((freq, i) => {
     const at = start + i * step;
-    const osc = ctx!.createOscillator();
-    const amp = ctx!.createGain();
+    const osc = ctx.createOscillator();
+    const amp = ctx.createGain();
     osc.type = type;
     osc.frequency.value = freq;
     amp.gain.setValueAtTime(gain, at);
     amp.gain.exponentialRampToValueAtTime(0.0001, at + length);
-    osc.connect(amp).connect(ctx!.destination);
+    osc.connect(amp).connect(ctx.destination);
     osc.start(at);
     osc.stop(at + length);
   });

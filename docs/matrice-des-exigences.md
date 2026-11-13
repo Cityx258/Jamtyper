@@ -11,7 +11,7 @@ Chaque exigence du cahier des charges, sa priorité et où elle en est. Les num�
 | 3 | Gestion des salles | Fait |
 | 4 | Options avancées de course | Fait |
 | 5 | Bots et boosts | Fait |
-| 6 | Écrans de fin, statistiques, récompenses | Partiel : il manque le podium, le graphique de progression et la page de paramètres |
+| 6 | Écrans de fin, statistiques, récompenses | Partiel : il manque le graphique de progression et la page de paramètres |
 | 7 | Bilinguisme, thèmes, responsive, optionnel | Fait, sauf la direction artistique (en cours) |
 | 8 | Tests, déploiement, sécurité, documentation | Fait |
 
@@ -108,7 +108,7 @@ Tous ces réglages sont dans le panneau « Paramètres de la course » du lobby.
 |---|---|---|---|---|---|
 | 6.1 | Fin quand tous ont terminé ou limite de temps | 2 | Fait | Script | Ordre des conditions défini dans la machine à états. |
 | 6.2 | Minuterie de clôture après le premier arrivé | 2 | Fait | Script | |
-| 6.3 | Écran de podium | 6 | À faire | | L'écran de résultats donne déjà le classement en tableau. |
+| 6.3 | Écran de podium | 6 | Fait | Navigateur, tests | Les trois premiers sur des marches (1re au centre, plus haute), avec leur note et leur MPM, au-dessus du tableau des résultats. Seuls les coureurs qui ont terminé ou atteint la limite de temps peuvent monter sur le podium. |
 | 6.4 | Écran de statistiques | 6 | Fait | Navigateur, tests | MPM, précision et temps de chaque coureur, plus un graphique de la vitesse de chacun pendant la course (10 points par seconde, à partir de la 1re seconde). Ta ligne est en couleur, les autres en gris; un survol montre le temps et la vitesse de chacun. Les points ne sont envoyés qu'à la fin de la course et ne sont pas gardés en base. |
 | 6.5 | Carte de chaleur des touches manquées | 6 | Fait | Navigateur | À la fin de chaque course et cumulée sur le profil. |
 | 6.6 | Relancer avec les mêmes participants ou fermer la salle | 6 | Fait | Script | Boutons « Relancer » et « Fermer la salle » pour l'hôte. |

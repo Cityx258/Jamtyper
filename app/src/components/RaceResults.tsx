@@ -2,6 +2,7 @@
 
 import KeyHeatmap from "@/components/KeyHeatmap";
 import NoteIcon from "@/components/NoteIcon";
+import Podium from "@/components/Podium";
 import RaceGraph from "@/components/RaceGraph";
 import { primaryButton, secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
@@ -49,6 +50,8 @@ export default function RaceResults({
           {t.unlockedNote.replace("{note}", noteNames[me.unlocked].toLowerCase())}
         </p>
       )}
+      <Podium racers={race.racers} you={you} t={t} />
+
       {goalMs > 0 && (
         <p className="mt-3 text-muted">
           {(goalCount === 0 ? t.goalBeatNone : goalCount === 1 ? t.goalBeatOne : t.goalBeat)

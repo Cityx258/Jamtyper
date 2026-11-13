@@ -193,6 +193,7 @@ const en = {
     eliminatedMsg: "A typo knocked you out. Watch the others finish.",
     instantDeathOn: "Instant death: one typo and you're out",
     results: "Results",
+    podium: "Podium",
     place: "Place",
     player: "Player",
     wpm: "WPM",

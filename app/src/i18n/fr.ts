@@ -198,6 +198,7 @@ const fr: Dict = {
     eliminatedMsg: "Une faute t'a éliminé. Regarde les autres finir.",
     instantDeathOn: "Mort instantanée : une faute et tu es éliminé",
     results: "Résultats",
+    podium: "Podium",
     place: "Rang",
     player: "Joueur",
     wpm: "MPM",

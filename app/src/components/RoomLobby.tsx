@@ -21,10 +21,12 @@ import {
 import {
   getSocket,
   requestAction,
+  requestAnswerWatch,
   requestInvite,
   requestJoinRoom,
   requestLeaveRoom,
   requestVisibility,
+  requestWatch,
 } from "@/lib/socket";
 
 type Props = {
@@ -438,14 +440,41 @@ export default function RoomLobby({
           {room.members.map((m) => (
             <li
               key={m.id}
-              className={`flex items-center gap-3 py-3 ${m.connected ? "" : "opacity-50"}`}
+              className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3"
             >
-              <QuarterNote />
-              <span className="min-w-0 flex-1 truncate font-medium">{m.name}</span>
-              {m.isHost && <Tag>{t.host}</Tag>}
-              {m.id === you && <Tag>{t.you}</Tag>}
-              {m.role === "spectator" && <Tag>{t.spectator}</Tag>}
-              {!m.connected && <Tag>{t.reconnecting}</Tag>}
+              <span
+                className={`flex min-w-0 flex-1 items-center gap-3 ${m.connected ? "" : "opacity-50"}`}
+              >
+                <QuarterNote />
+                <span className="min-w-0 truncate font-medium">{m.name}</span>
+                {m.isHost && <Tag>{t.host}</Tag>}
+                {m.id === you && <Tag>{t.you}</Tag>}
+                {m.role === "spectator" && <Tag>{t.spectator}</Tag>}
+                {m.watchRequested && <Tag>{t.wantsToWatch}</Tag>}
+                {!m.connected && <Tag>{t.reconnecting}</Tag>}
+              </span>
+              {isHost && m.id !== you && (
+                <span className="flex w-full flex-wrap justify-end gap-2 sm:w-auto">
+                  {m.watchRequested && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => run(requestAnswerWatch(m.id, true))}
+                        className={smallButton}
+                      >
+                        {t.approve}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => run(requestAnswerWatch(m.id, false))}
+                        className={smallButton}
+                      >
+                        {t.decline}
+                      </button>
+                    </>
+                  )}
+                </span>
+              )}
             </li>
           ))}
         </ul>
@@ -454,6 +483,30 @@ export default function RoomLobby({
       <p className="mt-8 max-w-xl text-muted">
         {isPrivate ? t.waitingInvite : t.waiting}
       </p>
+
+      {me && (
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          {me.role === "spectator" ? (
+            <>
+              <p className="text-sm text-muted">{t.youWatch}</p>
+              <button type="button" onClick={() => run(requestWatch(false))} className={smallButton}>
+                {t.raceInstead}
+              </button>
+            </>
+          ) : me.watchRequested ? (
+            <>
+              <p role="status" className="text-sm text-muted">{t.watchPending}</p>
+              <button type="button" onClick={() => run(requestWatch(false))} className={smallButton}>
+                {t.cancelRequest}
+              </button>
+            </>
+          ) : (
+            <button type="button" onClick={() => run(requestWatch(true))} className={smallButton}>
+              {isHost ? t.watchInstead : t.askToWatch}
+            </button>
+          )}
+        </div>
+      )}
 
       {isHost ? (
         <div className="mt-6">

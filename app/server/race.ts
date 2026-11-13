@@ -42,7 +42,7 @@ const fail = (error: RoomError): ActionResult => ({ ok: false, error });
 
 type Context = { room: Room; member: Member };
 
-function context(socket: AppSocket): Context | null {
+export function context(socket: AppSocket): Context | null {
   const code = socket.data.roomCode;
   const room = code ? rooms.get(code) : undefined;
   const member = room?.members.get(socket.data.identity.key);
@@ -77,7 +77,6 @@ export function stopRace(race: Race) {
 function backToLobby(io: AppServer, room: Room) {
   if (room.race) stopRace(room.race);
   room.race = null;
-  for (const m of room.members.values()) m.role = "racer";
   setStatus(room, "lobby");
   broadcast(io, room);
 }
@@ -89,7 +88,7 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
   if (room.status !== "lobby") return fail("bad_state");
 
   const entrants = [...room.members.values()].filter(
-    (m) => m.role === "racer" && m.sockets.size > 0,
+    (m) => !m.watching && m.sockets.size > 0,
   );
   if (entrants.length < MIN_RACERS) return fail("not_enough_racers");
 
@@ -120,10 +119,6 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
     dirty: false,
     timers: [],
   };
-  for (const m of room.members.values()) {
-    if (!race.racers.has(m.id)) m.role = "spectator";
-  }
-
   room.race = race;
   setStatus(room, "countdown");
   race.timers.push(setTimeout(() => beginRacing(io, room, race), COUNTDOWN_MS));

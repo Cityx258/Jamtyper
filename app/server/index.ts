@@ -8,6 +8,7 @@ import type {
   RoomError,
   ServerToClientEvents,
 } from "../src/lib/room-protocol";
+import { answerWatchRequest, setWatching } from "./members";
 import {
   cancelRace,
   forfeit,
@@ -144,6 +145,14 @@ async function main() {
     );
     socket.on("room:invite", (ack) =>
       respond("room:invite", ack, () => createInvite(socket)),
+    );
+    socket.on("member:watch", (payload, ack) =>
+      respond("member:watch", ack, () => setWatching(io, socket, payload)),
+    );
+    socket.on("member:approve", (payload, ack) =>
+      respond("member:approve", ack, () =>
+        answerWatchRequest(io, socket, payload),
+      ),
     );
 
     socket.on("room:leave", async (ack) => {

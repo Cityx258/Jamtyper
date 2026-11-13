@@ -18,6 +18,7 @@ import {
   broadcast,
   channel,
   GRACE_MS,
+  memberRole,
   rooms,
   toView,
   type AppServer,
@@ -209,7 +210,8 @@ export async function createRoom(
         key: identity.key,
         userId: identity.userId,
         name: identity.name,
-        role: "racer",
+        watching: false,
+        watchRequested: false,
         joinedAt: Date.now(),
         sockets: new Set(),
       };
@@ -264,7 +266,8 @@ export async function joinRoom(
       key: identity.key,
       userId: identity.userId,
       name,
-      role: room.status === "lobby" ? "racer" : "spectator",
+      watching: false,
+      watchRequested: false,
       joinedAt: Date.now(),
       sockets: new Set(),
     };
@@ -276,7 +279,7 @@ export async function joinRoom(
           roomId: room.id,
           userId: created.userId,
           guestName: created.userId ? null : created.name,
-          role: created.role,
+          role: memberRole(room, created),
         });
         if (!invite) return;
         const now = new Date();

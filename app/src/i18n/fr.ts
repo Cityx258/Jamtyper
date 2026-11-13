@@ -67,6 +67,7 @@ const fr: Dict = {
     you: "toi",
     spectator: "spectateur",
     reconnecting: "reconnexion",
+    wantsToWatch: "veut regarder",
     visibilityTitle: "Qui peut rejoindre",
     visibilities: {
       public: "Publique",
@@ -81,6 +82,14 @@ const fr: Dict = {
     newInvite: "Nouveau lien d'invitation",
     inviteHint: "Chaque lien laisse entrer une seule personne et expire après 24 heures.",
     copyInvite: "Copier l'invitation",
+    watchInstead: "Regarder plutôt",
+    raceInstead: "Courir plutôt",
+    askToWatch: "Demander à regarder",
+    cancelRequest: "Annuler la demande",
+    watchPending: "En attente de l'approbation de l'hôte.",
+    youWatch: "Tu regarderas la prochaine course.",
+    approve: "Accepter",
+    decline: "Refuser",
     waiting:
       "Partage le code et attends tes amis. Une course demande au moins 2 joueurs.",
     waitingInvite:

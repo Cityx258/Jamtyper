@@ -1,6 +1,7 @@
 import type { Server, Socket } from "socket.io";
 import type {
   ClientToServerEvents,
+  MemberRole,
   MissedKeys,
   RacerOutcome,
   RacerView,
@@ -43,7 +44,8 @@ export interface Member {
   key: string;
   userId: string | null;
   name: string;
-  role: "racer" | "spectator";
+  watching: boolean;
+  watchRequested: boolean;
   joinedAt: number;
   sockets: Set<string>;
   graceTimer?: NodeJS.Timeout;
@@ -88,6 +90,19 @@ export interface Room {
 export const rooms = new Map<string, Room>();
 
 export const channel = (code: string) => `room:${code}`;
+
+export function memberRole(room: Room, member: Member): MemberRole {
+  if (room.race && room.status !== "lobby") {
+    return room.race.racers.has(member.id) ? "racer" : "spectator";
+  }
+  return member.watching ? "spectator" : "racer";
+}
+
+export function findMember(room: Room, id: unknown): Member | undefined {
+  if (typeof id !== "string") return undefined;
+  for (const m of room.members.values()) if (m.id === id) return m;
+  return undefined;
+}
 
 export function racerWpm(race: Race, racer: Racer, now = Date.now()): number {
   const elapsed =
@@ -144,9 +159,10 @@ export function toView(room: Room): RoomView {
     members: members.map((m) => ({
       id: m.id,
       name: m.name,
-      role: m.role,
+      role: memberRole(room, m),
       isHost: m.key === room.hostKey,
       connected: m.sockets.size > 0,
+      watchRequested: m.watchRequested,
     })),
     race: room.race ? raceView(room, room.race) : null,
   };

@@ -113,6 +113,12 @@ export const requestVisibility = (visibility: Visibility) =>
 export const requestInvite = (): Promise<InviteResult> =>
   guarded((s) => s.emitWithAck("room:invite"));
 
+export const requestWatch = (watching: boolean) =>
+  guarded((s) => s.emitWithAck("member:watch", { watching }));
+
+export const requestAnswerWatch = (memberId: string, approve: boolean) =>
+  guarded((s) => s.emitWithAck("member:approve", { memberId, approve }));
+
 export function sendProgress(progress: ProgressPayload) {
   getSocket().emit("race:progress", progress);
 }

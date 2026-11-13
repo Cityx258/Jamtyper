@@ -9,12 +9,15 @@ export type RoomStatus =
 export const VISIBILITIES = ["public", "semi_public", "private"] as const;
 export type Visibility = (typeof VISIBILITIES)[number];
 
+export type MemberRole = "racer" | "spectator";
+
 export interface MemberView {
   id: string;
   name: string;
-  role: "racer" | "spectator";
+  role: MemberRole;
   isHost: boolean;
   connected: boolean;
+  watchRequested: boolean;
 }
 
 export type RacerOutcome =
@@ -99,6 +102,14 @@ export interface ClientToServerEvents {
     ack: (result: ActionResult) => void,
   ) => void;
   "room:invite": (ack: (result: InviteResult) => void) => void;
+  "member:watch": (
+    payload: { watching: boolean },
+    ack: (result: ActionResult) => void,
+  ) => void;
+  "member:approve": (
+    payload: { memberId: string; approve: boolean },
+    ack: (result: ActionResult) => void,
+  ) => void;
   "room:leave": (ack?: () => void) => void;
   "room:close": (ack: (result: ActionResult) => void) => void;
   "race:start": (ack: (result: ActionResult) => void) => void;

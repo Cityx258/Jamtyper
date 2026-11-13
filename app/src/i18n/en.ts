@@ -111,7 +111,7 @@ const en = {
       botLevel: "Bot level",
       botLevels: { easy: "Easy", medium: "Medium", expert: "Expert", impossible: "Impossible" },
       boosts: "Boosts",
-      boostsHint: "Keeps the race close: a player far behind gets a couple of words skipped.",
+      boostsHint: "Keeps the race close: a player far behind skips a couple of words, and a runaway leader gets the text ahead blurred for a moment.",
       errorMode: "Typos",
       errorModes: { fix: "Must fix", continue: "Keep going" },
       errorModeHints: {
@@ -160,8 +160,11 @@ const en = {
     needOneRacer: "At least 1 connected player has to race.",
     botsWillJoin: "A bot will join so you have someone to race.",
     bot: "bot",
-    boostYou: { shortcut: "Shortcut! We skipped 2 words for you." },
-    boostTags: { shortcut: "shortcut" },
+    boostYou: {
+      shortcut: "Shortcut! We skipped 2 words for you.",
+      spotlight: "You're way ahead! The text is foggy for a moment.",
+    },
+    boostTags: { shortcut: "shortcut", spotlight: "fogged" },
     getReady: "Get ready",
     cancel: "Cancel",
     timeLeft: "Time left",

@@ -9,6 +9,7 @@ type Props = {
   start: number;
   startErrors?: number;
   jump?: number;
+  fogged?: boolean;
   mode?: ErrorMode;
   label: string;
   onProgress: (progress: ProgressPayload) => void;
@@ -91,9 +92,25 @@ function Field({
   );
 }
 
+function Upcoming({ text, from, fogged }: { text: string; from: number; fogged?: boolean }) {
+  const space = text.indexOf(" ", from);
+  const clear = fogged && space !== -1 ? space + 1 : text.length;
+  return (
+    <>
+      <span className="text-muted">{text.slice(from, clear)}</span>
+      <span
+        aria-hidden={fogged || undefined}
+        className={`text-muted transition-[filter] duration-500 ${fogged ? "blur-[5px]" : ""}`}
+      >
+        {text.slice(clear)}
+      </span>
+    </>
+  );
+}
+
 const textClass = "select-none font-mono text-xl leading-relaxed sm:text-2xl";
 
-function FixBox({ text, start, jump = 0, label, onProgress }: Props) {
+function FixBox({ text, start, jump = 0, fogged, label, onProgress }: Props) {
   const [committed, setCommitted] = useState(start);
   const [input, setInput] = useState("");
   const [seenJump, setSeenJump] = useState(jump);
@@ -142,7 +159,7 @@ function FixBox({ text, start, jump = 0, label, onProgress }: Props) {
         <span className="underline decoration-teal decoration-2 underline-offset-4">
           {text.slice(cursor, cursor + 1)}
         </span>
-        <span className="text-muted">{text.slice(cursor + 1)}</span>
+        <Upcoming text={text} from={cursor + 1} fogged={fogged} />
       </p>
       <Field value={input} done={done} invalid={wrong > 0} label={label} onChange={onChange} />
     </div>
@@ -154,6 +171,7 @@ function ContinueBox({
   start,
   startErrors = 0,
   jump = 0,
+  fogged,
   label,
   onProgress,
 }: Props) {
@@ -224,7 +242,7 @@ function ContinueBox({
         <span className="underline decoration-teal decoration-2 underline-offset-4">
           {text.slice(position, position + 1)}
         </span>
-        <span className="text-muted">{text.slice(position + 1)}</span>
+        <Upcoming text={text} from={position + 1} fogged={fogged} />
       </p>
       <Field
         value={input}

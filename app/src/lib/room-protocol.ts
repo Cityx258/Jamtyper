@@ -30,7 +30,7 @@ export type RacerOutcome =
   | "kicked"
   | "timed_out";
 
-export type BoostKind = "shortcut";
+export type BoostKind = "shortcut" | "spotlight";
 
 export interface BoostView {
   kind: BoostKind;

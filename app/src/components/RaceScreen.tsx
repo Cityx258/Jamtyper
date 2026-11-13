@@ -103,6 +103,7 @@ export default function RaceScreen({
             start={me.progress}
             startErrors={me.errors}
             jump={me.jump}
+            fogged={myBoost === "spotlight"}
             mode={race.errorMode}
             label={t.typeHere}
             onProgress={sendProgress}

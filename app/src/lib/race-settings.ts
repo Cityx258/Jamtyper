@@ -13,6 +13,7 @@ export type Difficulty = (typeof DIFFICULTIES)[number];
 export const TEXT_THEMES = ["general", "music", "nature", "science"] as const;
 export type TextTheme = (typeof TEXT_THEMES)[number];
 export const CUSTOM_MAX = 1000;
+export const CHARS_MAX = 30;
 export const LENGTH_MIN = 10;
 export const LENGTH_MAX = 200;
 export const TIME_LIMITS = [30, 60, 120, 180, 300, 600] as const;
@@ -24,6 +25,8 @@ export interface RaceSettings {
   accents: boolean;
   punctuation: boolean;
   difficulty: Difficulty;
+  blacklist: string;
+  priority: string;
   customText: string;
   length: number;
   timeLimitSec: number;
@@ -40,6 +43,8 @@ export const DEFAULT_SETTINGS: RaceSettings = {
   accents: true,
   punctuation: false,
   difficulty: "medium",
+  blacklist: "",
+  priority: "",
   customText: "",
   length: 30,
   timeLimitSec: 180,
@@ -61,6 +66,12 @@ function cleanCustom(value: unknown, fallback: string): string {
   return typeable(value).slice(0, CUSTOM_MAX).trim();
 }
 
+function cleanChars(value: unknown, fallback: string): string {
+  if (typeof value !== "string") return fallback;
+  const chars = [...typeable(value).toLowerCase()].filter((c) => c.trim());
+  return [...new Set(chars)].slice(0, CHARS_MAX).join("");
+}
+
 export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettings {
   const p = (patch && typeof patch === "object" ? patch : {}) as Record<string, unknown>;
   return {
@@ -70,6 +81,8 @@ export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettin
     accents: bool(p.accents, current.accents),
     punctuation: bool(p.punctuation, current.punctuation),
     difficulty: pick(DIFFICULTIES, p.difficulty, current.difficulty),
+    blacklist: cleanChars(p.blacklist, current.blacklist),
+    priority: cleanChars(p.priority, current.priority),
     customText: cleanCustom(p.customText, current.customText),
     length: clampInt(p.length, LENGTH_MIN, LENGTH_MAX, current.length),
     timeLimitSec: pick(TIME_LIMITS, p.timeLimitSec, current.timeLimitSec),

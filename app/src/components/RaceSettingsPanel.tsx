@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { Dict } from "@/i18n/en";
 import {
+  CHARS_MAX,
   CUSTOM_MAX,
   DIFFICULTIES,
   LANGUAGES,
@@ -14,6 +15,7 @@ import {
   isCodeLanguage,
   type SettingsView,
 } from "@/lib/race-settings";
+import { generateText } from "@/lib/texts";
 
 type T = Dict["room"]["settings"];
 
@@ -137,6 +139,41 @@ export function Toggle({
   );
 }
 
+function CharsInput({
+  value,
+  label,
+  editable,
+  none,
+  onEdit,
+}: {
+  value: string;
+  label: string;
+  editable: boolean;
+  none: string;
+  onEdit: (v: string) => void;
+}) {
+  if (!editable) {
+    return value ? (
+      <span className="font-mono tracking-[0.3em]">{value}</span>
+    ) : (
+      <span className="text-muted">{none}</span>
+    );
+  }
+  return (
+    <input
+      value={value}
+      onChange={(e) => onEdit(e.target.value)}
+      maxLength={CHARS_MAX}
+      aria-label={label}
+      autoComplete="off"
+      autoCapitalize="off"
+      spellCheck={false}
+      placeholder={none}
+      className="w-full max-w-64 rounded-lg border border-line bg-bg/70 px-3 py-2 font-mono tracking-[0.3em] text-ink placeholder:tracking-normal placeholder:text-muted/60 focus:border-teal focus:outline-none"
+    />
+  );
+}
+
 function timeLabel(sec: number, t: T) {
   return sec < 60
     ? t.seconds.replace("{n}", String(sec))
@@ -145,6 +182,19 @@ function timeLabel(sec: number, t: T) {
 
 export default function RaceSettingsPanel({ settings, editable, t, onChange }: Props) {
   const [length, setLength] = useDraft(settings.length, (v) => onChange({ length: v }));
+  const [blacklist, setBlacklist] = useDraft(settings.blacklist, (v) =>
+    onChange({ blacklist: v }),
+  );
+  const [priority, setPriority] = useDraft(settings.priority, (v) =>
+    onChange({ priority: v }),
+  );
+  const impossible = useMemo(
+    () =>
+      editable &&
+      settings.source !== "custom" &&
+      generateText({ ...settings, customText: "" }) === null,
+    [editable, settings],
+  );
   const [custom, setCustom] = useState("");
   const customTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const isCustom = settings.source === "custom";
@@ -163,6 +213,11 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
         {t.title}
       </h2>
       {!editable && <p className="mt-1 text-sm text-muted">{t.hostOnly}</p>}
+      {impossible && (
+        <p role="alert" className="mt-2 text-sm text-danger">
+          {t.impossible}
+        </p>
+      )}
       <div className="mt-5 grid gap-6 sm:grid-cols-2">
         <Field label={t.source}>
           <Choice
@@ -277,6 +332,28 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
             ) : (
               <span className="font-medium">{lengthText(settings.length)}</span>
             )}
+          </Field>
+        )}
+        {!isCustom && (
+          <Field label={t.blacklist} hint={t.blacklistHint}>
+            <CharsInput
+              value={blacklist}
+              label={t.blacklist}
+              editable={editable}
+              none={t.noChars}
+              onEdit={setBlacklist}
+            />
+          </Field>
+        )}
+        {!isCustom && (
+          <Field label={t.priority} hint={t.priorityHint}>
+            <CharsInput
+              value={priority}
+              label={t.priority}
+              editable={editable}
+              none={t.noChars}
+              onEdit={setPriority}
+            />
           </Field>
         )}
         <Field label={t.timeLimit}>

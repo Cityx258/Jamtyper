@@ -58,6 +58,7 @@ export interface Racer {
   name: string;
   position: number;
   mistakes: number;
+  errors: number;
   missed: MissedKeys;
   outcome: RacerOutcome;
   doneAt: number | null;
@@ -113,7 +114,7 @@ export function racerWpm(race: Race, racer: Racer, now = Date.now()): number {
   const elapsed =
     racer.doneAt ?? Math.min(race.endedAt ?? now, race.endsAt) - race.startsAt;
   if (elapsed <= 0) return 0;
-  return racer.position / 5 / (elapsed / 60_000);
+  return Math.max(0, racer.position - racer.errors) / 5 / (elapsed / 60_000);
 }
 
 export function racerAccuracy(racer: Racer): number {
@@ -132,6 +133,7 @@ export function racersView(race: Race): RacerView[] {
       id: r.id,
       name: r.name,
       progress: r.position,
+      errors: r.errors,
       wpm: Math.round(racerWpm(race, r, now)),
       accuracy: racerAccuracy(r),
       outcome: r.outcome,
@@ -144,6 +146,7 @@ function raceView(room: Room, race: Race): RaceView {
   return {
     text: room.status === "countdown" ? null : race.text,
     by: race.by,
+    errorMode: race.settings.errorMode,
     length: race.text.length,
     startsAt: race.startsAt,
     endsAt: race.endsAt,

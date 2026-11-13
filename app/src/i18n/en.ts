@@ -106,6 +106,12 @@ const en = {
       priorityHint: "Words and quotes with these characters show up more often.",
       noChars: "None",
       impossible: "Nothing matches these settings. Remove some banned characters or pick another theme.",
+      errorMode: "Typos",
+      errorModes: { fix: "Must fix", continue: "Keep going" },
+      errorModeHints: {
+        fix: "You can't move on until the typo is fixed.",
+        continue: "Typos stay red and you keep going. Only correct letters count toward your speed, and finishers are ranked by that speed.",
+      },
       on: "On",
       off: "Off",
       customLabel: "Your text",

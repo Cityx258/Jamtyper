@@ -6,7 +6,7 @@ export type RoomStatus =
   | "results"
   | "closed";
 
-import type { SettingsView } from "./race-settings";
+import type { ErrorMode, SettingsView } from "./race-settings";
 
 export const VISIBILITIES = ["public", "semi_public", "private"] as const;
 export type Visibility = (typeof VISIBILITIES)[number];
@@ -34,6 +34,7 @@ export interface RacerView {
   id: string;
   name: string;
   progress: number;
+  errors: number;
   wpm: number;
   accuracy: number;
   outcome: RacerOutcome;
@@ -44,6 +45,7 @@ export interface RacerView {
 export interface RaceView {
   text: string | null;
   by: string | null;
+  errorMode: ErrorMode;
   length: number;
   startsAt: number;
   endsAt: number;
@@ -94,6 +96,7 @@ export type MissedKeys = Record<string, number>;
 export interface ProgressPayload {
   position: number;
   mistakes: number;
+  errors?: number;
   missed: MissedKeys;
 }
 

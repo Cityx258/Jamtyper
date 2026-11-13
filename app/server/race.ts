@@ -115,6 +115,7 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
           name: m.name,
           position: 0,
           mistakes: 0,
+          errors: 0,
           missed: {},
           outcome: "racing",
           doneAt: null,
@@ -232,11 +233,12 @@ export function recordProgress(
   const racer = race.racers.get(ctx.member.id);
   if (!racer || racer.outcome !== "racing") return;
 
-  const { position, mistakes, missed } = (payload ?? {}) as Record<
+  const { position, mistakes, missed, errors = 0 } = (payload ?? {}) as Record<
     string,
     unknown
   >;
-  if (!isCount(position) || !isCount(mistakes)) return;
+  if (!isCount(position) || !isCount(mistakes) || !isCount(errors)) return;
+  if (errors > position) return;
   const missedKeys = cleanMissed(missed, mistakes);
   if (!missedKeys) return;
   const elapsed = Date.now() - race.startsAt;
@@ -250,6 +252,7 @@ export function recordProgress(
   }
 
   racer.position = position;
+  racer.errors = race.settings.errorMode === "continue" ? errors : 0;
   racer.mistakes = Math.max(racer.mistakes, mistakes);
   racer.missed = mergeMissed(racer.missed, missedKeys);
   race.dirty = true;
@@ -346,12 +349,15 @@ async function endRace(io: AppServer, room: Room, race: Race) {
   for (const r of ranked) {
     if (r.outcome === "racing") r.outcome = "timed_out";
   }
+  const net = (r: Racer) => r.position - r.errors;
+  const finishOrder =
+    race.settings.errorMode === "continue"
+      ? (a: Racer, b: Racer) => racerWpm(race, b) - racerWpm(race, a)
+      : (a: Racer, b: Racer) => (a.doneAt ?? 0) - (b.doneAt ?? 0);
   ranked.sort(
     (a, b) =>
       outcomeRank[a.outcome] - outcomeRank[b.outcome] ||
-      (a.outcome === "finished"
-        ? (a.doneAt ?? 0) - (b.doneAt ?? 0)
-        : b.position - a.position),
+      (a.outcome === "finished" ? finishOrder(a, b) : net(b) - net(a)),
   );
   ranked.forEach((r, i) => (r.place = i + 1));
 

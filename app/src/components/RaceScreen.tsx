@@ -90,6 +90,8 @@ export default function RaceScreen({
             key={race.startsAt}
             text={race.text}
             start={me.progress}
+            startErrors={me.errors}
+            mode={race.errorMode}
             label={t.typeHere}
             onProgress={sendProgress}
           />

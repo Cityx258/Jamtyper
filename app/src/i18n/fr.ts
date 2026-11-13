@@ -108,6 +108,12 @@ const fr: Dict = {
       priorityHint: "Les mots et citations contenant ces caractères reviennent plus souvent.",
       noChars: "Aucun",
       impossible: "Rien ne correspond à ces paramètres. Retire des caractères interdits ou choisis un autre thème.",
+      errorMode: "Fautes de frappe",
+      errorModes: { fix: "À corriger", continue: "On continue" },
+      errorModeHints: {
+        fix: "Impossible d'avancer tant que la faute n'est pas corrigée.",
+        continue: "Les fautes restent en rouge et tu continues. Seules les bonnes lettres comptent dans ta vitesse, et les arrivants sont classés selon cette vitesse.",
+      },
       on: "Activé",
       off: "Désactivé",
       customLabel: "Ton texte",

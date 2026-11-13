@@ -6,6 +6,7 @@ import {
   CHARS_MAX,
   CUSTOM_MAX,
   DIFFICULTIES,
+  ERROR_MODES,
   LANGUAGES,
   LENGTH_MAX,
   LENGTH_MIN,
@@ -356,6 +357,15 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
             />
           </Field>
         )}
+        <Field label={t.errorMode} hint={t.errorModeHints[settings.errorMode]}>
+          <Choice
+            options={ERROR_MODES}
+            value={settings.errorMode}
+            label={(v) => t.errorModes[v]}
+            editable={editable}
+            onPick={(v) => onChange({ errorMode: v })}
+          />
+        </Field>
         <Field label={t.timeLimit}>
           <Choice
             options={TIME_LIMITS}

@@ -1,5 +1,5 @@
 import { randomInt, randomUUID } from "node:crypto";
-import type { NoteKind } from "../src/lib/notes";
+import { NOTES } from "../src/lib/notes";
 import type { BotLevel } from "../src/lib/race-settings";
 import { racerEnd, type Race, type Racer } from "./room-state";
 import { randomPitches } from "../src/lib/melody";
@@ -17,11 +17,11 @@ const NAMES = [
   "Andante",
 ];
 
-const LEVELS: Record<BotLevel, { wpm: number; typoRate: number; note: NoteKind }> = {
-  easy: { wpm: 25, typoRate: 0.06, note: "half" },
-  medium: { wpm: 45, typoRate: 0.03, note: "quarter" },
-  expert: { wpm: 75, typoRate: 0.015, note: "sixteenth" },
-  impossible: { wpm: 140, typoRate: 0.003, note: "thirtySecond" },
+const LEVELS: Record<BotLevel, { wpm: number; typoRate: number }> = {
+  easy: { wpm: 25, typoRate: 0.06 },
+  medium: { wpm: 45, typoRate: 0.03 },
+  expert: { wpm: 75, typoRate: 0.015 },
+  impossible: { wpm: 140, typoRate: 0.003 },
 };
 
 const random = () => randomInt(1_000_000) / 1_000_000;
@@ -43,13 +43,14 @@ export function createBots(
   taken: Set<string>,
   level: BotLevel,
 ): Racer[] {
-  const { wpm, typoRate, note } = LEVELS[level];
+  const { wpm, typoRate } = LEVELS[level];
   const names = NAMES.filter((n) => !taken.has(n));
   const bots: Racer[] = [];
   for (let i = 0; i < count; i++) {
     const name = names.length
       ? names.splice(randomInt(names.length), 1)[0]
       : `Bot ${i + 1}`;
+    const note = NOTES[randomInt(NOTES.length)];
     bots.push({
       id: `bot-${randomUUID()}`,
       userId: null,

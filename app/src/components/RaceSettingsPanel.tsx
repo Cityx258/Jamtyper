@@ -196,14 +196,19 @@ function Section({
         {title}
         <span
           aria-hidden
-          className={`text-sm text-muted transition-transform ${open ? "rotate-180" : ""}`}
+          className={`text-sm text-muted transition-transform duration-300 ${open ? "rotate-180" : ""}`}
         >
           ▾
         </span>
       </button>
-      {open && (
-        <div className="grid gap-6 border-t border-line px-4 py-5 sm:grid-cols-2">{children}</div>
-      )}
+      <div
+        inert={!open}
+        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="grid gap-6 border-t border-line px-4 py-5 sm:grid-cols-2">{children}</div>
+        </div>
+      </div>
     </div>
   );
 }

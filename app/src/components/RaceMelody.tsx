@@ -5,7 +5,7 @@ import NoteIcon from "@/components/NoteIcon";
 import { secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import { melodyOrder, notesPerBeat, noteSeconds, type MelodyNote } from "@/lib/melody";
-import type { NoteKind } from "@/lib/notes";
+import { NOTES, type NoteKind } from "@/lib/notes";
 import type { RacerView } from "@/lib/room-protocol";
 import { playMelody, soundOn } from "@/lib/sound";
 
@@ -41,6 +41,30 @@ type System = { symbols: Symbol[]; bars: number[]; groups: Group[] };
 
 const START = CLEF + 14;
 const END = 16;
+const SCALE = SIZE / 40;
+const STEM_X = 5.2 * SCALE;
+const STEM_W = 2 * SCALE;
+const STEM = 31 * SCALE;
+const BEAM = 4;
+const BEAM_GAP = 6.5;
+
+const y = (pitch: number) => TOP + STAFF - (pitch * GAP) / 2;
+
+type Beam = { racer: number; count: number; notes: Symbol[]; at: (x: number) => number };
+
+export function beams(system: System): Beam[] {
+  return system.groups.flatMap((g) => {
+    const notes = system.symbols.filter((s) => s.racer === g.racer);
+    const count = notes.length > 1 ? NOTES.indexOf(notes[0].note) - 2 : 0;
+    if (count < 1) return [];
+    const x0 = notes[0].x;
+    const span = notes.at(-1)!.x - x0;
+    const tilt = Math.max(-GAP, Math.min(GAP, y(notes.at(-1)!.pitch) - y(notes[0].pitch)));
+    const lift = (x: number) => (tilt * (x - x0)) / span;
+    const base = Math.min(...notes.map((s) => y(s.pitch) - STEM - lift(s.x)));
+    return [{ racer: g.racer, count, notes, at: (x: number) => base + lift(x) }];
+  });
+}
 
 export function layout(racers: RacerView[], width: number) {
   const systems: System[] = [];
@@ -125,8 +149,6 @@ export default function RaceMelody({ racers, you, raceKey, t }: Props) {
   }, [raceKey]);
   useEffect(() => stop, []);
 
-  const y = (pitch: number) => TOP + STAFF - (pitch * GAP) / 2;
-
   return (
     <section className="mt-12" aria-labelledby="melody-title">
       <div className="flex flex-wrap items-baseline justify-between gap-3">
@@ -147,6 +169,8 @@ export default function RaceMelody({ racers, you, raceKey, t }: Props) {
         {systems.map((system, n) => {
           const last = n === systems.length - 1;
           const right = last ? (system.symbols.at(-1)?.x ?? START) + SLOT + 4 : width;
+          const joined = beams(system);
+          const beamed = new Set(joined.flatMap((b) => b.notes.map((s) => s.index)));
           return (
             <div key={n} className="relative" style={{ width: right, maxWidth: "100%", height: HEIGHT }}>
               {[0, 1, 2, 3, 4].map((i) => (
@@ -187,12 +211,54 @@ export default function RaceMelody({ racers, you, raceKey, t }: Props) {
                           ? "text-teal"
                           : "text-ink"
                     }`}
-                    style={{ left: s.x - headX, top: y(s.pitch) - headY }}
+                    style={{
+                      left: s.x - headX,
+                      top: y(s.pitch) - headY,
+                      transformOrigin: `${headX}px ${headY}px`,
+                    }}
                   >
-                    <NoteIcon note={s.note} size={SIZE} />
+                    <NoteIcon note={s.note} size={SIZE} stem={!beamed.has(s.index)} />
                   </span>
                 );
               })}
+              {joined.length > 0 && (
+                <svg
+                  aria-hidden
+                  className="absolute left-0 top-0 overflow-visible"
+                  width={right}
+                  height={HEIGHT}
+                >
+                  {joined.map((b) => {
+                    const x0 = b.notes[0].x + STEM_X;
+                    const x1 = b.notes.at(-1)!.x + STEM_X + STEM_W;
+                    const color = ordered[b.racer].id === you ? "fill-teal" : "fill-ink";
+                    return (
+                      <g key={b.notes[0].index} className={color}>
+                        {b.notes.map((s) => (
+                          <rect
+                            key={s.index}
+                            x={s.x + STEM_X}
+                            y={b.at(s.x)}
+                            width={STEM_W}
+                            height={y(s.pitch) - b.at(s.x)}
+                            className={active === s.index ? "fill-teal-bright" : undefined}
+                          />
+                        ))}
+                        {Array.from({ length: b.count }, (_, k) => {
+                          const top0 = b.at(b.notes[0].x) + k * BEAM_GAP;
+                          const top1 = b.at(b.notes.at(-1)!.x) + k * BEAM_GAP;
+                          return (
+                            <polygon
+                              key={k}
+                              points={`${x0},${top0} ${x1},${top1} ${x1},${top1 + BEAM} ${x0},${top0 + BEAM}`}
+                            />
+                          );
+                        })}
+                      </g>
+                    );
+                  })}
+                </svg>
+              )}
               {system.groups.map((g) => {
                 const racer = ordered[g.racer];
                 return (

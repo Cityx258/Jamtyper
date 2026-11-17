@@ -8,11 +8,13 @@ export default function NoteIcon({
   size = 20,
   className = "",
   label,
+  stem = true,
 }: {
   note: NoteKind;
   size?: number;
   className?: string;
   label?: string;
+  stem?: boolean;
 }) {
   const rank = NOTES.indexOf(note);
   const hollow = rank <= 1;
@@ -51,10 +53,9 @@ export default function NoteIcon({
             strokeWidth={hollow ? 2.4 : 0}
             transform="rotate(-22 9 33)"
           />
-          <rect x="14.2" y="2" width="2" height="31" rx="1" />
-          {Array.from({ length: flags }, (_, i) => (
-            <path key={i} d={FLAG(2 + i * 6)} />
-          ))}
+          {stem && <rect x="14.2" y="2" width="2" height="31" rx="1" />}
+          {stem &&
+            Array.from({ length: flags }, (_, i) => <path key={i} d={FLAG(2 + i * 6)} />)}
         </>
       )}
     </svg>

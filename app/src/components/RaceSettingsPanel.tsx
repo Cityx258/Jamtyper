@@ -30,8 +30,7 @@ type Props = {
   onChange: (patch: Record<string, unknown>) => Promise<unknown>;
 };
 
-const chip =
-  "rounded-full border px-3.5 py-1.5 text-sm transition-colors disabled:cursor-default";
+const chip = "rounded-full border px-3.5 py-1.5 text-sm transition-colors disabled:cursor-default";
 const chipOn = "border-teal bg-teal/15 font-medium text-ink";
 const chipOff = "border-line text-muted enabled:hover:border-teal enabled:hover:text-ink";
 
@@ -60,9 +59,7 @@ export function Field({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="font-mono text-xs uppercase tracking-[0.2em] text-muted">
-        {label}
-      </span>
+      <span className="font-mono text-xs uppercase tracking-[0.2em] text-muted">{label}</span>
       {children}
       {hint && <span className="text-xs text-muted">{hint}</span>}
     </div>
@@ -178,6 +175,39 @@ function CharsInput({
   );
 }
 
+function Section({
+  title,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="rounded-xl border border-line">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between px-4 py-3 text-left font-display text-lg"
+      >
+        {title}
+        <span
+          aria-hidden
+          className={`text-sm text-muted transition-transform ${open ? "rotate-180" : ""}`}
+        >
+          ▾
+        </span>
+      </button>
+      {open && (
+        <div className="grid gap-6 border-t border-line px-4 py-5 sm:grid-cols-2">{children}</div>
+      )}
+    </div>
+  );
+}
+
 function timeLabel(sec: number, t: T) {
   return sec < 60
     ? t.seconds.replace("{n}", String(sec))
@@ -186,12 +216,8 @@ function timeLabel(sec: number, t: T) {
 
 export default function RaceSettingsPanel({ settings, editable, t, onChange }: Props) {
   const [length, setLength] = useDraft(settings.length, (v) => onChange({ length: v }));
-  const [blacklist, setBlacklist] = useDraft(settings.blacklist, (v) =>
-    onChange({ blacklist: v }),
-  );
-  const [priority, setPriority] = useDraft(settings.priority, (v) =>
-    onChange({ priority: v }),
-  );
+  const [blacklist, setBlacklist] = useDraft(settings.blacklist, (v) => onChange({ blacklist: v }));
+  const [priority, setPriority] = useDraft(settings.priority, (v) => onChange({ priority: v }));
   const impossible = useMemo(
     () =>
       editable &&
@@ -222,233 +248,239 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
           {t.impossible}
         </p>
       )}
-      <div className="mt-5 grid gap-6 sm:grid-cols-2">
-        <Field label={t.source}>
-          <Choice
-            options={SOURCES}
-            value={settings.source}
-            label={(v) => t.sources[v]}
-            editable={editable}
-            onPick={(v) => onChange({ source: v })}
-          />
-        </Field>
-        {!isCustom && (
-          <Field label={t.language}>
+      <div className="mt-5 flex flex-col gap-3">
+        <Section title={t.groups.text} defaultOpen>
+          <Field label={t.source}>
             <Choice
-              options={LANGUAGES}
-              value={settings.language}
-              label={(v) => t.languages[v]}
+              options={SOURCES}
+              value={settings.source}
+              label={(v) => t.sources[v]}
               editable={editable}
-              onPick={(v) => onChange({ language: v })}
+              onPick={(v) => onChange({ source: v })}
             />
           </Field>
-        )}
-        {!isCustom && !isCodeLanguage(settings.language) && (
-          <Field label={t.theme}>
-            <Choice
-              options={TEXT_THEMES}
-              value={settings.theme}
-              label={(v) => t.themes[v]}
-              editable={editable}
-              onPick={(v) => onChange({ theme: v })}
-            />
-          </Field>
-        )}
-        {settings.source === "words" && (
-          <Field label={t.difficulty} hint={t.difficultyHints[settings.difficulty]}>
-            <Choice
-              options={DIFFICULTIES}
-              value={settings.difficulty}
-              label={(v) => t.difficulties[v]}
-              editable={editable}
-              onPick={(v) => onChange({ difficulty: v })}
-            />
-          </Field>
-        )}
-        {settings.source === "words" && !isCodeLanguage(settings.language) && (
-          <Field label={t.punctuation} hint={t.punctuationHint}>
-            <Toggle
-              on={settings.punctuation}
-              label={t.punctuation}
-              editable={editable}
-              onLabel={t.on}
-              offLabel={t.off}
-              onFlip={(v) => onChange({ punctuation: v })}
-            />
-          </Field>
-        )}
-        {settings.source === "words" && settings.language === "fr" && (
-          <Field label={t.accents} hint={t.accentsHint}>
-            <Toggle
-              on={settings.accents}
-              label={t.accents}
-              editable={editable}
-              onLabel={t.on}
-              offLabel={t.off}
-              onFlip={(v) => onChange({ accents: v })}
-            />
-          </Field>
-        )}
-        {isCustom && (
-          <div className="sm:col-span-2">
-            <Field
-              label={t.customLabel}
-              hint={
-                editable
-                  ? t.customSaved.replace("{n}", String(settings.customLength))
-                  : undefined
-              }
-            >
+          {!isCustom && (
+            <Field label={t.language}>
+              <Choice
+                options={LANGUAGES}
+                value={settings.language}
+                label={(v) => t.languages[v]}
+                editable={editable}
+                onPick={(v) => onChange({ language: v })}
+              />
+            </Field>
+          )}
+          {!isCustom && !isCodeLanguage(settings.language) && (
+            <Field label={t.theme}>
+              <Choice
+                options={TEXT_THEMES}
+                value={settings.theme}
+                label={(v) => t.themes[v]}
+                editable={editable}
+                onPick={(v) => onChange({ theme: v })}
+              />
+            </Field>
+          )}
+          {settings.source === "words" && (
+            <Field label={t.difficulty} hint={t.difficultyHints[settings.difficulty]}>
+              <Choice
+                options={DIFFICULTIES}
+                value={settings.difficulty}
+                label={(v) => t.difficulties[v]}
+                editable={editable}
+                onPick={(v) => onChange({ difficulty: v })}
+              />
+            </Field>
+          )}
+          {settings.source === "words" && !isCodeLanguage(settings.language) && (
+            <Field label={t.punctuation} hint={t.punctuationHint}>
+              <Toggle
+                on={settings.punctuation}
+                label={t.punctuation}
+                editable={editable}
+                onLabel={t.on}
+                offLabel={t.off}
+                onFlip={(v) => onChange({ punctuation: v })}
+              />
+            </Field>
+          )}
+          {settings.source === "words" && settings.language === "fr" && (
+            <Field label={t.accents} hint={t.accentsHint}>
+              <Toggle
+                on={settings.accents}
+                label={t.accents}
+                editable={editable}
+                onLabel={t.on}
+                offLabel={t.off}
+                onFlip={(v) => onChange({ accents: v })}
+              />
+            </Field>
+          )}
+          {isCustom && (
+            <div className="sm:col-span-2">
+              <Field
+                label={t.customLabel}
+                hint={
+                  editable ? t.customSaved.replace("{n}", String(settings.customLength)) : undefined
+                }
+              >
+                {editable ? (
+                  <textarea
+                    value={custom}
+                    onChange={(e) => editCustom(e.target.value)}
+                    maxLength={CUSTOM_MAX}
+                    rows={4}
+                    placeholder={t.customPlaceholder}
+                    aria-label={t.customLabel}
+                    className="w-full rounded-lg border border-line bg-bg/70 px-4 py-3 text-ink focus:border-teal focus:outline-none"
+                  />
+                ) : (
+                  <span className="text-muted">
+                    {t.customHidden.replace("{n}", String(settings.customLength))}
+                  </span>
+                )}
+              </Field>
+            </div>
+          )}
+          {!isCustom && (
+            <Field label={t.length}>
               {editable ? (
-                <textarea
-                  value={custom}
-                  onChange={(e) => editCustom(e.target.value)}
-                  maxLength={CUSTOM_MAX}
-                  rows={4}
-                  placeholder={t.customPlaceholder}
-                  aria-label={t.customLabel}
-                  className="w-full rounded-lg border border-line bg-bg/70 px-4 py-3 text-ink focus:border-teal focus:outline-none"
-                />
+                <div className="flex items-center gap-4">
+                  <input
+                    type="range"
+                    min={LENGTH_MIN}
+                    max={LENGTH_MAX}
+                    step={5}
+                    value={length}
+                    onChange={(e) => setLength(Number(e.target.value))}
+                    aria-label={t.length}
+                    className="w-full max-w-64 accent-teal"
+                  />
+                  <span className="w-32 font-mono text-sm">{lengthText(length)}</span>
+                </div>
               ) : (
-                <span className="text-muted">
-                  {t.customHidden.replace("{n}", String(settings.customLength))}
-                </span>
+                <span className="font-medium">{lengthText(settings.length)}</span>
               )}
             </Field>
-          </div>
-        )}
+          )}
+        </Section>
         {!isCustom && (
-          <Field label={t.length}>
-            {editable ? (
-              <div className="flex items-center gap-4">
-                <input
-                  type="range"
-                  min={LENGTH_MIN}
-                  max={LENGTH_MAX}
-                  step={5}
-                  value={length}
-                  onChange={(e) => setLength(Number(e.target.value))}
-                  aria-label={t.length}
-                  className="w-full max-w-64 accent-teal"
-                />
-                <span className="w-32 font-mono text-sm">{lengthText(length)}</span>
-              </div>
-            ) : (
-              <span className="font-medium">{lengthText(settings.length)}</span>
-            )}
-          </Field>
+          <Section title={t.groups.characters}>
+            <Field label={t.blacklist} hint={t.blacklistHint}>
+              <CharsInput
+                value={blacklist}
+                label={t.blacklist}
+                editable={editable}
+                none={t.noChars}
+                onEdit={setBlacklist}
+              />
+            </Field>
+            <Field label={t.priority} hint={t.priorityHint}>
+              <CharsInput
+                value={priority}
+                label={t.priority}
+                editable={editable}
+                none={t.noChars}
+                onEdit={setPriority}
+              />
+            </Field>
+          </Section>
         )}
-        {!isCustom && (
-          <Field label={t.blacklist} hint={t.blacklistHint}>
-            <CharsInput
-              value={blacklist}
-              label={t.blacklist}
+        <Section title={t.groups.bots}>
+          <Field label={t.bots} hint={t.botsHint}>
+            <Toggle
+              on={settings.bots}
+              label={t.bots}
               editable={editable}
-              none={t.noChars}
-              onEdit={setBlacklist}
+              onLabel={t.on}
+              offLabel={t.off}
+              onFlip={(v) => onChange({ bots: v })}
             />
           </Field>
-        )}
-        {!isCustom && (
-          <Field label={t.priority} hint={t.priorityHint}>
-            <CharsInput
-              value={priority}
-              label={t.priority}
+          {settings.bots && (
+            <Field label={t.botCount} hint={t.botCountHint}>
+              <Choice
+                options={BOT_COUNTS}
+                value={settings.botCount as (typeof BOT_COUNTS)[number]}
+                label={(v) => (v === 0 ? t.botAuto : String(v))}
+                editable={editable}
+                onPick={(v) => onChange({ botCount: v })}
+              />
+            </Field>
+          )}
+          {settings.bots && (
+            <Field label={t.botLevel}>
+              <Choice
+                options={BOT_LEVELS}
+                value={settings.botLevel}
+                label={(v) => t.botLevels[v]}
+                editable={editable}
+                onPick={(v) => onChange({ botLevel: v })}
+              />
+            </Field>
+          )}
+        </Section>
+        <Section title={t.groups.rules}>
+          <Field label={t.boosts} hint={t.boostsHint}>
+            <Toggle
+              on={settings.boosts}
+              label={t.boosts}
               editable={editable}
-              none={t.noChars}
-              onEdit={setPriority}
+              onLabel={t.on}
+              offLabel={t.off}
+              onFlip={(v) => onChange({ boosts: v })}
             />
           </Field>
-        )}
-        <Field label={t.bots} hint={t.botsHint}>
-          <Toggle
-            on={settings.bots}
-            label={t.bots}
-            editable={editable}
-            onLabel={t.on}
-            offLabel={t.off}
-            onFlip={(v) => onChange({ bots: v })}
-          />
-        </Field>
-        {settings.bots && (
-          <Field label={t.botCount} hint={t.botCountHint}>
+          <Field label={t.teams} hint={t.teamsHint}>
+            <Toggle
+              on={settings.teams}
+              label={t.teams}
+              editable={editable}
+              onLabel={t.on}
+              offLabel={t.off}
+              onFlip={(v) => onChange({ teams: v })}
+            />
+          </Field>
+          <Field label={t.instantDeath} hint={t.instantDeathHint}>
+            <Toggle
+              on={settings.instantDeath}
+              label={t.instantDeath}
+              editable={editable}
+              onLabel={t.on}
+              offLabel={t.off}
+              onFlip={(v) => onChange({ instantDeath: v })}
+            />
+          </Field>
+          <Field label={t.errorMode} hint={t.errorModeHints[settings.errorMode]}>
             <Choice
-              options={BOT_COUNTS}
-              value={settings.botCount as (typeof BOT_COUNTS)[number]}
-              label={(v) => (v === 0 ? t.botAuto : String(v))}
+              options={ERROR_MODES}
+              value={settings.errorMode}
+              label={(v) => t.errorModes[v]}
               editable={editable}
-              onPick={(v) => onChange({ botCount: v })}
+              onPick={(v) => onChange({ errorMode: v })}
             />
           </Field>
-        )}
-        {settings.bots && (
-          <Field label={t.botLevel}>
+        </Section>
+        <Section title={t.groups.time}>
+          <Field label={t.timeLimit}>
             <Choice
-              options={BOT_LEVELS}
-              value={settings.botLevel}
-              label={(v) => t.botLevels[v]}
+              options={TIME_LIMITS}
+              value={settings.timeLimitSec as (typeof TIME_LIMITS)[number]}
+              label={(v) => timeLabel(v, t)}
               editable={editable}
-              onPick={(v) => onChange({ botLevel: v })}
+              onPick={(v) => onChange({ timeLimitSec: v })}
             />
           </Field>
-        )}
-        <Field label={t.boosts} hint={t.boostsHint}>
-          <Toggle
-            on={settings.boosts}
-            label={t.boosts}
-            editable={editable}
-            onLabel={t.on}
-            offLabel={t.off}
-            onFlip={(v) => onChange({ boosts: v })}
-          />
-        </Field>
-        <Field label={t.teams} hint={t.teamsHint}>
-          <Toggle
-            on={settings.teams}
-            label={t.teams}
-            editable={editable}
-            onLabel={t.on}
-            offLabel={t.off}
-            onFlip={(v) => onChange({ teams: v })}
-          />
-        </Field>
-        <Field label={t.instantDeath} hint={t.instantDeathHint}>
-          <Toggle
-            on={settings.instantDeath}
-            label={t.instantDeath}
-            editable={editable}
-            onLabel={t.on}
-            offLabel={t.off}
-            onFlip={(v) => onChange({ instantDeath: v })}
-          />
-        </Field>
-        <Field label={t.errorMode} hint={t.errorModeHints[settings.errorMode]}>
-          <Choice
-            options={ERROR_MODES}
-            value={settings.errorMode}
-            label={(v) => t.errorModes[v]}
-            editable={editable}
-            onPick={(v) => onChange({ errorMode: v })}
-          />
-        </Field>
-        <Field label={t.timeLimit}>
-          <Choice
-            options={TIME_LIMITS}
-            value={settings.timeLimitSec as (typeof TIME_LIMITS)[number]}
-            label={(v) => timeLabel(v, t)}
-            editable={editable}
-            onPick={(v) => onChange({ timeLimitSec: v })}
-          />
-        </Field>
-        <Field label={t.timeGoal} hint={t.timeGoalHint}>
-          <Choice
-            options={TIME_GOALS}
-            value={settings.timeGoalSec as (typeof TIME_GOALS)[number]}
-            label={(v) => (v ? timeLabel(v, t) : t.off)}
-            editable={editable}
-            onPick={(v) => onChange({ timeGoalSec: v })}
-          />
-        </Field>
+          <Field label={t.timeGoal} hint={t.timeGoalHint}>
+            <Choice
+              options={TIME_GOALS}
+              value={settings.timeGoalSec as (typeof TIME_GOALS)[number]}
+              label={(v) => (v ? timeLabel(v, t) : t.off)}
+              editable={editable}
+              onPick={(v) => onChange({ timeGoalSec: v })}
+            />
+          </Field>
+        </Section>
       </div>
     </section>
   );

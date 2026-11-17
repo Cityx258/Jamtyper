@@ -83,6 +83,7 @@ const fr: Dict = {
     },
     settings: {
       title: "Paramètres de la course",
+      groups: { text: "Texte", characters: "Caractères", bots: "Bots", rules: "Règles", time: "Temps" },
       hostOnly: "Seul l'hôte peut les modifier.",
       length: "Longueur",
       lengthWords: "{n} mots",

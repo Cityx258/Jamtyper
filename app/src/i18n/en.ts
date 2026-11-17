@@ -81,6 +81,7 @@ const en = {
     },
     settings: {
       title: "Race settings",
+      groups: { text: "Text", characters: "Characters", bots: "Bots", rules: "Rules", time: "Time" },
       hostOnly: "Only the host can change these.",
       length: "Length",
       lengthWords: "{n} words",

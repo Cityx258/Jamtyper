@@ -33,7 +33,12 @@ async function readCredits(): Promise<z.infer<typeof creditsFile>> {
 }
 
 export function fromFileName(file: string): { title: string; artist: string | null } {
-  const name = file.replace(AUDIO, "").replace(/_/g, " ").trim();
+  const name = file
+    .replace(AUDIO, "")
+    .replace(/_/g, " ")
+    .replace(/^\d+\.\s+/, "")
+    .replace(/\s*\[[^\]]*\]$/, "")
+    .trim();
   const split = name.indexOf(" - ");
   if (split === -1) return { title: name, artist: null };
   return { artist: name.slice(0, split).trim() || null, title: name.slice(split + 3).trim() || name };

@@ -13,4 +13,12 @@ describe("fromFileName", () => {
   test("keeps dashes inside the title", () => {
     expect(fromFileName("Artist - Re-Mix - Live.flac")).toEqual({ artist: "Artist", title: "Re-Mix - Live" });
   });
+
+  test("drops a leading track number and a trailing bracket tag", () => {
+    expect(fromFileName("07. Some Artist - Some Song (feat. Someone).m4a")).toEqual({
+      artist: "Some Artist",
+      title: "Some Song (feat. Someone)",
+    });
+    expect(fromFileName("Some Artist - Some Song [abc123].opus")).toEqual({ artist: "Some Artist", title: "Some Song" });
+  });
 });

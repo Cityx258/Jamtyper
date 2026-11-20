@@ -11,6 +11,24 @@ let playlist: Track[] = [];
 let current: Track | null = null;
 let playing = false;
 let waiting = false;
+let failures = 0;
+
+const TYPES: Record<string, string> = {
+  mp3: "audio/mpeg",
+  ogg: "audio/ogg",
+  opus: 'audio/ogg; codecs="opus"',
+  m4a: 'audio/mp4; codecs="mp4a.40.2"',
+  wav: "audio/wav",
+  webm: "audio/webm",
+  flac: "audio/flac",
+};
+
+function playable(track: Track): boolean {
+  const ext = track.src.split(".").pop()?.toLowerCase() ?? "";
+  const type = TYPES[ext];
+  if (!type) return false;
+  return new Audio().canPlayType(type) !== "";
+}
 
 function shuffle(tracks: Track[]): Track[] {
   const out = [...tracks];
@@ -58,6 +76,7 @@ function element(): HTMLAudioElement {
   player.volume = VOLUME;
   player.preload = "auto";
   player.addEventListener("playing", () => {
+    failures = 0;
     playing = true;
     notify();
   });
@@ -66,7 +85,10 @@ function element(): HTMLAudioElement {
     notify();
   });
   player.addEventListener("ended", () => player && next(player));
-  player.addEventListener("error", () => player && playlist.length > 1 && next(player));
+  player.addEventListener("error", () => {
+    failures++;
+    if (player && failures < playlist.length) next(player);
+  });
   return player;
 }
 
@@ -93,8 +115,9 @@ async function start(audio: HTMLAudioElement) {
 
 export function setTracks(tracks: Track[]) {
   if (tracks.map((t) => t.src).join("|") === playlist.map((t) => t.src).join("|")) return;
-  playlist = tracks;
+  playlist = tracks.filter(playable);
   queue = [];
+  failures = 0;
 }
 
 export function resumeMusic() {

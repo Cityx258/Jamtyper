@@ -13,9 +13,26 @@
   --line: rgb(57 197 187 / 0.26);
   --glow: rgb(57 197 187 / 0.13);
   --staff-gap: 16px;
+  color-scheme: dark;
 }
 
-/* Light theme: deeper teals so text and buttons keep their contrast on pale mint. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --bg: #eefaf8;
+    --bg-raised: #ffffff;
+    --ink: #0a2b2e;
+    --muted: #3f6c69;
+    --teal: #0e8a82;
+    --teal-bright: #0a6b65;
+    --teal-deep: #5cc7bf;
+    --on-teal: #ffffff;
+    --danger: #b42318;
+    --line: rgb(14 138 130 / 0.3);
+    --glow: rgb(57 197 187 / 0.22);
+    color-scheme: light;
+  }
+}
+
 :root[data-theme="light"] {
   --bg: #eefaf8;
   --bg-raised: #ffffff;
@@ -28,6 +45,7 @@
   --danger: #b42318;
   --line: rgb(14 138 130 / 0.3);
   --glow: rgb(57 197 187 / 0.22);
+  color-scheme: light;
 }
 
 @theme inline {
@@ -70,7 +88,6 @@ body {
   outline-offset: 3px;
 }
 
-/* Five-line staff, drawn with a repeating gradient so it scales with --staff-gap. */
 .staff {
   --staff-h: calc(var(--staff-gap) * 4 + 1px);
   height: var(--staff-h);
@@ -115,5 +132,19 @@ body {
     bottom: auto;
     top: var(--rest-top);
     opacity: var(--alpha);
+  }
+}
+
+.keyboard-only-message {
+  display: none;
+}
+
+@media (max-width: 767px), (hover: none) and (pointer: coarse) {
+  .keyboard-only {
+    display: none;
+  }
+
+  .keyboard-only-message {
+    display: block;
   }
 }

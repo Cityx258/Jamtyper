@@ -18,7 +18,7 @@ export default async function Header() {
     getTheme(),
   ]);
   const nextLocale = locale === "en" ? "fr" : "en";
-  const nextTheme = theme === "dark" ? "light" : "dark";
+  const nextTheme = theme === "system" ? "light" : theme === "light" ? "dark" : "system";
 
   return (
     <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-5 sm:px-8">
@@ -61,9 +61,10 @@ export default async function Header() {
         <form action={setTheme.bind(null, nextTheme)}>
           <button
             type="submit"
-            aria-label={
-              theme === "dark" ? t.header.switchToLight : t.header.switchToDark
-            }
+            aria-label={t.header.themeLabel
+              .replace("{current}", t.header.themes[theme])
+              .replace("{next}", t.header.themes[nextTheme])}
+            title={t.header.themes[theme]}
             className={iconButton}
           >
             <svg
@@ -77,7 +78,12 @@ export default async function Header() {
               strokeLinejoin="round"
               aria-hidden="true"
             >
-              {theme === "dark" ? (
+              {theme === "system" ? (
+                <>
+                  <rect x="3" y="4" width="18" height="12" rx="2" />
+                  <path d="M8 20h8M12 16v4" />
+                </>
+              ) : theme === "light" ? (
                 <>
                   <circle cx="12" cy="12" r="4" />
                   <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />

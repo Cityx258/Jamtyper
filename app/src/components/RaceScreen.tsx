@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ConfirmButton from "@/components/ConfirmButton";
+import KeyboardOnly from "@/components/KeyboardOnly";
 import KickButton from "@/components/KickButton";
 import StaffLane from "@/components/StaffLane";
 import TypingBox from "@/components/TypingBox";
@@ -125,16 +126,18 @@ export default function RaceScreen({
 
       <div className="mt-2">
         {me?.outcome === "racing" ? (
-          <TypingBox
-            key={race.startsAt}
-            text={race.text.slice(0, me.end - me.extra.length) + me.extra}
-            start={me.progress}
-            startErrors={me.errors}
-            fogged={myBoost === "fog"}
-            mode={race.errorMode}
-            label={t.typeHere}
-            onProgress={sendProgress}
-          />
+          <KeyboardOnly message={t.physicalKeyboard}>
+            <TypingBox
+              key={race.startsAt}
+              text={race.text.slice(0, me.end - me.extra.length) + me.extra}
+              start={me.progress}
+              startErrors={me.errors}
+              fogged={myBoost === "fog"}
+              mode={race.errorMode}
+              label={t.typeHere}
+              onProgress={sendProgress}
+            />
+          </KeyboardOnly>
         ) : (
           <>
             <p className="select-none font-mono text-xl leading-relaxed text-muted">

@@ -13,5 +13,7 @@ export async function setLocale(locale: string) {
 
 export async function setTheme(theme: string) {
   if (!isTheme(theme)) return;
-  (await cookies()).set("theme", theme, options);
+  const jar = await cookies();
+  if (theme === "system") jar.delete("theme");
+  else jar.set("theme", theme, options);
 }

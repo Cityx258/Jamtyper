@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import KeyHeatmap from "@/components/KeyHeatmap";
+import KeyboardOnly from "@/components/KeyboardOnly";
 import TypingBox from "@/components/TypingBox";
 import { primaryButton, secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
@@ -157,13 +158,15 @@ export default function PracticeSession({ t, heatmapT }: Props) {
         </button>
       </div>
       <div className="mt-8">
-        <TypingBox
-          key={session.startsAt}
-          text={session.text}
-          start={0}
-          label={t.typeHere}
-          onProgress={onProgress}
-        />
+        <KeyboardOnly message={t.physicalKeyboard}>
+          <TypingBox
+            key={session.startsAt}
+            text={session.text}
+            start={0}
+            label={t.typeHere}
+            onProgress={onProgress}
+          />
+        </KeyboardOnly>
       </div>
       <div className="mt-8 h-2 overflow-hidden rounded-full bg-line">
         <div

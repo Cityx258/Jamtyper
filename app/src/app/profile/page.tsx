@@ -84,9 +84,11 @@ export default async function ProfilePage() {
           <SignOutButton label={dict.header.signOut} className={secondaryButton} />
         </div>
 
+        <NotePicker wins={profile.wins} current={noteFor(profile.wins, chosen)} t={t.notes} />
+
         <section
           aria-label={t.title}
-          className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-5"
+          className="mt-16 grid grid-cols-2 gap-3 sm:grid-cols-5"
         >
           {stats.map((s) => (
             <div key={s.label} className={`flex flex-col gap-2 px-5 py-4 ${tile}`}>
@@ -167,8 +169,6 @@ export default async function ProfilePage() {
             </Link>
           )}
         </section>
-
-        <NotePicker wins={profile.wins} current={noteFor(profile.wins, chosen)} t={t.notes} />
 
         {withPassword && <RecoveryCodeSection t={dict.login.recovery} />}
       </main>

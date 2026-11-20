@@ -16,6 +16,11 @@ const NAMES = [
   "Legato",
   "Presto",
   "Andante",
+  "Rin",
+  "Len",
+  "Luka",
+  "KAITO",
+  "MEIKO",
 ];
 
 export const LEVELS: Record<BotLevel, { minWpm: number; maxWpm: number; typoRate: number }> = {

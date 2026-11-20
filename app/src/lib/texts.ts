@@ -244,7 +244,8 @@ function wordPool(s: RaceSettings): string[] {
 function quotePool(s: RaceSettings, passages: Passage[]): Passage[] {
   const all = passages.filter((p) => p.language === s.language);
   if (isCodeLanguage(s.language) || s.theme === "general") return all;
-  return all.filter((q) => q.theme === s.theme);
+  const theme = s.theme === "vocaloid" ? "music" : s.theme;
+  return all.filter((q) => q.theme === theme);
 }
 
 export function generateText(s: RaceSettings, passages: Passage[] = []): GeneratedText | null {

@@ -12,7 +12,7 @@ export default async function PracticePage() {
     <>
       <Header />
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pb-16 pt-8 sm:px-8 sm:pt-14">
-        <PracticeSession t={t.practice} heatmapT={t.profile.heatmap} />
+        <PracticeSession t={t.practice} heatmapT={t.profile.heatmap} ranks={t.room.ranks} />
       </main>
     </>
   );

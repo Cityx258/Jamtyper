@@ -9,7 +9,10 @@ export default async function Footer() {
     <footer className="mx-auto w-full max-w-6xl border-t border-line px-5 py-8 text-sm sm:px-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-muted">
-          <span className="font-display text-ink">JamTyper</span> · {t.tagline}
+          <span className="font-display text-ink">JamTyper</span> · {t.tagline}{" "}
+          <abbr title={t.thanks} className="font-mono text-teal no-underline">
+            39 ♪
+          </abbr>
         </p>
         <nav aria-label={t.nav}>
           <ul className="flex flex-wrap gap-x-5 gap-y-2">

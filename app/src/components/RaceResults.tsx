@@ -6,6 +6,7 @@ import Podium from "@/components/Podium";
 import RaceGraph from "@/components/RaceGraph";
 import RaceMelody from "@/components/RaceMelody";
 import { primaryButton, secondaryButton } from "@/components/ui";
+import { clearRank, THANK_YOU_WPM } from "@/lib/miku";
 import type { Dict } from "@/i18n/en";
 import type { RacerView, RaceView } from "@/lib/room-protocol";
 import { teamScores, winningTeam } from "@/lib/teams";
@@ -41,9 +42,25 @@ export default function RaceResults({
   const goalCount = race.racers.filter(metGoal).length;
   const scores = race.teams ? teamScores(race.racers) : null;
   const winner = scores ? winningTeam(scores) : null;
+  const rank = me?.outcome === "finished" ? clearRank(me.accuracy, me.mistakes) : null;
   return (
     <div className="w-full">
-      <h1 className="font-display text-4xl">{title ?? t.results}</h1>
+      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2">
+        <h1 className="font-display text-4xl">{title ?? t.results}</h1>
+        {rank && (
+          <p className="font-mono text-sm uppercase tracking-[0.25em] text-muted">
+            {t.clearRank}{" "}
+            <span className={`font-display text-xl tracking-wider ${rank === "cheap" ? "text-muted" : "text-teal"}`}>
+              {t.ranks[rank]}
+            </span>
+          </p>
+        )}
+      </div>
+      {rank && me?.wpm === THANK_YOU_WPM && (
+        <p role="status" className="mt-4 rounded-lg border border-teal bg-teal/10 px-4 py-3 font-medium text-ink">
+          {t.thankYou}
+        </p>
+      )}
       {me?.record && (
         <p
           role="status"

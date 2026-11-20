@@ -1,22 +1,21 @@
 import type { CSSProperties } from "react";
 
-type Glyph = "quarter" | "eighth" | "beamed";
+type Glyph = "quarter" | "eighth" | "beamed" | "leek";
 
 type NoteSpec = {
   glyph: Glyph;
-  left: number; // % from the left edge
-  size: number; // px height of the glyph
-  dur: number; // seconds for one rise
-  delay: number; // negative so the page is already populated on load
-  sway: number; // px of horizontal drift at mid-flight
+  left: number;
+  size: number;
+  dur: number;
+  delay: number;
+  sway: number;
   alpha: number;
   tiltA: number;
   tiltB: number;
-  restTop: number; // % used when motion is reduced
+  restTop: number;
   tone: "teal" | "bright" | "deep";
 };
 
-// Hand-placed rather than random so server and client render the same markup.
 const NOTES: NoteSpec[] = [
   { glyph: "eighth", left: 6, size: 44, dur: 26, delay: -4, sway: 40, alpha: 0.55, tiltA: -12, tiltB: 10, restTop: 62, tone: "teal" },
   { glyph: "quarter", left: 14, size: 30, dur: 34, delay: -20, sway: -30, alpha: 0.3, tiltA: 8, tiltB: -8, restTop: 24, tone: "deep" },
@@ -29,6 +28,8 @@ const NOTES: NoteSpec[] = [
   { glyph: "beamed", left: 71, size: 56, dur: 29, delay: -2, sway: 60, alpha: 0.5, tiltA: -8, tiltB: 12, restTop: 18, tone: "deep" },
   { glyph: "quarter", left: 79, size: 28, dur: 35, delay: -18, sway: -35, alpha: 0.4, tiltA: 12, tiltB: -6, restTop: 54, tone: "teal" },
   { glyph: "eighth", left: 86, size: 46, dur: 31, delay: -26, sway: 45, alpha: 0.55, tiltA: -10, tiltB: 8, restTop: 8, tone: "bright" },
+  { glyph: "leek", left: 34, size: 58, dur: 44, delay: -12, sway: 70, alpha: 0.4, tiltA: -40, tiltB: 320, restTop: 48, tone: "bright" },
+  { glyph: "leek", left: 75, size: 50, dur: 48, delay: -36, sway: -60, alpha: 0.35, tiltA: 30, tiltB: -330, restTop: 28, tone: "teal" },
   { glyph: "quarter", left: 93, size: 38, dur: 37, delay: -9, sway: -40, alpha: 0.35, tiltA: 6, tiltB: -12, restTop: 66, tone: "deep" },
 ];
 
@@ -38,8 +39,18 @@ const TONES = {
   deep: "var(--teal-deep)",
 };
 
-// Heads are slightly slanted ellipses, stems are plain strokes: reads as sheet music.
 function NoteShape({ glyph }: { glyph: Glyph }) {
+  if (glyph === "leek") {
+    return (
+      <>
+        <path d="M8.5 27 C 7 18, 3.5 9, 1 1 L 4.5 0 C 6.5 8, 9.5 17, 10.5 27 Z" />
+        <path d="M11.5 27 C 12.5 18, 15.5 9, 19 1.5 L 15.5 0.5 C 13 8, 10.5 17, 9.5 27 Z" />
+        <path d="M10 27 L 10 6 L 11 6 L 11 27 Z" />
+        <rect x="7" y="26" width="7" height="27" rx="3.5" opacity="0.6" />
+        <path d="M8.5 53 L 7 57 M10.5 53 L 10.5 58 M12.5 53 L 14 57" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.6" />
+      </>
+    );
+  }
   if (glyph === "quarter") {
     return (
       <>
@@ -92,8 +103,8 @@ export default function FloatingNotes() {
             className="note"
             style={style}
             height={n.size}
-            width={n.glyph === "beamed" ? n.size * 1.1 : n.size * 0.7}
-            viewBox={n.glyph === "beamed" ? "0 0 44 40" : "0 0 28 40"}
+            width={n.glyph === "beamed" ? n.size * 1.1 : n.glyph === "leek" ? n.size * 0.34 : n.size * 0.7}
+            viewBox={n.glyph === "beamed" ? "0 0 44 40" : n.glyph === "leek" ? "0 0 20 58" : "0 0 28 40"}
             fill="currentColor"
           >
             <NoteShape glyph={n.glyph} />

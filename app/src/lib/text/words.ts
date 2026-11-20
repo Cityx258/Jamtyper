@@ -20,6 +20,14 @@ const en = {
     "conductor", "jazz", "rock", "blues", "pop", "rap", "dance", "tune",
     "playlist", "headphones",
   ],
+  vocaloid: [
+    "miku", "vocaloid", "leek", "twintails", "voicebank", "producer",
+    "hologram", "concert", "headset", "synthesizer", "idol", "glowstick",
+    "encore", "diva", "virtual", "digital", "singer", "remix", "cover",
+    "lyrics", "chorus", "melody", "tempo", "teal", "stage", "fans", "upload",
+    "rin", "len", "luka", "kaito", "meiko", "teto", "song", "tune", "beat",
+    "voice", "magic", "future", "sing", "world", "mine",
+  ],
   nature: [
     "tree", "forest", "river", "lake", "ocean", "mountain", "valley", "flower",
     "leaf", "grass", "rain", "snow", "wind", "cloud", "storm", "sun", "moon",
@@ -61,6 +69,14 @@ const fr = {
     "fort", "doux", "dièse", "bémol", "majeur", "mineur", "solo", "duo",
     "orchestre", "chef", "jazz", "rock", "blues", "danse", "air",
     "écouteurs", "musique", "clavier",
+  ],
+  vocaloid: [
+    "miku", "vocaloid", "poireau", "couettes", "voix", "producteur",
+    "hologramme", "concert", "casque", "synthétiseur", "idole", "rappel",
+    "diva", "virtuel", "numérique", "chanteuse", "remix", "reprise",
+    "paroles", "refrain", "mélodie", "tempo", "turquoise", "scène", "fans",
+    "rin", "len", "luka", "kaito", "meiko", "teto", "chanson", "air",
+    "magie", "futur", "chanter", "micro", "monde", "étoile",
   ],
   nature: [
     "arbre", "forêt", "rivière", "lac", "océan", "montagne", "vallée", "fleur",

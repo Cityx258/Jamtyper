@@ -8,6 +8,7 @@ import QuickplayButton from "@/components/QuickplayButton";
 import { primaryButton } from "@/components/ui";
 import { getDict } from "@/i18n";
 import { auth } from "@/lib/auth";
+import { mikuDay } from "@/lib/miku";
 
 export default async function Home() {
   const [dict, session] = await Promise.all([
@@ -15,10 +16,20 @@ export default async function Home() {
     headers().then((h) => auth.api.getSession({ headers: h })),
   ]);
   const t = dict.home;
+  const today = mikuDay(new Date());
   return (
     <>
       <Header />
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pb-16 sm:px-8">
+        {today && (
+          <p
+            role="status"
+            className="mt-4 self-start rounded-full border border-teal bg-teal/10 px-5 py-2 text-sm font-medium text-ink"
+          >
+            <span aria-hidden="true" className="mr-2 text-teal">♪</span>
+            {t[today]}
+          </p>
+        )}
         <section className="pt-10 sm:pt-16">
           <div className="relative">
             <div className="staff absolute inset-x-0 top-[calc(var(--staff-gap)*1.5)]" />

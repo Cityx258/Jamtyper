@@ -7,6 +7,7 @@ import KeyboardOnly from "@/components/KeyboardOnly";
 import TypingBox from "@/components/TypingBox";
 import { primaryButton, secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
+import { clearRank, THANK_YOU_WPM } from "@/lib/miku";
 import type { ProgressPayload } from "@/lib/room-protocol";
 import { DEFAULT_SETTINGS } from "@/lib/race-settings";
 import { countdownCue } from "@/lib/sound";
@@ -18,6 +19,7 @@ const COUNTDOWN_MS = 3_000;
 type Props = {
   t: Dict["practice"];
   heatmapT: Dict["profile"]["heatmap"];
+  ranks: Dict["room"]["ranks"];
 };
 
 type Session = {
@@ -44,7 +46,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default function PracticeSession({ t, heatmapT }: Props) {
+export default function PracticeSession({ t, heatmapT, ranks }: Props) {
   const [session, setSession] = useState<Session | null>(null);
   const [progress, setProgress] = useState<ProgressPayload>(EMPTY);
   const [now, setNow] = useState(0);
@@ -126,7 +128,13 @@ export default function PracticeSession({ t, heatmapT }: Props) {
           <Stat label={t.wpm} value={String(wpm)} />
           <Stat label={t.accuracy} value={`${accuracy}%`} />
           <Stat label={t.time} value={clock(elapsed)} />
+          <Stat label={t.clearRank} value={ranks[clearRank(strokes ? progress.position / strokes : 1, progress.mistakes)]} />
         </div>
+        {wpm === THANK_YOU_WPM && (
+          <p role="status" className="mt-6 rounded-lg border border-teal bg-teal/10 px-4 py-3 font-medium text-ink">
+            {t.thankYou}
+          </p>
+        )}
 
         <section className="mt-12 max-w-2xl">
           <h2 className="font-display text-2xl">{t.yourMisses}</h2>

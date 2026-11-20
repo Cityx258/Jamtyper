@@ -1,13 +1,16 @@
 "use client";
 
-import { useSyncExternalStore, type ReactNode } from "react";
+import { useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import {
   currentTrack,
   isPlaying,
   musicOn,
+  musicVolume,
   previousTrack,
+  setVolume,
   skipTrack,
   subscribeMusic,
+  toggleMute,
   togglePause,
 } from "@/lib/music";
 
@@ -17,6 +20,9 @@ type Labels = {
   pause: string;
   next: string;
   previous: string;
+  volume: string;
+  mute: string;
+  unmute: string;
 };
 
 const control =
@@ -34,6 +40,7 @@ export default function MusicPlayer({ t }: { t: Labels }) {
   const on = useSyncExternalStore(subscribeMusic, musicOn, () => false);
   const track = useSyncExternalStore(subscribeMusic, currentTrack, () => null);
   const playing = useSyncExternalStore(subscribeMusic, isPlaying, () => false);
+  const volume = useSyncExternalStore(subscribeMusic, musicVolume, () => 0.25);
   if (!on || !track) return null;
   const name = track.artist ? `${track.title} · ${track.artist}` : track.title;
   return (
@@ -71,6 +78,48 @@ export default function MusicPlayer({ t }: { t: Labels }) {
           <path d="M16 5h2v14h-2zM4 5v14l11-7z" />
         </Icon>
       </button>
+      <span aria-hidden="true" className="mx-1 h-5 w-px shrink-0 bg-line" />
+      <button
+        type="button"
+        onClick={toggleMute}
+        aria-label={volume > 0 ? t.mute : t.unmute}
+        title={volume > 0 ? t.mute : t.unmute}
+        className={control}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M11 5 6 9H2v6h4l5 4V5z" fill="currentColor" />
+          {volume === 0 ? (
+            <path d="m22 9-6 6M16 9l6 6" />
+          ) : volume < 0.5 ? (
+            <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+          ) : (
+            <path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14" />
+          )}
+        </svg>
+      </button>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        step={1}
+        value={Math.round(volume * 100)}
+        onChange={(e) => setVolume(Number(e.target.value) / 100)}
+        aria-label={t.volume}
+        aria-valuetext={`${Math.round(volume * 100)}%`}
+        title={`${t.volume}: ${Math.round(volume * 100)}%`}
+        className="volume mr-2 w-16 shrink-0"
+        style={{ "--level": `${volume * 100}%` } as CSSProperties}
+      />
     </section>
   );
 }

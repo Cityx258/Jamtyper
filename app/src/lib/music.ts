@@ -3,7 +3,8 @@
 import type { Track } from "./tracks";
 
 const KEY = "jamtyper-music";
-const VOLUME = 0.25;
+const VOLUME_KEY = "jamtyper-music-volume";
+const DEFAULT_VOLUME = 0.25;
 const HISTORY = 50;
 const RESTART_AFTER = 3;
 const listeners = new Set<() => void>();
@@ -16,6 +17,8 @@ let playing = false;
 let held = false;
 let waiting = false;
 let failures = 0;
+let volume: number | null = null;
+let unmuted = DEFAULT_VOLUME;
 
 const TYPES: Record<string, string> = {
   mp3: "audio/mpeg",
@@ -61,6 +64,32 @@ export function musicOn(): boolean {
   }
 }
 
+export function musicVolume(): number {
+  if (volume !== null) return volume;
+  try {
+    const saved = Number(localStorage.getItem(VOLUME_KEY));
+    volume = localStorage.getItem(VOLUME_KEY) !== null && saved >= 0 && saved <= 1 ? saved : DEFAULT_VOLUME;
+  } catch {
+    volume = DEFAULT_VOLUME;
+  }
+  if (volume > 0) unmuted = volume;
+  return volume;
+}
+
+export function setVolume(next: number) {
+  volume = Math.min(1, Math.max(0, next));
+  if (volume > 0) unmuted = volume;
+  try {
+    localStorage.setItem(VOLUME_KEY, String(volume));
+  } catch {}
+  if (player) player.volume = volume;
+  notify();
+}
+
+export function toggleMute() {
+  setVolume(musicVolume() > 0 ? 0 : unmuted);
+}
+
 export function currentTrack(): Track | null {
   return current;
 }
@@ -103,7 +132,7 @@ function previous(audio: HTMLAudioElement) {
 function element(): HTMLAudioElement {
   if (player) return player;
   const audio = new Audio();
-  audio.volume = VOLUME;
+  audio.volume = musicVolume();
   audio.preload = "auto";
   audio.addEventListener("playing", () => {
     failures = 0;

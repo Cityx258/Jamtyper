@@ -25,6 +25,9 @@ const fr: Dict = {
     pause: "Pause",
     next: "Chanson suivante",
     previous: "Chanson précédente",
+    volume: "Volume",
+    mute: "Couper la musique",
+    unmute: "Remettre la musique",
   },
   footer: {
     tagline: "Courses de dactylo pour les élèves du secondaire. Projet Web5, Cégep de Sorel-Tracy.",

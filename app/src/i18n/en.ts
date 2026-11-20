@@ -23,6 +23,9 @@ const en = {
     pause: "Pause",
     next: "Next song",
     previous: "Previous song",
+    volume: "Volume",
+    mute: "Mute music",
+    unmute: "Unmute music",
   },
   footer: {
     tagline: "Typing races for high school students. Web5 project, Cégep de Sorel-Tracy.",

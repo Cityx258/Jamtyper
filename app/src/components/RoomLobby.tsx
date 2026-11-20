@@ -438,6 +438,17 @@ export default function RoomLobby({
         </div>
       )}
 
+      {me && room.status === "lobby" && (
+        <LobbyNotePicker
+          current={me.note}
+          unlocked={me.notes}
+          guest={me.isGuest}
+          t={t.yourNote}
+          notesT={notesT}
+          onPick={(note) => run(requestNote(note))}
+        />
+      )}
+
       <section className="mt-10 max-w-xl" aria-labelledby="visibility-title">
         <h2
           id="visibility-title"
@@ -501,17 +512,6 @@ export default function RoomLobby({
         t={t.settings}
         onChange={(patch) => run(requestConfigure(patch))}
       />
-
-      {me && room.status === "lobby" && (
-        <LobbyNotePicker
-          current={me.note}
-          unlocked={me.notes}
-          guest={me.isGuest}
-          t={t.yourNote}
-          notesT={notesT}
-          onPick={(note) => run(requestNote(note))}
-        />
-      )}
 
       <section className="mt-12" aria-label={t.players}>
         <h2 className="font-display text-2xl">

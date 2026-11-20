@@ -43,12 +43,12 @@ export default async function Home() {
 
         <section
           aria-label={t.waysToPlay}
-          className="mt-16 grid border-y border-line md:grid-cols-3"
+          className="mt-16 grid border-y border-line md:grid-cols-3 md:grid-rows-[auto_auto_1fr_auto_auto]"
         >
           {t.measures.map((m, i) => (
             <div
               key={m.title}
-              className={`flex flex-col gap-4 px-1 py-8 md:px-8 ${
+              className={`flex flex-col gap-4 px-1 py-8 md:row-span-5 md:grid md:grid-rows-subgrid md:px-8 ${
                 i > 0 ? "border-t border-line md:border-l md:border-t-0" : ""
               } ${i === 0 ? "md:pl-0" : ""}`}
             >
@@ -58,13 +58,15 @@ export default async function Home() {
               <h2 className="font-display text-2xl">{m.title}</h2>
               <p className="flex-1 text-muted">{m.text}</p>
               {i === 0 && (
+                <QuickplayButton
+                  signedIn={!!session}
+                  label={m.action}
+                  t={t.quickplay}
+                  otherRoomT={dict.room.otherRoom}
+                />
+              )}
+              {i === 0 && (
                 <div className="flex flex-col items-start gap-4">
-                  <QuickplayButton
-                    signedIn={!!session}
-                    label={m.action}
-                    t={t.quickplay}
-                    otherRoomT={dict.room.otherRoom}
-                  />
                   <CreateRoomButton
                     signedIn={!!session}
                     t={t.create}
@@ -77,7 +79,7 @@ export default async function Home() {
               )}
               {i === 1 && <JoinRoomForm action={m.action} t={t.join} />}
               {i === 2 && (
-                <Link href="/practice" className={`self-start ${primaryButton}`}>
+                <Link href="/practice" className={`self-start justify-self-start ${primaryButton}`}>
                   {m.action}
                 </Link>
               )}

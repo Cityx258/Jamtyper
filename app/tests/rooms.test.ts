@@ -224,3 +224,20 @@ test("the rate limiter forgets old attempts", () => {
   expect(l.limited("ip", 20)).toBe(true);
   expect(l.limited("ip", 1500)).toBe(false);
 });
+
+test("the host role goes to the connected signed-in member present the longest", () => {
+  const room = makeRoom("ABCDEF", {}, [
+    member("host", { userId: "u0", joinedAt: 0 }),
+    member("guest", { joinedAt: 1 }),
+    member("away", { userId: "u1", joinedAt: 2, sockets: new Set() }),
+    member("here", { userId: "u2", joinedAt: 3 }),
+    member("later", { userId: "u3", joinedAt: 4 }),
+  ]);
+  room.members.delete("host");
+  expect(rooms.nextHost(room)?.key).toBe("here");
+  room.members.delete("here");
+  room.members.delete("later");
+  expect(rooms.nextHost(room)?.key).toBe("away");
+  room.members.delete("away");
+  expect(rooms.nextHost(room)).toBeUndefined();
+});

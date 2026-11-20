@@ -107,6 +107,15 @@ export async function setHost(io: AppServer, room: Room, member: Member) {
   }
 }
 
+export function nextHost(room: Room): Member | undefined {
+  return [...room.members.values()]
+    .filter((m) => m.userId)
+    .sort(
+      (a, b) =>
+        Number(b.sockets.size > 0) - Number(a.sockets.size > 0) || a.joinedAt - b.joinedAt,
+    )[0];
+}
+
 export async function removeMember(io: AppServer, room: Room, member: Member) {
   if (room.members.get(member.key) !== member) return;
   if (member.graceTimer) clearTimeout(member.graceTimer);
@@ -121,10 +130,8 @@ export async function removeMember(io: AppServer, room: Room, member: Member) {
   if (room.members.size === 0) return closeRoom(io, room);
 
   if (room.hostKey === member.key) {
-    const next = [...room.members.values()]
-      .filter((m) => m.userId)
-      .sort((a, b) => a.joinedAt - b.joinedAt)[0];
-    if (!next?.userId) return closeRoom(io, room);
+    const next = nextHost(room);
+    if (!next) return closeRoom(io, room);
     await setHost(io, room, next);
   }
   dropRacer(io, room, member);

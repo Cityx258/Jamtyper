@@ -6,6 +6,7 @@ import { userAvatar } from "@/db/avatar";
 import { user } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { AVATAR_MAX_BYTES, AVATAR_SIZE, checkAvatar } from "@/lib/avatar";
+import { avatarUploadSchema } from "@/lib/schemas";
 
 const reply = (status: number, body: object) => Response.json(body, { status });
 
@@ -16,14 +17,15 @@ export async function POST(request: Request) {
   const declared = Number(request.headers.get("content-length") ?? 0);
   if (declared > AVATAR_MAX_BYTES + 64 * 1024) return reply(413, { error: "too_big" });
 
-  let file: FormDataEntryValue | null;
+  let entry: FormDataEntryValue | null;
   try {
-    file = (await request.formData()).get("photo");
+    entry = (await request.formData()).get("photo");
   } catch {
     return reply(400, { error: "unreadable" });
   }
-  if (!(file instanceof File)) return reply(400, { error: "unreadable" });
-  const bytes = new Uint8Array(await file.arrayBuffer());
+  const file = avatarUploadSchema.safeParse(entry);
+  if (!file.success) return reply(400, { error: "unreadable" });
+  const bytes = new Uint8Array(await file.data.arrayBuffer());
   const problem = checkAvatar(bytes);
   if (problem) return reply(problem === "too_big" ? 413 : 415, { error: problem });
 

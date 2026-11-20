@@ -1,11 +1,12 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { userAvatar } from "@/db/avatar";
+import { avatarIdSchema } from "@/lib/schemas";
 
 export async function GET(_: Request, ctx: RouteContext<"/api/avatar/[id]">) {
-  const { id } = await ctx.params;
-  if (!/^[A-Za-z0-9_-]{1,64}$/.test(id)) return new Response(null, { status: 404 });
-  const [row] = await db.select().from(userAvatar).where(eq(userAvatar.userId, id));
+  const id = avatarIdSchema.safeParse((await ctx.params).id);
+  if (!id.success) return new Response(null, { status: 404 });
+  const [row] = await db.select().from(userAvatar).where(eq(userAvatar.userId, id.data));
   if (!row) return new Response(null, { status: 404 });
   return new Response(new Uint8Array(row.image), {
     headers: {

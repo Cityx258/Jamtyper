@@ -6,6 +6,7 @@ import { primaryButton, secondaryButton } from "@/components/ui";
 import { getHistory } from "@/db/history";
 import { getDict, getLocale } from "@/i18n";
 import { auth } from "@/lib/auth";
+import { historyPageSchema } from "@/lib/schemas";
 
 export async function generateMetadata() {
   return { title: `${(await getDict()).history.title} | JamTyper` };
@@ -15,9 +16,7 @@ export default async function HistoryPage(props: PageProps<"/history">) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/login");
 
-  const { page: rawPage } = await props.searchParams;
-  const requested = Number(typeof rawPage === "string" ? rawPage : 1);
-  const page = Number.isInteger(requested) && requested > 0 ? requested : 1;
+  const page = historyPageSchema.parse((await props.searchParams).page);
   const [dict, locale, history] = await Promise.all([
     getDict(),
     getLocale(),

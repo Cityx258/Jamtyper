@@ -5,8 +5,8 @@ import { headers } from "next/headers";
 import { db } from "@/db";
 import { user } from "@/db/schema";
 import { auth } from "@/lib/auth";
-import { hasPassword, issueRecoveryCode, PASSWORD_MAX, PASSWORD_MIN } from "@/lib/recovery";
-import { isUsername } from "@/lib/username";
+import { hasPassword, issueRecoveryCode } from "@/lib/recovery";
+import { addPasswordSchema, passwordSchema, usernameSchema } from "@/lib/schemas";
 
 export type AddPasswordResult =
   | { ok: true; code: string }
@@ -26,18 +26,16 @@ export async function addPassword(
   if (!session) return { ok: false, error: "generic" };
   const userId = session.user.id;
   if (await hasPassword(userId)) return { ok: false, error: "already" };
-  if (
-    typeof newPassword !== "string" ||
-    newPassword.length < PASSWORD_MIN ||
-    newPassword.length > PASSWORD_MAX
-  ) {
+  const input = addPasswordSchema.safeParse({ username: rawUsername ?? undefined, password: newPassword });
+  if (!input.success || !passwordSchema.safeParse(input.data.password).success) {
     return { ok: false, error: "password" };
   }
 
   const needsUsername = !session.user.username;
   if (needsUsername) {
-    const display = typeof rawUsername === "string" ? rawUsername.trim() : "";
-    if (!isUsername(display)) return { ok: false, error: "username" };
+    const parsed = usernameSchema.safeParse(input.data.username?.trim());
+    if (!parsed.success) return { ok: false, error: "username" };
+    const display = parsed.data;
     const username = display.toLowerCase();
     const [existing] = await db
       .select({ id: user.id })
@@ -55,7 +53,7 @@ export async function addPassword(
   }
 
   try {
-    await auth.api.setPassword({ body: { newPassword }, headers: h });
+    await auth.api.setPassword({ body: { newPassword: input.data.password }, headers: h });
   } catch {
     if (needsUsername) {
       await db

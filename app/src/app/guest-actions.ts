@@ -8,11 +8,12 @@ import {
   GUEST_COOKIE_MAX_AGE,
   newGuest,
 } from "@/lib/guest-cookie";
-import { cleanGuestName } from "@/lib/username";
+import { displayNameSchema } from "@/lib/schemas";
 
 export async function setGuestName(raw: unknown): Promise<{ ok: boolean }> {
-  const name = cleanGuestName(raw);
-  if (!name) return { ok: false };
+  const parsed = displayNameSchema.safeParse(raw);
+  if (!parsed.success) return { ok: false };
+  const name = parsed.data;
   const jar = await cookies();
   const current = decodeGuest(jar.get(GUEST_COOKIE)?.value);
   jar.set(GUEST_COOKIE, encodeGuest(current ? { ...current, name } : newGuest(name)), {

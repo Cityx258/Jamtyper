@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { race, raceResult } from "@/db/rooms";
 import { isNote } from "@/lib/notes";
 import type { MissedKeys, RacerOutcome, RacerView, RaceView } from "@/lib/room-protocol";
+import { raceIdSchema } from "@/lib/schemas";
 import { isTeam } from "@/lib/teams";
 
 export const HISTORY_PAGE_SIZE = 15;
@@ -43,7 +44,7 @@ export async function getArchivedRace(
   raceId: string,
   userId: string,
 ): Promise<{ race: RaceView; you: string } | null> {
-  if (!/^[0-9a-f-]{36}$/i.test(raceId)) return null;
+  if (!raceIdSchema.safeParse(raceId).success) return null;
   const [found] = await db.select().from(race).where(eq(race.id, raceId));
   if (!found) return null;
   const rows = await db

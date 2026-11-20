@@ -1,6 +1,19 @@
 import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
+import { z } from "zod";
+import { settingsPatchSchema } from "../src/lib/race-settings";
+import {
+  approveSchema,
+  createRoomSchema,
+  joinRoomSchema,
+  memberSchema,
+  noteSchema,
+  progressSchema,
+  teamSchema,
+  visibilitySchema,
+  watchSchema,
+} from "../src/lib/schemas";
 import { auth } from "../src/lib/auth";
 import { decodeGuest, GUEST_COOKIE, readCookie } from "../src/lib/guest-cookie";
 import type {
@@ -56,6 +69,8 @@ const handle = app.getRequestHandler();
 const MAX_MESSAGE_BYTES = 16_000;
 const EVENTS_PER_SECOND = 40;
 
+const badRequest = { ok: false, error: "bad_request" } as const;
+
 const serverError = { ok: false, error: "server_error" } as const satisfies {
   ok: false;
   error: RoomError;
@@ -63,19 +78,20 @@ const serverError = { ok: false, error: "server_error" } as const satisfies {
 
 function clientIp(forwarded: string | string[] | undefined, address: string): string {
   const header = Array.isArray(forwarded) ? forwarded[0] : forwarded;
-  const first = !dev && header ? header.split(",")[0].trim() : "";
-  return first || address;
+  const last = !dev && header ? (header.split(",").at(-1)?.trim() ?? "") : "";
+  return last || address;
 }
 
 async function respond<T>(
   event: string,
   ack: unknown,
-  run: () => T | Promise<T>,
+  run: (payload?: unknown) => T | Promise<T>,
+  payload?: unknown,
 ) {
   if (typeof ack !== "function") return;
   const reply = ack as (result: T | typeof serverError) => void;
   try {
-    reply(await run());
+    reply(await run(payload));
   } catch (e) {
     console.error(`[socket] ${event}`, e);
     reply(serverError);
@@ -156,11 +172,18 @@ async function main() {
       nextPacket();
     });
 
+    const guard =
+      <S extends z.ZodType>(schema: S, run: (payload: z.output<S>) => unknown) =>
+      (payload: unknown) => {
+        const parsed = schema.safeParse(payload);
+        return parsed.success ? run(parsed.data) : badRequest;
+      };
+
     socket.on("room:create", (payload, ack) =>
-      respond("room:create", ack, () => createRoom(io, socket, payload)),
+      respond("room:create", ack, guard(createRoomSchema, (p) => createRoom(io, socket, p)), payload),
     );
     socket.on("room:join", (payload, ack) =>
-      respond("room:join", ack, () => joinRoom(io, socket, payload)),
+      respond("room:join", ack, guard(joinRoomSchema, (p) => joinRoom(io, socket, p)), payload),
     );
     socket.on("room:quickplay", (ack) =>
       respond("room:quickplay", ack, () => quickplay(socket)),
@@ -174,35 +197,51 @@ async function main() {
     );
     socket.on("explorer:unwatch", () => void socket.leave(EXPLORER));
     socket.on("room:visibility", (payload, ack) =>
-      respond("room:visibility", ack, () =>
-        setVisibility(io, socket, payload),
+      respond(
+        "room:visibility",
+        ack,
+        guard(visibilitySchema, (p) => setVisibility(io, socket, p)),
+        payload,
       ),
     );
     socket.on("room:configure", (payload, ack) =>
-      respond("room:configure", ack, () => configureRoom(io, socket, payload)),
+      respond(
+        "room:configure",
+        ack,
+        guard(settingsPatchSchema, (p) => configureRoom(io, socket, p)),
+        payload,
+      ),
     );
     socket.on("room:invite", (ack) =>
       respond("room:invite", ack, () => createInvite(io, socket)),
     );
     socket.on("member:watch", (payload, ack) =>
-      respond("member:watch", ack, () => setWatching(io, socket, payload)),
+      respond("member:watch", ack, guard(watchSchema, (p) => setWatching(io, socket, p)), payload),
     );
     socket.on("member:approve", (payload, ack) =>
-      respond("member:approve", ack, () =>
-        answerWatchRequest(io, socket, payload),
+      respond(
+        "member:approve",
+        ack,
+        guard(approveSchema, (p) => answerWatchRequest(io, socket, p)),
+        payload,
       ),
     );
     socket.on("member:kick", (payload, ack) =>
-      respond("member:kick", ack, () => kickMember(io, socket, payload)),
+      respond("member:kick", ack, guard(memberSchema, (p) => kickMember(io, socket, p)), payload),
     );
     socket.on("member:promote", (payload, ack) =>
-      respond("member:promote", ack, () => promoteMember(io, socket, payload)),
+      respond(
+        "member:promote",
+        ack,
+        guard(memberSchema, (p) => promoteMember(io, socket, p)),
+        payload,
+      ),
     );
     socket.on("member:team", (payload, ack) =>
-      respond("member:team", ack, () => setTeam(io, socket, payload)),
+      respond("member:team", ack, guard(teamSchema, (p) => setTeam(io, socket, p)), payload),
     );
     socket.on("member:note", (payload, ack) =>
-      respond("member:note", ack, () => setNote(io, socket, payload)),
+      respond("member:note", ack, guard(noteSchema, (p) => setNote(io, socket, p)), payload),
     );
 
     socket.on("room:leave", async (ack) => {
@@ -226,8 +265,10 @@ async function main() {
     action("race:forfeit", forfeit);
 
     socket.on("race:progress", (payload) => {
+      const parsed = progressSchema.safeParse(payload);
+      if (!parsed.success) return;
       try {
-        recordProgress(io, socket, payload);
+        recordProgress(io, socket, parsed.data);
       } catch (e) {
         console.error("[socket] race:progress", e);
       }

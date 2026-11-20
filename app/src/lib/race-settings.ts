@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { typeable } from "./texts";
 
 export const SOURCES = ["words", "quote", "custom"] as const;
@@ -81,59 +82,60 @@ export const DEFAULT_SETTINGS: RaceSettings = {
   capacity: 10,
 };
 
-const bool = (value: unknown, fallback: boolean) =>
-  typeof value === "boolean" ? value : fallback;
-
-const pick = <T>(list: readonly T[], value: unknown, fallback: T): T =>
-  list.includes(value as T) ? (value as T) : fallback;
-
-function clampInt(value: unknown, min: number, max: number, fallback: number) {
-  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
-  return Math.min(max, Math.max(min, Math.round(value)));
-}
-
-function cleanCustom(value: unknown, fallback: string): string {
-  if (typeof value !== "string") return fallback;
-  return typeable(value).slice(0, CUSTOM_MAX).trim();
-}
-
-function cleanChars(value: unknown, fallback: string): string {
-  if (typeof value !== "string") return fallback;
+const cleanChars = (value: string) => {
   const chars = [...typeable(value).toLowerCase()].filter((c) => c.trim());
   return [...new Set(chars)].slice(0, CHARS_MAX).join("");
-}
+};
 
-function cleanBotLevels(value: unknown, fallback: BotLevel[]): BotLevel[] {
-  if (!Array.isArray(value) || value.length > BOTS_MAX) return fallback;
-  return value.every((v) => BOT_LEVELS.includes(v)) ? (value as BotLevel[]) : fallback;
-}
+const oneOf = <T extends string | number>(list: readonly T[]) =>
+  z.custom<T>((v) => list.includes(v as T));
+
+const clamped = (min: number, max: number) =>
+  z
+    .number()
+    .refine(Number.isFinite)
+    .transform((v) => Math.min(max, Math.max(min, Math.round(v))));
+
+export const settingsFields = {
+  source: z.enum(SOURCES),
+  language: z.enum(LANGUAGES),
+  theme: z.enum(TEXT_THEMES),
+  accents: z.boolean(),
+  punctuation: z.boolean(),
+  numbers: z.boolean(),
+  capitals: z.boolean(),
+  difficulty: z.enum(DIFFICULTIES),
+  blacklist: z.string().max(200).transform(cleanChars),
+  priority: z.string().max(200).transform(cleanChars),
+  errorMode: z.enum(ERROR_MODES),
+  bots: z.boolean(),
+  botLevels: z.array(z.enum(BOT_LEVELS)).max(BOTS_MAX),
+  botLevel: z.enum(BOT_LEVELS),
+  boosts: z.boolean(),
+  instantDeath: z.boolean(),
+  teams: z.boolean(),
+  customText: z
+    .string()
+    .max(CUSTOM_MAX * 4)
+    .transform((v) => typeable(v).slice(0, CUSTOM_MAX).trim()),
+  length: clamped(LENGTH_MIN, LENGTH_MAX),
+  timeLimitSec: oneOf(TIME_LIMITS),
+  timeGoalSec: oneOf(TIME_GOALS),
+  capacity: clamped(CAPACITY_MIN, CAPACITY_MAX),
+} satisfies { [K in keyof RaceSettings]: z.ZodType<unknown, unknown> };
+
+export const settingsPatchSchema = z.record(z.string(), z.unknown());
 
 export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettings {
-  const p = (patch && typeof patch === "object" ? patch : {}) as Record<string, unknown>;
-  return {
-    source: pick(SOURCES, p.source, current.source),
-    language: pick(LANGUAGES, p.language, current.language),
-    theme: pick(TEXT_THEMES, p.theme, current.theme),
-    accents: bool(p.accents, current.accents),
-    punctuation: bool(p.punctuation, current.punctuation),
-    numbers: bool(p.numbers, current.numbers),
-    capitals: bool(p.capitals, current.capitals),
-    difficulty: pick(DIFFICULTIES, p.difficulty, current.difficulty),
-    blacklist: cleanChars(p.blacklist, current.blacklist),
-    priority: cleanChars(p.priority, current.priority),
-    errorMode: pick(ERROR_MODES, p.errorMode, current.errorMode),
-    bots: bool(p.bots, current.bots),
-    botLevels: cleanBotLevels(p.botLevels, current.botLevels),
-    botLevel: pick(BOT_LEVELS, p.botLevel, current.botLevel),
-    boosts: bool(p.boosts, current.boosts),
-    instantDeath: bool(p.instantDeath, current.instantDeath),
-    teams: bool(p.teams, current.teams),
-    customText: cleanCustom(p.customText, current.customText),
-    length: clampInt(p.length, LENGTH_MIN, LENGTH_MAX, current.length),
-    timeLimitSec: pick(TIME_LIMITS, p.timeLimitSec, current.timeLimitSec),
-    timeGoalSec: pick(TIME_GOALS, p.timeGoalSec, current.timeGoalSec),
-    capacity: clampInt(p.capacity, CAPACITY_MIN, CAPACITY_MAX, current.capacity),
-  };
+  const parsed = settingsPatchSchema.safeParse(patch);
+  if (!parsed.success) return current;
+  const next: Record<string, unknown> = { ...current };
+  for (const [key, schema] of Object.entries(settingsFields)) {
+    if (!(key in parsed.data)) continue;
+    const field = schema.safeParse(parsed.data[key]);
+    if (field.success) next[key] = field.data;
+  }
+  return next as unknown as RaceSettings;
 }
 
 export function settingsView(settings: RaceSettings): SettingsView {

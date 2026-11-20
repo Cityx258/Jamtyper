@@ -68,7 +68,7 @@ export default function ProfileForm({ name, image, t }: Props) {
   }
 
   return (
-    <div className="grid gap-10 md:grid-cols-2">
+    <div className="flex max-w-sm flex-col gap-8">
       <form onSubmit={saveName} className="flex max-w-sm flex-col gap-3">
         <label className="flex flex-col gap-1.5">
           <span className="text-sm text-muted">{t.nameLabel}</span>

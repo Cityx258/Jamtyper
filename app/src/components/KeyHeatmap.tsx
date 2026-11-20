@@ -24,7 +24,7 @@ const LAYOUT = new Set([...ROWS.flat(), " "]);
 function heat(count: number, max: number) {
   if (!count) return undefined;
   const pct = Math.round(18 + (count / max) * 72);
-  return `color-mix(in oklab, var(--danger) ${pct}%, transparent)`;
+  return `color-mix(in oklab, var(--pink) ${pct}%, transparent)`;
 }
 
 function Key({
@@ -97,7 +97,7 @@ export default function KeyHeatmap({ missed, t }: Props) {
           {t.other}{" "}
           {others.map(([k, n]) => (
             <span key={k} className="mr-3 font-mono text-ink">
-              {k} <span className="text-danger">×{n}</span>
+              {k} <span className="text-pink">×{n}</span>
             </span>
           ))}
         </p>
@@ -109,7 +109,7 @@ export default function KeyHeatmap({ missed, t }: Props) {
           className="h-2 w-24 rounded-full"
           style={{
             background:
-              "linear-gradient(to right, color-mix(in oklab, var(--danger) 18%, transparent), var(--danger))",
+              "linear-gradient(to right, color-mix(in oklab, var(--pink) 18%, transparent), var(--pink))",
           }}
         />
         {t.more}

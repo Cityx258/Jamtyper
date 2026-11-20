@@ -102,4 +102,16 @@ export const QUOTES: Record<Language, Quote[]> = {
     { text: "string word = sentence.ToLower().Trim();" },
     { text: "var user = await client.GetUserAsync(id);" },
   ],
+  cpp: [
+    { text: "std::cout << \"Hello, \" << name << \"!\" << std::endl;" },
+    { text: "int add(int a, int b) { return a + b; }" },
+    { text: "std::vector<int> scores = {42, 17, 99};" },
+    { text: "for (const auto& player : players) total += player.wpm;" },
+    { text: "if (score > best) { best = score; }" },
+    { text: "auto racer = std::make_unique<Racer>(\"Allegro\");" },
+    { text: "std::sort(v.begin(), v.end(), [](int a, int b) { return a > b; });" },
+    { text: "template <typename T> T max(T a, T b) { return a > b ? a : b; }" },
+    { text: "int* ptr = nullptr; delete ptr; // segmentation fault speedrun" },
+    { text: "std::map<std::string, int> wins; wins[\"tempo\"]++;" },
+  ],
 };

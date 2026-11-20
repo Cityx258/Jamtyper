@@ -3,7 +3,7 @@ import { typeable } from "./texts";
 
 export const SOURCES = ["words", "quote", "custom"] as const;
 export type TextSource = (typeof SOURCES)[number];
-export const CODE_LANGUAGES = ["javascript", "python", "java", "csharp"] as const;
+export const CODE_LANGUAGES = ["javascript", "python", "java", "csharp", "cpp"] as const;
 export type CodeLanguage = (typeof CODE_LANGUAGES)[number];
 export const LANGUAGES = ["en", "fr", ...CODE_LANGUAGES] as const;
 export type Language = (typeof LANGUAGES)[number];

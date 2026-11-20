@@ -119,4 +119,13 @@ export const CODE_WORDS: Record<CodeLanguage, string[]> = {
     "Main()", "Count", "Add()", "get;", "set;", "this", "base", "override",
     "try", "catch", "throw", "=>", "==", "!=", "&&", "||", "{}", "[]", "();",
   ],
+  cpp: [
+    "#include", "<iostream>", "int", "main()", "return", "std::cout", "<<",
+    ">>", "std::endl", "std::vector", "std::string", "auto", "const", "void",
+    "class", "struct", "public:", "private:", "virtual", "override", "new",
+    "delete", "nullptr", "true", "false", "if", "else", "for", "while",
+    "template", "typename", "namespace", "using", "push_back()", "size()",
+    "std::move()", "&", "*", "->", "::", "==", "!=", "&&", "||", "{}", "[]",
+    "();", "try", "catch", "throw",
+  ],
 };

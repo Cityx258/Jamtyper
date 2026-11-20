@@ -640,7 +640,7 @@ export default function RoomLobby({
                   : t.errors.empty_team}
             </p>
           )}
-          {botsJoin && (
+          {botsJoin > 0 && (
             <p className="mt-3 text-sm text-muted">
               {teams && teamSizes[0] !== teamSizes[1]
                 ? t.botsEvenTeams

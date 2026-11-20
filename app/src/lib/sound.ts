@@ -1,8 +1,9 @@
 "use client";
 
+import { keystrokeMidi, midiToFreq, nextStep } from "./keystroke";
 import { schedule, type MelodyNote } from "./melody";
 
-export type Cue = "tick" | "go" | "typo" | "finish" | "out";
+export type Cue = "tick" | "go" | "finish" | "out";
 
 export type SoundChannel = "effects" | "melody";
 
@@ -15,6 +16,7 @@ const listeners = new Set<() => void>();
 let ctx: AudioContext | null = null;
 const volumes: Record<SoundChannel, number | null> = { effects: null, melody: null };
 const buses: Partial<Record<SoundChannel, GainNode>> = {};
+let keyStep: number | null = null;
 
 function readVolume(channel: SoundChannel): number {
   const cached = volumes[channel];
@@ -57,7 +59,6 @@ function bus(ac: AudioContext, channel: SoundChannel): GainNode {
 const NOTES: Record<Cue, { freqs: number[]; step: number; length: number; type: OscillatorType; gain: number }> = {
   tick: { freqs: [523.25], step: 0, length: 0.09, type: "triangle", gain: 0.12 },
   go: { freqs: [523.25, 659.25, 783.99], step: 0, length: 0.35, type: "triangle", gain: 0.1 },
-  typo: { freqs: [155.56], step: 0, length: 0.07, type: "square", gain: 0.035 },
   finish: { freqs: [523.25, 659.25, 783.99, 1046.5], step: 0.09, length: 0.3, type: "triangle", gain: 0.1 },
   out: { freqs: [392, 329.63, 261.63], step: 0.12, length: 0.25, type: "sine", gain: 0.12 },
 };
@@ -137,6 +138,37 @@ export function play(cue: Cue, force = false) {
     osc.start(at);
     osc.stop(at + length);
   });
+}
+
+export function playKeystroke(inKey: boolean) {
+  if (!soundOn()) return;
+  const ac = audio();
+  if (!ac) return;
+  keyStep = nextStep(keyStep);
+  const freq = midiToFreq(keystrokeMidi(keyStep, inKey));
+  const at = ac.currentTime;
+  const length = inKey ? 0.22 : 0.3;
+  const voices: [number, number, OscillatorType][] = inKey
+    ? [
+        [1, 0.07, "triangle"],
+        [2, 0.012, "sine"],
+      ]
+    : [
+        [1, 0.06, "triangle"],
+        [1.03, 0.04, "sawtooth"],
+      ];
+  for (const [mult, level, type] of voices) {
+    const osc = ac.createOscillator();
+    const amp = ac.createGain();
+    osc.type = type;
+    osc.frequency.value = freq * mult;
+    amp.gain.setValueAtTime(0.0001, at);
+    amp.gain.exponentialRampToValueAtTime(level, at + 0.008);
+    amp.gain.exponentialRampToValueAtTime(0.0001, at + length);
+    osc.connect(amp).connect(bus(ac, "effects"));
+    osc.start(at);
+    osc.stop(at + length + 0.02);
+  }
 }
 
 export function countdownCue(seconds: number): Cue {

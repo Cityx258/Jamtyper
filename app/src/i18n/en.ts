@@ -507,7 +507,7 @@ const en = {
       on: "On",
       off: "Off",
       effects: "Sound effects",
-      effectsHint: "Countdown ticks, typos, finishing and the race melody.",
+      effectsHint: "Countdown ticks, a note for every key you type (off key on a typo), finishing and the race melody.",
       effectsVolume: "Effects volume",
       melodyVolume: "Race melody volume",
       melodyHint: "The melody every racer plays together after a race.",

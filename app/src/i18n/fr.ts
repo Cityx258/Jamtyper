@@ -512,7 +512,7 @@ const fr: Dict = {
       on: "Oui",
       off: "Non",
       effects: "Effets sonores",
-      effectsHint: "Décompte, fautes de frappe, arrivée et mélodie de course.",
+      effectsHint: "Décompte, une note pour chaque touche tapée (fausse sur une faute), arrivée et mélodie de course.",
       effectsVolume: "Volume des effets",
       melodyVolume: "Volume de la mélodie de course",
       melodyHint: "La mélodie que tous les coureurs jouent ensemble après une course.",

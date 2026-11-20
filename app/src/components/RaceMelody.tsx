@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import NoteIcon from "@/components/NoteIcon";
 import { secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
-import { melodyOrder, notesPerBeat, noteSeconds, type MelodyNote } from "@/lib/melody";
+import { melodyOrder, noteLengths, notesPerBeat, phraseBeats, type MelodyNote } from "@/lib/melody";
 import { glyphFor, NOTES, type ClassicNote } from "@/lib/notes";
 import type { RacerView } from "@/lib/room-protocol";
 import { playMelody, soundOn } from "@/lib/sound";
@@ -81,13 +81,14 @@ export function layout(racers: RacerView[], width: number) {
   racers.forEach((r, i) => {
     const step = SLOT + EXTRA[glyphFor(r.note)];
     const pitches = r.pitches.slice(0, notesPerBeat(r.note));
+    const lengths = noteLengths(r.note, pitches);
     if (beats > 0 && beats % 4 === 0 && x > START) {
       system.bars.push(x - 4);
       x += BAR - 8;
     }
     if (x > START && x + Math.min(pitches.length * step, width - START - END) > width - END) newSystem();
     let group: Group = { racer: i, from: x, to: x };
-    pitches.forEach((pitch) => {
+    pitches.forEach((pitch, k) => {
       if (x > START && x + SLOT > width - END) {
         system.groups.push(group);
         newSystem();
@@ -97,10 +98,10 @@ export function layout(racers: RacerView[], width: number) {
       times.push(at);
       group.to = x;
       x += step;
-      at += noteSeconds(r.note);
+      at += lengths[k];
     });
     system.groups.push(group);
-    beats += Math.max(1, notesPerBeat(r.note) * (noteSeconds(r.note) / noteSeconds("quarter")));
+    beats += phraseBeats(r.note, pitches);
   });
   if (system.symbols.length) systems.push(system);
   return { systems, times };

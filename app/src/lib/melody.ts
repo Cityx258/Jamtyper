@@ -22,21 +22,42 @@ const BEATS: Record<NoteKind, number> = {
 
 export const PHRASE_LENGTH = 8;
 
-export const SONGS: Record<Singer, number[] | null> = {
-  mikuMini: [3, 7, 3, 3, 2, 2, 3, 4, 5, 4, 3, 2, 7, 2, 3, 7, 3, 2, 3, 3, 2, 3, 3, 5],
-  mikuGuitar: [5, 5, 4, 5, 4, 5, 7, 6, 5, 4, 5, 4, 5, 4, 3, 4, 5, 5, 4, 5, 2, 7, 6, 5],
-  rin: [3, 4, 5, 5, 5, 5, 6, 7, 5, 4, 4, 4, 3, 2, 4, 1, 1, 1, 1, 2, 3, 2, 1, 0, 2, 3, 4, 5, 5, 5, 5, 6],
-  gumi: [3, 7, 5, 3, 5, 2, 3, 5, 2, 3, 7, 7, 7, 3, 7, 5, 3, 5, 2, 3, 5, 2, 3, 7],
-  teto: null,
-  mikuLeek: [
-    2, 5, 4, 3, 5, 6, 1, 5, 3, 1, 4, 3, 3, 4, 6, 3, 5, 3, 1, 7, 5, 3, 1, 4, 5, 4, 1, 4, 7, 5, 5, 2, 5, 4, 5, 2,
-    5, 3, 5, 6, 4, 6, 8, 7, 6, 5, 2, 0, 2, 5, 3, 1, 5, 3, 1, 6,
-  ],
+export type Song = { pitches: number[]; beats: number[] };
+
+export const SONGS: Record<Singer, Song> = {
+  mikuMini: {
+    pitches: [3, 7, 3, 3, 2, 2, 3, 4, 5, 4, 3, 2, 7, 2, 3, 7, 3, 2, 3, 3, 2, 3, 3, 5],
+    beats: [0.5, 1.5, 0.25, 0.25, 0.75, 0.25, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1, 0.5, 0.5, 1.5, 0.5, 0.5, 0.5, 0.5, 0.25, 0.25, 1, 1],
+  },
+  mikuGuitar: {
+    pitches: [5, 5, 4, 5, 4, 5, 7, 6, 5, 4, 5, 4, 5, 4, 3, 4, 5, 5, 4, 5, 2, 7, 6, 5],
+    beats: [1.5, 1.5, 0.75, 0.75, 0.5, 0.25, 1.5, 0.75, 0.75, 0.75, 0.75, 0.5, 0.25, 0.75, 0.5, 0.25, 1.5, 1.5, 0.75, 0.75, 0.75, 1.5, 0.75, 0.75],
+  },
+  rin: {
+    pitches: [3, 4, 5, 5, 5, 5, 6, 7, 5, 4, 4, 4, 3, 2, 4, 1, 1, 1, 1, 2, 3, 2, 1, 0, 2, 3, 4, 5, 5, 5, 5, 6],
+    beats: [0.25, 0.25, 0.5, 0.5, 0.5, 0.25, 0.25, 1, 1, 0.5, 0.5, 0.5, 0.25, 0.25, 2, 0.5, 0.5, 0.5, 0.25, 0.25, 1, 0.5, 0.5, 1, 1, 1, 1, 0.5, 0.5, 0.5, 0.25, 0.25],
+  },
+  gumi: {
+    pitches: [1, 5, 3, 1, 3, 7, 1, 3, 1, 2, 6, 6, 6, 2, 6, 4, 1, 3, 7, 1, 3, 0, 1, 5],
+    beats: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1, 0.5, 0.5, 1, 1, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1, 0.5, 0.5, 1],
+  },
+  teto: {
+    pitches: [2, 6, 6, 5, 4, 5, 5, 6, 4, 1, 2, 6, 6, 5, 4, 5, 5, 6, 4, 1, 2, 6, 6, 5],
+    beats: [0.5, 0.5, 0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.5, 0.5, 0.5, 0.5, 0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.5, 0.5, 0.5, 0.5, 0.5, 0.25],
+  },
+  mikuLeek: {
+    pitches: [2, 5, 4, 3, 5, 6, 1, 5, 3, 1, 4, 3, 3, 4, 6, 3, 5, 3, 1, 7, 5, 3, 1, 4, 5, 4, 1, 4, 7, 5, 5, 2, 5, 4, 5, 2, 5, 3, 5, 6, 4, 6, 8, 7, 6, 5, 2, 0, 2, 5, 3, 1, 5, 3, 1, 6],
+    beats: [1, 0.5, 0.5, 0.5, 0.5, 1, 1, 1, 1, 1, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.5, 0.25, 0.25, 0.5, 0.25],
+  },
 };
 
-export function phrases(song: number[]): number[][] {
-  const out: number[][] = [];
-  for (let i = 0; i + PHRASE_LENGTH <= song.length; i += PHRASE_LENGTH) out.push(song.slice(i, i + PHRASE_LENGTH));
+export type Phrase = Song;
+
+export function phrases(song: Song): Phrase[] {
+  const out: Phrase[] = [];
+  for (let i = 0; i + PHRASE_LENGTH <= song.pitches.length; i += PHRASE_LENGTH) {
+    out.push({ pitches: song.pitches.slice(i, i + PHRASE_LENGTH), beats: song.beats.slice(i, i + PHRASE_LENGTH) });
+  }
   return out;
 }
 
@@ -60,23 +81,38 @@ export function randomPitch(random: () => number = Math.random): number {
 }
 
 export function randomPitches(note: NoteKind, random: () => number = Math.random): number[] {
-  const song = isSinger(note) ? SONGS[note] : null;
-  if (song) {
-    const options = phrases(song);
-    return options[Math.floor(random() * options.length)];
+  if (isSinger(note)) {
+    const options = phrases(SONGS[note]);
+    return options[Math.floor(random() * options.length)].pitches;
   }
   return Array.from({ length: notesPerBeat(note) }, () => randomPitch(random));
+}
+
+const same = (a: number[], b: number[]) => a.length === b.length && a.every((v, i) => v === b[i]);
+
+export function noteLengths(note: NoteKind, pitches: number[]): number[] {
+  const played = pitches.slice(0, notesPerBeat(note));
+  if (isSinger(note)) {
+    const phrase = phrases(SONGS[note]).find((p) => same(p.pitches, played));
+    if (phrase) return phrase.beats.map((b) => b * BEAT_SECONDS);
+  }
+  return played.map(() => noteSeconds(note));
+}
+
+export function phraseBeats(note: NoteKind, pitches: number[]): number {
+  const total = noteLengths(note, pitches).reduce((sum, s) => sum + s, 0) / BEAT_SECONDS;
+  return Math.max(1, Math.ceil(total - 1e-9));
 }
 
 export function schedule(notes: MelodyNote[]): ScheduledNote[] {
   let at = 0;
   const out: ScheduledNote[] = [];
   for (const { pitches, note } of notes) {
-    const length = noteSeconds(note);
-    for (const pitch of pitches.slice(0, notesPerBeat(note))) {
-      out.push({ freq: frequency(pitch), at, length });
-      at += length;
-    }
+    const lengths = noteLengths(note, pitches);
+    pitches.slice(0, lengths.length).forEach((pitch, i) => {
+      out.push({ freq: frequency(pitch), at, length: lengths[i] });
+      at += lengths[i];
+    });
   }
   return out;
 }

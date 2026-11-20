@@ -10,7 +10,9 @@ import {
   isPitch,
   melodyOrder,
   noteSeconds,
+  noteLengths,
   notesPerBeat,
+  phraseBeats,
   randomPitch,
   randomPitches,
   schedule,
@@ -72,23 +74,53 @@ describe("melody", () => {
 });
 
 describe("singer phrases", () => {
-  test("every song fits on the staff and splits into full phrases", () => {
+  test("every song fits on the staff and splits into full phrases with a length per note", () => {
     for (const song of Object.values(SONGS)) {
-      if (!song) continue;
-      expect(song.every(isPitch)).toBe(true);
+      expect(song.pitches.every(isPitch)).toBe(true);
+      expect(song.beats).toHaveLength(song.pitches.length);
+      expect(song.beats.every((b) => b > 0 && Number.isInteger(b * 4))).toBe(true);
       expect(phrases(song).length).toBeGreaterThan(0);
-      expect(phrases(song).every((p) => p.length === PHRASE_LENGTH)).toBe(true);
+      expect(phrases(song).every((p) => p.pitches.length === PHRASE_LENGTH && p.beats.length === PHRASE_LENGTH)).toBe(true);
     }
   });
 
   test("a singer plays one phrase of their song", () => {
     const pitches = randomPitches("mikuGuitar", () => 0);
-    expect(pitches).toEqual(SONGS.mikuGuitar!.slice(0, PHRASE_LENGTH));
+    expect(pitches).toEqual(SONGS.mikuGuitar.pitches.slice(0, PHRASE_LENGTH));
     expect(notesPerBeat("mikuGuitar")).toBe(PHRASE_LENGTH);
   });
 
-  test("a singer without a song still plays a full phrase", () => {
-    expect(randomPitches("teto")).toHaveLength(PHRASE_LENGTH);
+  test("teto sings her song too", () => {
+    expect(randomPitches("teto", () => 0)).toEqual(SONGS.teto.pitches.slice(0, PHRASE_LENGTH));
+  });
+
+  test("a singer's phrase keeps the rhythm of the song", () => {
+    const phrase = phrases(SONGS.mikuMini)[0];
+    const lengths = noteLengths("mikuMini", phrase.pitches);
+    expect(lengths).toEqual(phrase.beats.map((b) => b * BEAT_SECONDS));
+    expect(new Set(lengths).size).toBeGreaterThan(1);
+    const out = schedule([
+      { pitches: [0], note: "quarter" },
+      { pitches: phrase.pitches, note: "mikuMini" },
+    ]);
+    let at = BEAT_SECONDS;
+    phrase.beats.forEach((b, i) => {
+      expect(out[i + 1].at).toBeCloseTo(at, 9);
+      expect(out[i + 1].length).toBeCloseTo(b * BEAT_SECONDS, 9);
+      at += b * BEAT_SECONDS;
+    });
+  });
+
+  test("a phrase takes whole beats in the bar count", () => {
+    const phrase = phrases(SONGS.mikuMini)[0];
+    const total = phrase.beats.reduce((a, b) => a + b, 0);
+    expect(phraseBeats("mikuMini", phrase.pitches)).toBe(Math.ceil(total));
+    expect(phraseBeats("quarter", [3])).toBe(1);
+    expect(phraseBeats("sixteenth", [1, 2, 3, 4])).toBe(1);
+  });
+
+  test("unknown pitches for a singer fall back to an even rhythm", () => {
+    const lengths = noteLengths("rin", [0, 0, 0, 0, 0, 0, 0, 0]);
+    expect(lengths).toEqual(Array(8).fill(noteSeconds("rin")));
   });
 });
-

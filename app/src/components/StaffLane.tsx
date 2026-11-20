@@ -14,15 +14,15 @@ type Props = {
   move?: Move;
 };
 
-const GAP = 9;
-const TOP = 24;
+const GAP = 13;
+const TOP = 36;
 const STAFF = GAP * 4;
-const HEIGHT = TOP + STAFF + 16;
-const CLEF = 40;
-const END = 14;
-const SIZE = 34;
+const HEIGHT = TOP + STAFF + 32;
+const CLEF = 56;
+const END = 18;
+const SIZE = 48;
 const BARS = 4;
-const AVATAR = 40;
+const AVATAR = 64;
 
 const COLORS: Record<Tone, string> = {
   you: "text-teal",

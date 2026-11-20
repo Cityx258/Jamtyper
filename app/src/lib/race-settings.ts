@@ -31,6 +31,8 @@ export interface RaceSettings {
   theme: TextTheme;
   accents: boolean;
   punctuation: boolean;
+  numbers: boolean;
+  capitals: boolean;
   difficulty: Difficulty;
   blacklist: string;
   priority: string;
@@ -57,6 +59,8 @@ export const DEFAULT_SETTINGS: RaceSettings = {
   theme: "general",
   accents: true,
   punctuation: false,
+  numbers: false,
+  capitals: false,
   difficulty: "medium",
   blacklist: "",
   priority: "",
@@ -108,6 +112,8 @@ export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettin
     theme: pick(TEXT_THEMES, p.theme, current.theme),
     accents: bool(p.accents, current.accents),
     punctuation: bool(p.punctuation, current.punctuation),
+    numbers: bool(p.numbers, current.numbers),
+    capitals: bool(p.capitals, current.capitals),
     difficulty: pick(DIFFICULTIES, p.difficulty, current.difficulty),
     blacklist: cleanChars(p.blacklist, current.blacklist),
     priority: cleanChars(p.priority, current.priority),

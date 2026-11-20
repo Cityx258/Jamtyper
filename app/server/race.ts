@@ -33,6 +33,7 @@ import {
 import { mergeSettings, settingsView } from "../src/lib/race-settings";
 import { generateText } from "../src/lib/texts";
 import { createBots, stepBot } from "./bots";
+import { corpus } from "./corpus";
 import { applyBoosts } from "./boosts";
 import { sampleRace, sampleRacer } from "./samples";
 import { randomPitches } from "../src/lib/melody";
@@ -111,7 +112,7 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
     if (sizes.includes(0)) return fail("empty_team");
   }
 
-  const generated = generateText(settings);
+  const generated = generateText(settings, corpus());
   if (!generated) return fail("no_text");
 
   const startsAt = Date.now() + COUNTDOWN_MS;

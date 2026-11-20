@@ -24,6 +24,7 @@ import {
   recordProgress,
   startRace,
 } from "./race";
+import { loadCorpus } from "./corpus";
 import type { AppSocket } from "./room-state";
 import {
   closeRoomByHost,
@@ -76,6 +77,7 @@ async function respond<T>(
 
 async function main() {
   await closeStaleRooms();
+  await loadCorpus();
   await app.prepare();
   httpServer.on("request", (req, res) => {
     if (!dev && req.headers["x-forwarded-proto"] === "http" && req.headers.host) {

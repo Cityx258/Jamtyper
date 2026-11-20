@@ -1,4 +1,4 @@
-import type { Language, TextTheme } from "../race-settings";
+import type { Language, TextTheme } from "../../lib/race-settings";
 
 export interface Quote {
   text: string;

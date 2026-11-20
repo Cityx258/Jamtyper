@@ -226,7 +226,7 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
   const impossible = useMemo(
     () =>
       editable &&
-      settings.source !== "custom" &&
+      settings.source === "words" &&
       generateText({ ...settings, customText: "" }) === null,
     [editable, settings],
   );
@@ -286,7 +286,7 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
               />
             </Field>
           )}
-          {settings.source === "words" && (
+          {!isCustom && (
             <Field label={t.difficulty} hint={t.difficultyHints[settings.difficulty]}>
               <Choice
                 options={DIFFICULTIES}
@@ -297,19 +297,20 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
               />
             </Field>
           )}
-          {settings.source === "words" && !isCodeLanguage(settings.language) && (
-            <Field label={t.punctuation} hint={t.punctuationHint}>
-              <Toggle
-                on={settings.punctuation}
-                label={t.punctuation}
-                editable={editable}
-                onLabel={t.on}
-                offLabel={t.off}
-                onFlip={(v) => onChange({ punctuation: v })}
-              />
-            </Field>
-          )}
-          {settings.source === "words" && settings.language === "fr" && (
+          {!isCustom && !isCodeLanguage(settings.language) &&
+            (["punctuation", "numbers", "capitals"] as const).map((key) => (
+              <Field key={key} label={t[key]} hint={t[`${key}Hint`]}>
+                <Toggle
+                  on={settings[key]}
+                  label={t[key]}
+                  editable={editable}
+                  onLabel={t.on}
+                  offLabel={t.off}
+                  onFlip={(v) => onChange({ [key]: v })}
+                />
+              </Field>
+            ))}
+          {!isCustom && settings.language === "fr" && (
             <Field label={t.accents} hint={t.accentsHint}>
               <Toggle
                 on={settings.accents}

@@ -1,6 +1,12 @@
-import { isCodeLanguage, type RaceSettings } from "./race-settings";
-import { QUOTES, type Quote } from "./text/quotes";
+import { isCodeLanguage, type Difficulty, type Language, type RaceSettings, type TextTheme } from "./race-settings";
 import { CODE_WORDS, THEMED_WORDS } from "./text/words";
+
+export interface Passage {
+  language: Language;
+  theme: TextTheme | null;
+  text: string;
+  by: string | null;
+}
 
 export interface GeneratedText {
   text: string;
@@ -89,13 +95,31 @@ const stripAccents = (word: string) =>
 
 const ENDINGS = [".", ".", ".", "!", "?"];
 
+export const WORD_LETTERS: Record<Difficulty, number> = { easy: 5, medium: 8, hard: Infinity };
+
 function byDifficulty(pool: string[], s: RaceSettings): string[] {
-  if (s.difficulty !== "easy") return pool;
-  const simple = pool.filter((w) =>
-    isCodeLanguage(s.language) ? /^[a-z]+$/i.test(w) : [...w].length <= 5,
+  const limit = WORD_LETTERS[s.difficulty];
+  const fits = pool.filter((w) =>
+    isCodeLanguage(s.language)
+      ? s.difficulty !== "easy" || /^[a-z]+$/i.test(w)
+      : [...w].length <= limit,
   );
-  return simple.length >= 5 ? simple : pool;
+  return fits.length >= 5 ? fits : pool;
 }
+
+export function complexity(text: string): number {
+  const words = text.split(" ").filter(Boolean);
+  if (words.length === 0) return 0;
+  const letters = words.reduce((n, w) => n + w.replace(/[^\p{L}]/gu, "").length, 0);
+  const special = [...text].filter((c) => !/[\p{L} ]/u.test(c)).length;
+  return letters / words.length + (10 * special) / text.length;
+}
+
+export const COMPLEXITY_BANDS: Record<Difficulty, [number, number]> = {
+  easy: [0, 4.3],
+  medium: [4.3, 5],
+  hard: [5, Infinity],
+};
 
 const SYMBOLS: ((w: string) => string)[] = [
   (w) => `(${w})`,
@@ -112,22 +136,37 @@ const SYMBOLS: ((w: string) => string)[] = [
 
 function harden(words: string[], rules: CharRules): string[] {
   return words.map((w) => {
-    const roll = randomInt(20);
-    let out = w;
-    if (roll < 2) out = String(randomInt(10_000));
-    else if (roll < 5) out = SYMBOLS[randomInt(SYMBOLS.length)](w);
-    else if (roll < 7) out = w[0].toUpperCase() + w.slice(1);
+    if (randomInt(5) !== 0) return w;
+    const out = SYMBOLS[randomInt(SYMBOLS.length)](w);
     return allowed(out, rules) ? out : w;
   });
 }
 
-function punctuate(words: string[], rules: CharRules): string[] {
+const capitalize = (w: string) => w[0].toUpperCase() + w.slice(1);
+
+function addNumbers(words: string[], rules: CharRules): string[] {
+  return words.map((w) => {
+    if (randomInt(8) !== 0) return w;
+    const n = String(randomInt(10 ** (1 + randomInt(4))));
+    return allowed(n, rules) ? n : w;
+  });
+}
+
+function addCapitals(words: string[], rules: CharRules): string[] {
+  return words.map((w) => {
+    if (randomInt(6) !== 0) return w;
+    const out = capitalize(w);
+    return allowed(out, rules) ? out : w;
+  });
+}
+
+function punctuate(words: string[], rules: CharRules, capitals: boolean): string[] {
   const endings = ENDINGS.filter((e) => allowed(e, rules));
   const commas = allowed(",", rules);
   let sentence = 0;
   let target = 4 + randomInt(7);
   return words.map((word, i) => {
-    let w = sentence === 0 ? word[0].toUpperCase() + word.slice(1) : word;
+    let w = sentence === 0 && capitals && allowed(capitalize(word), rules) ? capitalize(word) : word;
     sentence++;
     if (i === words.length - 1 || sentence >= target) {
       if (endings.length) w += endings[randomInt(endings.length)];
@@ -148,28 +187,45 @@ function wordsText(s: RaceSettings, rules: CharRules): string | null {
   if (pool.length === 0) return null;
   let words = randomWords(pool, s.length, rules);
   if (s.difficulty === "hard") words = harden(words, rules);
-  if (natural && s.punctuation) words = punctuate(words, rules);
+  if (natural && s.numbers) words = addNumbers(words, rules);
+  if (natural && s.capitals) words = addCapitals(words, rules);
+  if (natural && s.punctuation) words = punctuate(words, rules, s.capitals);
   return words.join(" ");
 }
 
+export function adaptPassage(text: string, s: RaceSettings): string | null {
+  if (isCodeLanguage(s.language)) return text;
+  if (!s.numbers && /\d/.test(text)) return null;
+  let out = text;
+  if (!s.punctuation) out = out.replace(/[.,;:!?"()[\]]/g, "").replace(/ - /g, " ");
+  if (!s.capitals) out = out.toLowerCase();
+  if (!s.accents) out = stripAccents(out);
+  out = typeable(out);
+  return out || null;
+}
+
 function chainQuotes(
-  pool: Quote[],
-  targetWords: number,
+  pool: Passage[],
+  s: RaceSettings,
   rules: CharRules,
 ): GeneratedText | null {
-  const usable = pool
-    .map((q) => ({ ...q, text: typeable(q.text) }))
-    .filter((q) => allowed(q.text, rules));
+  const usable = pool.flatMap((q) => {
+    const original = typeable(q.text);
+    const text = adaptPassage(original, s);
+    return text && allowed(text, rules) ? [{ ...q, text, score: complexity(original) }] : [];
+  });
+  const [low, high] = COMPLEXITY_BANDS[s.difficulty];
+  const inBand = usable.filter((q) => q.score >= low && q.score < high);
   const ordered = weightedOrder(
-    usable,
+    inBand.length ? inBand : usable,
     (q) => 1 + (30 * hits(q.text, rules.favored)) / q.text.length,
   );
-  const picked: Quote[] = [];
+  const picked: Passage[] = [];
   let words = 0;
   for (const q of ordered) {
     picked.push(q);
     words += q.text.split(" ").length;
-    if (words >= targetWords) break;
+    if (words >= s.length) break;
   }
   if (picked.length === 0) return null;
   const authors = [...new Set(picked.flatMap((q) => (q.by ? [q.by] : [])))];
@@ -185,13 +241,13 @@ function wordPool(s: RaceSettings): string[] {
     : THEMED_WORDS[s.language][s.theme];
 }
 
-function quotePool(s: RaceSettings): Quote[] {
-  const all = QUOTES[s.language];
+function quotePool(s: RaceSettings, passages: Passage[]): Passage[] {
+  const all = passages.filter((p) => p.language === s.language);
   if (isCodeLanguage(s.language) || s.theme === "general") return all;
   return all.filter((q) => q.theme === s.theme);
 }
 
-export function generateText(s: RaceSettings): GeneratedText | null {
+export function generateText(s: RaceSettings, passages: Passage[] = []): GeneratedText | null {
   const rules: CharRules = {
     banned: charSet(s.blacklist),
     favored: charSet(s.priority),
@@ -200,7 +256,7 @@ export function generateText(s: RaceSettings): GeneratedText | null {
   if (s.source === "custom") {
     out = s.customText ? { text: s.customText, by: null } : null;
   } else if (s.source === "quote") {
-    out = chainQuotes(quotePool(s), s.length, rules);
+    out = chainQuotes(quotePool(s, passages), s, rules);
   } else {
     const text = wordsText(s, rules);
     out = text ? { text, by: null } : null;

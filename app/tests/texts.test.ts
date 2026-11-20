@@ -1,6 +1,21 @@
 import { describe, expect, test } from "bun:test";
 import { DEFAULT_SETTINGS, type RaceSettings } from "../src/lib/race-settings";
-import { generateText, typeable } from "../src/lib/texts";
+import { QUOTES } from "../src/db/seed/passages";
+import { LANGUAGES } from "../src/lib/race-settings";
+import {
+  adaptPassage,
+  COMPLEXITY_BANDS,
+  complexity,
+  generateText as generate,
+  typeable,
+  WORD_LETTERS,
+  type Passage,
+} from "../src/lib/texts";
+
+const PASSAGES: Passage[] = LANGUAGES.flatMap((language) =>
+  QUOTES[language].map((q) => ({ language, theme: q.theme ?? null, text: q.text, by: q.by ?? null })),
+);
+const generateText = (s: RaceSettings) => generate(s, PASSAGES);
 
 const settings = (patch: Partial<RaceSettings>): RaceSettings => ({
   ...DEFAULT_SETTINGS,
@@ -51,8 +66,8 @@ describe("generateText", () => {
     expect(text).not.toMatch(/[éèêàçùôîâë]/);
   });
 
-  test("punctuation adds capitals and sentence endings", () => {
-    const text = generateText(settings({ punctuation: true, length: 60 }))!.text;
+  test("punctuation with capitals starts sentences with a capital", () => {
+    const text = generateText(settings({ punctuation: true, capitals: true, length: 60 }))!.text;
     expect(text).toMatch(/^[A-Z]/);
     expect(text).toMatch(/[.!?]$/);
   });
@@ -104,5 +119,54 @@ describe("generateText", () => {
 
   test("returns null when nothing matches", () => {
     expect(generateText(settings({ blacklist: "aeiouy" }))).toBeNull();
+  });
+
+  test("numbers and capitals only show up when turned on", () => {
+    const plain = generateText(settings({ length: 150 }))!.text;
+    expect(plain).not.toMatch(/[0-9A-Z]/);
+    expect(generateText(settings({ length: 150, numbers: true }))!.text).toMatch(/[0-9]/);
+    expect(generateText(settings({ length: 150, capitals: true }))!.text).toMatch(/[A-Z]/);
+  });
+
+  test("punctuation without capitals keeps sentences lowercase", () => {
+    const text = generateText(settings({ length: 80, punctuation: true }))!.text;
+    expect(text).toMatch(/[.!?]/);
+    expect(text).not.toMatch(/[A-Z]/);
+  });
+
+  test("difficulty limits word length", () => {
+    for (const difficulty of ["easy", "medium"] as const) {
+      const longest = Math.max(...words({ difficulty, length: 150 }).map((w) => [...w].length));
+      expect(longest).toBeLessThanOrEqual(WORD_LETTERS[difficulty]);
+    }
+    expect(words({ difficulty: "hard", length: 200 }).some((w) => /[^\p{L}]/u.test(w))).toBe(true);
+  });
+
+  test("quotes follow the difficulty bands", () => {
+    for (const difficulty of ["easy", "hard"] as const) {
+      const [low, high] = COMPLEXITY_BANDS[difficulty];
+      for (let i = 0; i < 10; i++) {
+        const text = generateText(
+          settings({ source: "quote", difficulty, length: 1, punctuation: true, capitals: true }),
+        )!.text;
+        const score = complexity(text);
+        expect(score).toBeGreaterThanOrEqual(low);
+        expect(score).toBeLessThan(high);
+      }
+    }
+  });
+
+  test("quotes are adapted to the chosen options", () => {
+    const s = settings({ language: "fr", accents: false });
+    expect(adaptPassage("Je pense, donc je suis.", s)).toBe("je pense donc je suis");
+    expect(adaptPassage("L'été arrive!", s)).toBe("l'ete arrive");
+    expect(adaptPassage("En 1789, tout change.", s)).toBeNull();
+    expect(adaptPassage("En 1789, tout change.", { ...s, numbers: true, punctuation: true, capitals: true })).toBe(
+      "En 1789, tout change.",
+    );
+  });
+
+  test("quotes need the corpus", () => {
+    expect(generate(settings({ source: "quote" }), [])).toBeNull();
   });
 });

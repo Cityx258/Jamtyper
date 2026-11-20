@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import PlaylistPanel from "@/components/PlaylistPanel";
+import { coverFor } from "@/lib/cover";
 import type { Dict } from "@/i18n/en";
 import {
   currentTrack,
@@ -26,6 +27,34 @@ function Icon({ children }: { children: ReactNode }) {
     <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
       {children}
     </svg>
+  );
+}
+
+function Cover({ src }: { src: string | null }) {
+  const [cover, setCover] = useState<{ src: string; url: string | null } | null>(null);
+  const [broken, setBroken] = useState<string | null>(null);
+  useEffect(() => {
+    if (!src) return;
+    let live = true;
+    void coverFor(src).then((url) => live && setCover({ src, url }));
+    return () => {
+      live = false;
+    };
+  }, [src]);
+  const url = cover && cover.src === src && cover.url !== broken ? cover.url : null;
+  return (
+    <span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-lg bg-teal/10 text-teal">
+      {url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={url} alt="" onError={() => setBroken(url)} className="h-full w-full object-cover" />
+      ) : (
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 18V5l11-2v13" />
+          <circle cx="6.5" cy="18" r="2.5" fill="currentColor" />
+          <circle cx="17.5" cy="16" r="2.5" fill="currentColor" />
+        </svg>
+      )}
+    </span>
   );
 }
 
@@ -78,8 +107,9 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
       </button>
       <span
         title={name}
-        className="hidden min-w-0 max-w-44 items-center gap-2 pl-2.5 pr-1.5 text-xs sm:flex"
+        className="hidden min-w-0 max-w-52 items-center gap-2 pl-1.5 pr-1.5 text-xs sm:flex"
       >
+        <Cover src={track?.src ?? null} />
         <span aria-hidden="true" className={`eq shrink-0 ${playing ? "" : "eq-paused"}`}>
           <i />
           <i />

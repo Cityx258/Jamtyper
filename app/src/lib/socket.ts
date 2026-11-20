@@ -18,22 +18,9 @@ export type AppClientSocket = Socket<ServerToClientEvents, ClientToServerEvents>
 
 let socket: AppClientSocket | null = null;
 
-function guestId(): string {
-  try {
-    let id = sessionStorage.getItem("jt-guest-id");
-    if (!id) {
-      id = crypto.randomUUID();
-      sessionStorage.setItem("jt-guest-id", id);
-    }
-    return id;
-  } catch {
-    return crypto.randomUUID();
-  }
-}
-
 export function getSocket(): AppClientSocket {
   if (!socket) {
-    socket = io({ autoConnect: false, auth: (cb) => cb({ guestId: guestId() }) });
+    socket = io({ autoConnect: false });
   }
   return socket;
 }
@@ -65,9 +52,13 @@ export async function requestCreateRoom(
   return s.timeout(ACK_TIMEOUT_MS).emitWithAck("room:create", options);
 }
 
+export function resetSocket() {
+  socket?.disconnect();
+  socket = null;
+}
+
 export async function requestJoinRoom(payload: {
   code: string;
-  guestName?: string;
   invite?: string;
   leaveOther?: boolean;
 }): Promise<RoomResult> {

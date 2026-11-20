@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import Link from "next/link";
 import { setLocale, setTheme } from "@/app/actions";
+import Avatar from "@/components/Avatar";
 import SignOutButton from "@/components/SignOutButton";
 import SoundToggle from "@/components/SoundToggle";
 import { getDict, getLocale, getTheme } from "@/i18n";
@@ -97,9 +98,17 @@ export default async function Header() {
             <Link
               href="/profile"
               aria-label={t.header.profile}
-              className="min-w-0 max-w-40 truncate rounded-full px-2 py-2 text-ink transition-colors hover:text-teal-bright sm:ml-2 sm:px-3"
+              className="flex min-w-0 max-w-48 items-center gap-2 rounded-full px-2 py-1 text-ink transition-colors hover:text-teal-bright sm:ml-2 sm:px-3"
             >
-              {session.user.displayUsername ?? session.user.name}
+              <Avatar
+                name={session.user.displayUsername ?? session.user.name}
+                image={session.user.image ?? null}
+                size={28}
+                alt=""
+              />
+              <span className="hidden truncate min-[480px]:inline">
+                {session.user.displayUsername ?? session.user.name}
+              </span>
             </Link>
             <span className="hidden sm:block">
               <SignOutButton label={t.header.signOut} />

@@ -223,6 +223,7 @@ export async function createRoom(
         key: identity.key,
         userId: identity.userId,
         name: identity.name,
+        image: identity.image,
         watching: false,
         watchRequested: false,
         team: 0,
@@ -297,18 +298,15 @@ export async function joinRoom(
       if (invite.ip && invite.ip !== identity.ip) return fail("invite_used");
     }
 
-    let name = identity.name;
-    if (!identity.userId) {
-      const chosen = cleanGuestName(field(payload, "guestName"));
-      if (!chosen) return fail("bad_name");
-      name = chosen;
-    }
+    const name = identity.userId ? identity.name : cleanGuestName(identity.name);
+    if (!name) return fail("bad_name");
 
     const created: Member = {
       id: randomUUID(),
       key: identity.key,
       userId: identity.userId,
       name,
+      image: identity.image,
       watching: isFull(room),
       watchRequested: false,
       team: smallerTeam(room),

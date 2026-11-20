@@ -34,6 +34,7 @@ function member(key: string, patch: Partial<Member> = {}): Member {
     key,
     userId: null,
     name: key,
+    image: null,
     watching: false,
     watchRequested: false,
     team: 0,

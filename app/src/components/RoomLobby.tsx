@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
+import { setGuestName } from "@/app/guest-actions";
+import Avatar from "@/components/Avatar";
 import KickButton from "@/components/KickButton";
 import LobbyNotePicker from "@/components/LobbyNotePicker";
 import NoteIcon from "@/components/NoteIcon";
@@ -40,30 +42,20 @@ import {
   requestTeam,
   requestVisibility,
   requestWatch,
+  resetSocket,
 } from "@/lib/socket";
 
 type Props = {
   code: string | null;
   invite: string | null;
   accountName: string | null;
+  savedGuestName: string | null;
   t: Dict["room"];
   heatmapT: Dict["profile"]["heatmap"];
   noteNames: Dict["profile"]["notes"]["names"];
   notesT: Dict["profile"]["notes"];
 };
 
-const NAME_KEY = "jt-guest-name";
-
-function readStoredName(): string | null {
-  try {
-    return sessionStorage.getItem(NAME_KEY);
-  } catch {
-    return null;
-  }
-}
-
-const noSubscribe = () => () => {};
-const noStoredName = () => null;
 
 function Tag({ children }: { children: React.ReactNode }) {
   return (
@@ -101,19 +93,15 @@ export default function RoomLobby({
   code,
   invite,
   accountName,
+  savedGuestName,
   t,
   heatmapT,
   noteNames,
   notesT,
 }: Props) {
   const router = useRouter();
-  const storedName = useSyncExternalStore(
-    noSubscribe,
-    readStoredName,
-    noStoredName,
-  );
-  const [chosenName, setChosenName] = useState<string | null>(null);
-  const guestName = chosenName ?? storedName ?? undefined;
+  const [guestName, setGuestNameState] = useState<string | null>(savedGuestName);
+  const [namePending, setNamePending] = useState(false);
   const ready = !!accountName || !!guestName;
   const [draftName, setDraftName] = useState("");
   const [room, setRoom] = useState<RoomView | null>(null);
@@ -140,7 +128,6 @@ export default function RoomLobby({
       try {
         const res = await requestJoinRoom({
           code: code!,
-          guestName: accountName ? undefined : guestName,
           invite: inviteRef.current ?? undefined,
           leaveOther,
         });
@@ -296,15 +283,19 @@ export default function RoomLobby({
     return (
       <form
         className="w-full max-w-md"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           const name = cleanGuestName(draftName);
           if (!name) return;
-          try {
-            sessionStorage.setItem(NAME_KEY, name);
-          } catch {
+          setNamePending(true);
+          const res = await setGuestName(name);
+          setNamePending(false);
+          if (!res.ok) {
+            setError("bad_name");
+            return;
           }
-          setChosenName(name);
+          resetSocket();
+          setGuestNameState(name);
         }}
       >
         <h1 className="font-display text-3xl">{t.nameTitle}</h1>
@@ -325,7 +316,7 @@ export default function RoomLobby({
         <div className="mt-5 flex flex-wrap items-center gap-4">
           <button
             type="submit"
-            disabled={!cleanGuestName(draftName)}
+            disabled={!cleanGuestName(draftName) || namePending}
             className={primaryButton}
           >
             {t.nameAction}
@@ -537,6 +528,7 @@ export default function RoomLobby({
               <span
                 className={`flex min-w-0 flex-1 items-center gap-3 ${m.connected ? "" : "opacity-50"}`}
               >
+                <Avatar name={m.name} image={m.image} size={28} alt="" />
                 <NoteIcon note={m.note} className="text-teal" label={noteNames[m.note]} />
                 <span className="min-w-0 truncate font-medium">{m.name}</span>
                 {teams && <Tag>{t.teamNames[m.team]}</Tag>}

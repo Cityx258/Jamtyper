@@ -27,6 +27,7 @@ export interface Identity {
   key: string;
   userId: string | null;
   name: string;
+  image: string | null;
   ip: string;
 }
 
@@ -53,6 +54,7 @@ export interface Member {
   key: string;
   userId: string | null;
   name: string;
+  image: string | null;
   watching: boolean;
   watchRequested: boolean;
   team: Team;
@@ -310,6 +312,7 @@ export function toView(room: Room): RoomView {
       role: memberRole(room, m),
       isHost: m.key === room.hostKey,
       isGuest: !m.userId,
+      image: m.image,
       connected: m.sockets.size > 0,
       watchRequested: m.watchRequested,
       team: m.team,

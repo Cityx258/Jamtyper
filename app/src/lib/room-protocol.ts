@@ -21,6 +21,7 @@ export interface MemberView {
   role: MemberRole;
   isHost: boolean;
   isGuest: boolean;
+  image: string | null;
   connected: boolean;
   watchRequested: boolean;
   team: Team;
@@ -162,7 +163,7 @@ export interface ClientToServerEvents {
     ack: (result: RoomResult) => void,
   ) => void;
   "room:join": (
-    payload: { code: string; guestName?: string; invite?: string; leaveOther?: boolean },
+    payload: { code: string; invite?: string; leaveOther?: boolean },
     ack: (result: RoomResult) => void,
   ) => void;
   "room:invites": (ack: (result: InviteView[]) => void) => void;

@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
+import ProfileForm from "@/components/ProfileForm";
 import SignInMethods from "@/components/SignInMethods";
 import { getDict } from "@/i18n";
 import { auth, enabledProviders } from "@/lib/auth";
@@ -43,7 +44,20 @@ export default async function SettingsPage(props: PageProps<"/settings">) {
           {t.backToProfile}
         </Link>
 
-        <section className="mt-12" aria-labelledby="methods-title">
+        <section className="mt-12" aria-labelledby="profile-title">
+          <h2 id="profile-title" className="font-display text-3xl">
+            {t.profile.title}
+          </h2>
+          <div className="mt-6">
+            <ProfileForm
+              name={session.user.displayUsername ?? session.user.name}
+              image={session.user.image ?? null}
+              t={t.profile}
+            />
+          </div>
+        </section>
+
+        <section className="mt-16" aria-labelledby="methods-title">
           <h2 id="methods-title" className="font-display text-3xl">
             {t.methodsTitle}
           </h2>

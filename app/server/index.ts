@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
 import { auth } from "../src/lib/auth";
+import { decodeGuest, GUEST_COOKIE, readCookie } from "../src/lib/guest-cookie";
 import type {
   ActionResult,
   ClientToServerEvents,
@@ -52,7 +53,6 @@ const app = next({
 });
 const handle = app.getRequestHandler();
 
-const GUEST_ID = /^[A-Za-z0-9_-]{8,64}$/;
 const MAX_MESSAGE_BYTES = 16_000;
 const EVENTS_PER_SECOND = 40;
 
@@ -126,20 +126,14 @@ async function main() {
           key: `user:${session.user.id}`,
           userId: session.user.id,
           name: session.user.displayUsername ?? session.user.name,
+          image: session.user.image ?? null,
           ip,
         };
       } else {
-        const sent = socket.handshake.auth?.guestId;
-        const guestId =
-          typeof sent === "string" && GUEST_ID.test(sent)
-            ? sent
-            : `anon-${socket.id}`;
-        identity = {
-          key: `guest:${guestId}`,
-          userId: null,
-          name: `Guest ${guestId.slice(-4).toUpperCase()}`,
-          ip,
-        };
+        const guest = decodeGuest(readCookie(cookie, GUEST_COOKIE));
+        identity = guest
+          ? { key: `guest:${guest.id}`, userId: null, name: guest.name, image: null, ip }
+          : { key: `anon:${socket.id}`, userId: null, name: "", image: null, ip };
       }
       socket.data.identity = identity;
       nextMiddleware();

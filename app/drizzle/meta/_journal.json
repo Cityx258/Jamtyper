@@ -64,6 +64,13 @@
       "when": 1795140378467,
       "tag": "0008_one_room_and_invite_ip",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795140752127,
+      "tag": "0009_user_avatar",
+      "breakpoints": true
     }
   ]
 }

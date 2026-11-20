@@ -34,10 +34,10 @@ const io = {
 } as unknown as AppServer;
 
 let n = 0;
-function socket(key: string, ip = "1.1.1.1") {
+function socket(key: string, ip = "1.1.1.1", name = "Player") {
   return {
     id: `s${n++}`,
-    data: { identity: { key, userId: null, name: key, ip } },
+    data: { identity: { key, userId: null, name, image: null, ip } },
     join() {},
     leave() {},
     emit() {},
@@ -50,6 +50,7 @@ function member(key: string, patch: Partial<Member> = {}): Member {
     key,
     userId: null,
     name: key,
+    image: null,
     watching: false,
     watchRequested: false,
     team: 0,
@@ -80,8 +81,7 @@ function makeRoom(code: string, patch: Partial<Room> = {}, members = [member(`ho
   return room;
 }
 
-const join = (s: AppSocket, payload: Record<string, unknown>) =>
-  rooms.joinRoom(io, s, { guestName: "Player", ...payload });
+const join = (s: AppSocket, payload: Record<string, unknown>) => rooms.joinRoom(io, s, payload);
 
 afterEach(() => {
   state.rooms.clear();
@@ -89,13 +89,17 @@ afterEach(() => {
 });
 
 describe("joining a room", () => {
-  test("guests need a name of 3 to 20 characters", async () => {
+  test("guests need a name of 3 to 20 characters from their signed cookie", async () => {
     makeRoom("ABCDEF");
-    expect(await join(socket("g1"), { code: "ABCDEF", guestName: "ab" })).toEqual({
+    expect(await join(socket("g1", "1.1.1.1", ""), { code: "ABCDEF" })).toEqual({
       ok: false,
       error: "bad_name",
     });
-    expect((await join(socket("g1"), { code: "ABCDEF", guestName: "abc" })).ok).toBe(true);
+    expect(await join(socket("g1", "1.1.1.1", "ab"), { code: "ABCDEF" })).toEqual({
+      ok: false,
+      error: "bad_name",
+    });
+    expect((await join(socket("g1", "1.1.1.1", "abc"), { code: "ABCDEF" })).ok).toBe(true);
   });
 
   test("nobody joins while a race is running, but members can reconnect", async () => {

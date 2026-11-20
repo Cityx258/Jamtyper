@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import Avatar from "@/components/Avatar";
 import Header from "@/components/Header";
 import KeyHeatmap from "@/components/KeyHeatmap";
 import NotePicker from "@/components/NotePicker";
@@ -60,8 +61,15 @@ export default async function ProfilePage() {
         <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal">
           {t.kicker}
         </p>
-        <div className="relative mt-4">
+        <div className="relative mt-4 flex items-center gap-5">
           <div className="staff absolute inset-x-0 top-[calc(var(--staff-gap)*0.5)]" />
+          <Avatar
+            name={name}
+            image={session.user.image ?? null}
+            size={80}
+            alt={dict.settings.profile.photoAlt.replace("{name}", name)}
+            className="relative"
+          />
           <h1 className="relative break-all font-display text-4xl sm:text-7xl">
             {name}
           </h1>

@@ -1,8 +1,9 @@
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import Header from "@/components/Header";
 import RoomLobby from "@/components/RoomLobby";
 import { getDict } from "@/i18n";
 import { auth } from "@/lib/auth";
+import { decodeGuest, GUEST_COOKIE } from "@/lib/guest-cookie";
 import { normalizeRoomCode } from "@/lib/room-code";
 
 export async function generateMetadata(props: PageProps<"/room/[code]">) {
@@ -12,12 +13,14 @@ export async function generateMetadata(props: PageProps<"/room/[code]">) {
 }
 
 export default async function RoomPage(props: PageProps<"/room/[code]">) {
-  const [{ code }, { invite }, t, session] = await Promise.all([
+  const [{ code }, { invite }, t, session, jar] = await Promise.all([
     props.params,
     props.searchParams,
     getDict(),
     headers().then((h) => auth.api.getSession({ headers: h })),
+    cookies(),
   ]);
+  const guest = session ? null : decodeGuest(jar.get(GUEST_COOKIE)?.value);
 
   return (
     <>
@@ -29,6 +32,7 @@ export default async function RoomPage(props: PageProps<"/room/[code]">) {
           accountName={
             session ? (session.user.displayUsername ?? session.user.name) : null
           }
+          savedGuestName={guest?.name ?? null}
           t={t.room}
           heatmapT={t.profile.heatmap}
           noteNames={t.profile.notes.names}

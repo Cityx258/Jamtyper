@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { db } from "../src/db";
 import {
@@ -100,14 +101,14 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
     (m) => !m.watching && m.sockets.size > 0,
   );
   const settings = room.settings;
-  const needed = MIN_RACERS - entrants.length;
-  if (entrants.length === 0 || (needed > 0 && !settings.bots)) {
-    return fail("not_enough_racers");
-  }
+  if (entrants.length === 0) return fail("not_enough_racers");
   const sizes: [number, number] = [0, 0];
   for (const m of entrants) sizes[m.team]++;
-  if (settings.teams && !settings.bots && sizes.includes(0)) {
-    return fail("empty_team");
+  const plan = botPlan(sizes, settings);
+  if (entrants.length + plan.length < MIN_RACERS) return fail("not_enough_racers");
+  if (settings.teams) {
+    for (const b of plan) if (b.team !== null) sizes[b.team]++;
+    if (sizes.includes(0)) return fail("empty_team");
   }
 
   const generated = generateText(settings);
@@ -153,11 +154,13 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
     timers: [],
   };
   const names = new Set(entrants.map((m) => m.name));
-  const botTeams = botPlan(sizes, settings);
-  const bots = createBots(botTeams.length, names, settings.botLevel);
+  const bots = createBots(
+    plan.map((b) => b.level),
+    names,
+    randomInt(2 ** 31),
+  );
   bots.forEach((bot, i) => {
-    bot.team = botTeams[i];
-    names.add(bot.name);
+    bot.team = settings.teams ? plan[i].team : null;
     race.racers.set(bot.id, bot);
   });
   room.race = race;

@@ -305,11 +305,13 @@ export default function RoomLobby({
     (team) =>
       room.members.filter((m) => m.role === "racer" && m.connected && m.team === team).length,
   );
-  const emptyTeam = teams && teamSizes.includes(0);
-  const canStart = room.settings.bots
-    ? readyRacers >= 1
-    : readyRacers >= room.minRacers && !emptyTeam;
-  const botsJoin = botPlan([teamSizes[0], teamSizes[1]], room.settings).length;
+  const plannedBots = botPlan([teamSizes[0], teamSizes[1]], room.settings);
+  const botsJoin = plannedBots.length;
+  const sizesWithBots = [0, 1].map(
+    (team) => teamSizes[team] + plannedBots.filter((b) => b.team === team).length,
+  );
+  const emptyTeam = teams && sizesWithBots.includes(0);
+  const canStart = readyRacers >= 1 && readyRacers + botsJoin >= room.minRacers && !emptyTeam;
   const banner = (
     <>
       {!live && (
@@ -580,9 +582,9 @@ export default function RoomLobby({
           </button>
           {!canStart && (
             <p className="mt-3 text-sm text-muted">
-              {room.settings.bots
+              {readyRacers === 0
                 ? t.needOneRacer
-                : readyRacers < room.minRacers
+                : readyRacers + botsJoin < room.minRacers
                   ? t.needPlayers.replace("{n}", String(room.minRacers))
                   : t.errors.empty_team}
             </p>

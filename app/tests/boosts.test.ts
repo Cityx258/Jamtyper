@@ -62,7 +62,7 @@ test("a runaway human leader gets the spotlight fog", () => {
 });
 
 test("bots never get the fog", () => {
-  const [bot] = createBots(1, new Set(), "impossible");
+  const [bot] = createBots(["impossible"], new Set(), 1);
   bot.position = 150;
   const human = racer({ position: 10 });
   applyBoosts(race([bot, human]), NOW);

@@ -5,7 +5,7 @@ import type { Dict } from "@/i18n/en";
 import {
   CHARS_MAX,
   CUSTOM_MAX,
-  BOT_COUNTS,
+  BOTS_MAX,
   BOT_LEVELS,
   DIFFICULTIES,
   ERROR_MODES,
@@ -403,18 +403,7 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
             />
           </Field>
           {settings.bots && (
-            <Field label={t.botCount} hint={t.botCountHint}>
-              <Choice
-                options={BOT_COUNTS}
-                value={settings.botCount as (typeof BOT_COUNTS)[number]}
-                label={(v) => (v === 0 ? t.botAuto : String(v))}
-                editable={editable}
-                onPick={(v) => onChange({ botCount: v })}
-              />
-            </Field>
-          )}
-          {settings.bots && (
-            <Field label={t.botLevel}>
+            <Field label={t.botLevel} hint={t.botLevelHint}>
               <Choice
                 options={BOT_LEVELS}
                 value={settings.botLevel}
@@ -424,6 +413,56 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
               />
             </Field>
           )}
+          <div className="sm:col-span-2">
+            <Field label={t.botList} hint={t.botListHint}>
+              {settings.botLevels.length === 0 && !editable && (
+                <span className="text-muted">{t.noBots}</span>
+              )}
+              <ul className="flex flex-col gap-3">
+                {settings.botLevels.map((level, i) => (
+                  <li key={i} className="flex flex-wrap items-center gap-3">
+                    <span className="w-14 font-mono text-xs uppercase text-muted">
+                      {t.botNumber.replace("{n}", String(i + 1))}
+                    </span>
+                    <Choice
+                      options={BOT_LEVELS}
+                      value={level}
+                      label={(v) => t.botLevels[v]}
+                      editable={editable}
+                      onPick={(v) =>
+                        onChange({
+                          botLevels: settings.botLevels.map((l, j) => (j === i ? v : l)),
+                        })
+                      }
+                    />
+                    {editable && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onChange({ botLevels: settings.botLevels.filter((_, j) => j !== i) })
+                        }
+                        aria-label={t.removeBot.replace("{n}", String(i + 1))}
+                        className={`${chip} ${chipOff}`}
+                      >
+                        {t.remove}
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              {editable && settings.botLevels.length < BOTS_MAX && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    onChange({ botLevels: [...settings.botLevels, settings.botLevel] })
+                  }
+                  className={`self-start ${chip} ${chipOff}`}
+                >
+                  {t.addBot}
+                </button>
+              )}
+            </Field>
+          </div>
         </Section>
         <Section title={t.groups.rules}>
           <Field label={t.boosts} hint={t.boostsHint}>

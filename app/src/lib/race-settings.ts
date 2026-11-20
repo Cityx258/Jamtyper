@@ -13,7 +13,7 @@ export const DIFFICULTIES = ["easy", "medium", "hard"] as const;
 export type Difficulty = (typeof DIFFICULTIES)[number];
 export const ERROR_MODES = ["fix", "continue"] as const;
 export type ErrorMode = (typeof ERROR_MODES)[number];
-export const BOT_LEVELS = ["easy", "medium", "expert", "impossible"] as const;
+export const BOT_LEVELS = ["noob", "beginner", "intermediate", "expert", "impossible"] as const;
 export type BotLevel = (typeof BOT_LEVELS)[number];
 export const TEXT_THEMES = ["general", "music", "nature", "science"] as const;
 export type TextTheme = (typeof TEXT_THEMES)[number];
@@ -23,7 +23,7 @@ export const LENGTH_MIN = 10;
 export const LENGTH_MAX = 200;
 export const TIME_LIMITS = [0, 30, 60, 120, 180, 300, 600] as const;
 export const TIME_GOALS = [0, 30, 45, 60, 90, 120] as const;
-export const BOT_COUNTS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
+export const BOTS_MAX = 9;
 
 export interface RaceSettings {
   source: TextSource;
@@ -36,7 +36,7 @@ export interface RaceSettings {
   priority: string;
   errorMode: ErrorMode;
   bots: boolean;
-  botCount: number;
+  botLevels: BotLevel[];
   botLevel: BotLevel;
   boosts: boolean;
   instantDeath: boolean;
@@ -62,8 +62,8 @@ export const DEFAULT_SETTINGS: RaceSettings = {
   priority: "",
   errorMode: "fix",
   bots: true,
-  botCount: 0,
-  botLevel: "medium",
+  botLevels: [],
+  botLevel: "intermediate",
   boosts: true,
   instantDeath: false,
   teams: false,
@@ -95,6 +95,11 @@ function cleanChars(value: unknown, fallback: string): string {
   return [...new Set(chars)].slice(0, CHARS_MAX).join("");
 }
 
+function cleanBotLevels(value: unknown, fallback: BotLevel[]): BotLevel[] {
+  if (!Array.isArray(value) || value.length > BOTS_MAX) return fallback;
+  return value.every((v) => BOT_LEVELS.includes(v)) ? (value as BotLevel[]) : fallback;
+}
+
 export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettings {
   const p = (patch && typeof patch === "object" ? patch : {}) as Record<string, unknown>;
   return {
@@ -108,7 +113,7 @@ export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettin
     priority: cleanChars(p.priority, current.priority),
     errorMode: pick(ERROR_MODES, p.errorMode, current.errorMode),
     bots: bool(p.bots, current.bots),
-    botCount: pick(BOT_COUNTS, p.botCount, current.botCount as (typeof BOT_COUNTS)[number]),
+    botLevels: cleanBotLevels(p.botLevels, current.botLevels),
     botLevel: pick(BOT_LEVELS, p.botLevel, current.botLevel),
     boosts: bool(p.boosts, current.boosts),
     instantDeath: bool(p.instantDeath, current.instantDeath),

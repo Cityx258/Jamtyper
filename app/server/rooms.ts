@@ -61,6 +61,16 @@ function isUniqueViolation(e: unknown): boolean {
   return code === "23505" || causeCode === "23505";
 }
 
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+async function releaseStaleMembership(tx: Tx, userId: string | null) {
+  if (!userId) return;
+  await tx
+    .update(roomMember)
+    .set({ leftAt: new Date() })
+    .where(and(eq(roomMember.userId, userId), isNull(roomMember.leftAt)));
+}
+
 function attach(socket: AppSocket, room: Room, member: Member) {
   if (member.graceTimer) {
     clearTimeout(member.graceTimer);
@@ -212,6 +222,7 @@ export async function createRoom(
     const code = generateRoomCode();
     try {
       const roomId = await db.transaction(async (tx) => {
+        await releaseStaleMembership(tx, identity.userId);
         const [created] = await tx
           .insert(roomTable)
           .values({ code, hostId: identity.userId!, visibility })
@@ -326,6 +337,7 @@ export async function joinRoom(
     room.members.set(identity.key, created);
     try {
       await db.transaction(async (tx) => {
+        await releaseStaleMembership(tx, created.userId);
         await tx.insert(roomMember).values({
           id: created.id,
           roomId: room.id,

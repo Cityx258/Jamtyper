@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { fromFileName } from "../src/lib/tracks";
+import { fromFileName } from "../src/lib/track";
 
 describe("fromFileName", () => {
   test("splits artist and title on a spaced dash", () => {

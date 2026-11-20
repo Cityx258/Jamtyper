@@ -2,7 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { musicOn, resumeMusic, setMusic, setTracks, subscribeMusic } from "@/lib/music";
-import type { Track } from "@/lib/tracks";
+import type { Track } from "@/lib/track";
 
 export default function MusicToggle({
   tracks,
@@ -20,7 +20,6 @@ export default function MusicToggle({
     setTracks(tracks);
     resumeMusic();
   }, [tracks]);
-  if (tracks.length === 0) return null;
   return (
     <button
       type="button"

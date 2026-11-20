@@ -2,14 +2,9 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { cache } from "react";
 import { z } from "zod";
+import { fromFileName, type Track } from "./track";
 
-export type Track = {
-  src: string;
-  title: string;
-  artist: string | null;
-  license: string | null;
-  link: string | null;
-};
+export type { Track };
 
 const AUDIO = /\.(mp3|ogg|opus|m4a|wav|webm|flac)$/i;
 const DIR = path.join(process.cwd(), "public", "music");
@@ -30,18 +25,6 @@ async function readCredits(): Promise<z.infer<typeof creditsFile>> {
   } catch {
     return {};
   }
-}
-
-export function fromFileName(file: string): { title: string; artist: string | null } {
-  const name = file
-    .replace(AUDIO, "")
-    .replace(/_/g, " ")
-    .replace(/^\d+\.\s+/, "")
-    .replace(/\s*\[[^\]]*\]$/, "")
-    .trim();
-  const split = name.indexOf(" - ");
-  if (split === -1) return { title: name, artist: null };
-  return { artist: name.slice(0, split).trim() || null, title: name.slice(split + 3).trim() || name };
 }
 
 export const musicTracks = cache(async (): Promise<Track[]> => {

@@ -1,9 +1,12 @@
 "use client";
 
-import { useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import PlaylistPanel from "@/components/PlaylistPanel";
+import type { Dict } from "@/i18n/en";
 import {
   currentTrack,
   isPlaying,
+  loadCustomSongs,
   musicOn,
   musicVolume,
   previousTrack,
@@ -14,16 +17,6 @@ import {
   togglePause,
 } from "@/lib/music";
 
-type Labels = {
-  player: string;
-  play: string;
-  pause: string;
-  next: string;
-  previous: string;
-  volume: string;
-  mute: string;
-  unmute: string;
-};
 
 const control =
   "grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-teal/10 hover:text-ink";
@@ -36,18 +29,53 @@ function Icon({ children }: { children: ReactNode }) {
   );
 }
 
-export default function MusicPlayer({ t }: { t: Labels }) {
+export default function MusicPlayer({ t }: { t: Dict["player"] }) {
   const on = useSyncExternalStore(subscribeMusic, musicOn, () => false);
   const track = useSyncExternalStore(subscribeMusic, currentTrack, () => null);
   const playing = useSyncExternalStore(subscribeMusic, isPlaying, () => false);
   const volume = useSyncExternalStore(subscribeMusic, musicVolume, () => 0.25);
-  if (!on || !track) return null;
-  const name = track.artist ? `${track.title} · ${track.artist}` : track.title;
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLElement>(null);
+  useEffect(() => {
+    void loadCustomSongs();
+  }, []);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: Event) => {
+      if (e instanceof KeyboardEvent ? e.key === "Escape" : !box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("pointerdown", close);
+      document.removeEventListener("keydown", close);
+    };
+  }, [open]);
+  if (!on) return null;
+  const title = track?.title ?? t.noSong;
+  const name = track?.artist ? `${title} · ${track.artist}` : title;
   return (
     <section
+      ref={box}
       aria-label={t.player}
       className="fixed bottom-4 right-4 z-30 flex h-10 max-w-[calc(100vw-2rem)] items-center gap-0.5 rounded-full border border-line bg-raised/90 pl-1 pr-1 shadow-lg shadow-black/10 backdrop-blur"
     >
+      {open && <PlaylistPanel t={t} />}
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-controls="playlist-panel"
+        aria-label={t.playlist}
+        title={t.playlist}
+        className={`${control} ${open ? "bg-teal/10 text-ink" : ""}`}
+      >
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+          <path d="M4 6h11M4 12h11M4 18h7" />
+          <path d="M19 15V5l3 1" />
+          <circle cx="17" cy="16" r="2" fill="currentColor" />
+        </svg>
+      </button>
       <span
         title={name}
         className="hidden min-w-0 max-w-44 items-center gap-2 pl-2.5 pr-1.5 text-xs sm:flex"
@@ -57,7 +85,7 @@ export default function MusicPlayer({ t }: { t: Labels }) {
           <i />
           <i />
         </span>
-        <span className="truncate text-ink">{track.title}</span>
+        <span className={`truncate ${track ? "text-ink" : "text-muted"}`}>{title}</span>
       </span>
       <button type="button" onClick={previousTrack} aria-label={t.previous} title={t.previous} className={control}>
         <Icon>

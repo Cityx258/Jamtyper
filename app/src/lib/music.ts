@@ -1,15 +1,23 @@
 "use client";
 
-import type { Track } from "./tracks";
+import { addLink, addSongs, allSongs, removeSong, type AddResult, type LinkResult } from "./song-store";
+import type { Track } from "./track";
+
+export type MusicSource = "site" | "custom";
 
 const KEY = "jamtyper-music";
 const VOLUME_KEY = "jamtyper-music-volume";
+const SOURCE_KEY = "jamtyper-music-source";
 const DEFAULT_VOLUME = 0.25;
 const HISTORY = 50;
 const RESTART_AFTER = 3;
 const listeners = new Set<() => void>();
 let player: HTMLAudioElement | null = null;
 let playlist: Track[] = [];
+let siteTracks: Track[] = [];
+let customTracks: Track[] = [];
+let siteKey = "";
+let source: MusicSource | null = null;
 let queue: Track[] = [];
 let history: Track[] = [];
 let current: Track | null = null;
@@ -173,11 +181,118 @@ async function start(audio: HTMLAudioElement) {
   }
 }
 
-export function setTracks(tracks: Track[]) {
-  if (tracks.map((t) => t.src).join("|") === playlist.map((t) => t.src).join("|")) return;
-  playlist = tracks.filter(playable);
-  queue = [];
+export function musicSource(): MusicSource {
+  if (source) return source;
+  try {
+    source = localStorage.getItem(SOURCE_KEY) === "custom" ? "custom" : "site";
+  } catch {
+    source = "site";
+  }
+  return source;
+}
+
+export function siteSongs(): Track[] {
+  return siteTracks;
+}
+
+export function customSongs(): Track[] {
+  return customTracks;
+}
+
+function refresh() {
+  playlist = musicSource() === "custom" ? customTracks : siteTracks;
+  queue = queue.filter((t) => playlist.includes(t));
+  history = history.filter((t) => playlist.includes(t));
   failures = 0;
+}
+
+function unload(audio: HTMLAudioElement) {
+  audio.pause();
+  audio.removeAttribute("src");
+  audio.load();
+  current = null;
+  playing = false;
+}
+
+export function setTracks(tracks: Track[]) {
+  const key = tracks.map((t) => t.src).join("|");
+  if (key === siteKey) return;
+  siteKey = key;
+  siteTracks = tracks.filter(playable);
+  refresh();
+  notify();
+}
+
+export async function loadCustomSongs() {
+  const songs = await allSongs();
+  const old = new Map(customTracks.map((t) => [t.id, t]));
+  customTracks = songs.map(
+    (s) =>
+      old.get(s.id) ?? {
+        id: s.id,
+        src: s.url ?? (s.blob ? URL.createObjectURL(s.blob) : ""),
+        title: s.title,
+        artist: s.artist,
+        license: null,
+        link: s.url ?? null,
+      },
+  );
+  customTracks = customTracks.filter((t) => t.src);
+  for (const t of old.values()) if (!customTracks.includes(t) && t !== current) release(t);
+  refresh();
+  if (musicSource() === "custom") resumeMusic();
+  notify();
+}
+
+function release(track: Track) {
+  if (track.src.startsWith("blob:")) URL.revokeObjectURL(track.src);
+}
+
+export async function addCustomLink(raw: string): Promise<LinkResult> {
+  const result = await addLink(raw);
+  if (result === "added") await loadCustomSongs();
+  return result;
+}
+
+export async function addCustomSongs(files: File[]): Promise<AddResult> {
+  const result = await addSongs(files);
+  await loadCustomSongs();
+  return result;
+}
+
+export async function removeCustomSong(id: string) {
+  await removeSong(id);
+  const removed = current?.id === id ? current : null;
+  await loadCustomSongs();
+  if (removed && player) {
+    if (playlist.length > 0) next(player);
+    else unload(player);
+    release(removed);
+    notify();
+  }
+}
+
+export function setSource(value: MusicSource) {
+  if (value === musicSource()) return;
+  source = value;
+  try {
+    localStorage.setItem(SOURCE_KEY, value);
+  } catch {}
+  queue = [];
+  history = [];
+  refresh();
+  if (player) unload(player);
+  held = false;
+  resumeMusic();
+  notify();
+}
+
+export function playTrack(track: Track) {
+  if (!playlist.includes(track)) return;
+  held = false;
+  queue = queue.filter((t) => t !== track);
+  if (current) history = [...history, current].slice(-HISTORY);
+  load(element(), track);
 }
 
 export function resumeMusic() {

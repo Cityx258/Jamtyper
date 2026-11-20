@@ -438,82 +438,7 @@ export default function RoomLobby({
         </div>
       )}
 
-      {me && room.status === "lobby" && (
-        <LobbyNotePicker
-          current={me.note}
-          unlocked={me.notes}
-          guest={me.isGuest}
-          t={t.yourNote}
-          notesT={notesT}
-          onPick={(note) => run(requestNote(note))}
-        />
-      )}
-
-      <section className="mt-10 max-w-xl" aria-labelledby="visibility-title">
-        <h2
-          id="visibility-title"
-          className="font-mono text-xs uppercase tracking-[0.3em] text-muted"
-        >
-          {t.visibilityTitle}
-        </h2>
-        {isHost ? (
-          <SlidingChoice indicator="rounded-full border border-teal bg-teal/15" className="mt-3 flex flex-wrap gap-2" role="group" aria-labelledby="visibility-title">
-            {VISIBILITIES.map((v) => (
-              <button
-                key={v}
-                type="button"
-                aria-pressed={room.visibility === v}
-                onClick={() => run(requestVisibility(v))}
-                className={
-                  room.visibility === v
-                    ? "rounded-full border border-transparent px-4 py-1.5 text-sm font-medium text-ink transition-colors"
-                    : "rounded-full border border-line px-4 py-1.5 text-sm text-muted transition-colors hover:border-teal hover:text-ink"
-                }
-              >
-                {t.visibilities[v]}
-              </button>
-            ))}
-          </SlidingChoice>
-        ) : (
-          <p className="mt-2 font-display text-xl">{t.visibilities[room.visibility]}</p>
-        )}
-        <p className="mt-2 text-sm text-muted">{t.visibilityHints[room.visibility]}</p>
-
-        {isHost && isPrivate && (
-          <div className="mt-5">
-            <button type="button" onClick={newInvite} className={secondaryButton}>
-              {t.newInvite}
-            </button>
-            {invites.length > 0 && (
-              <ul className={`mt-4 divide-y divide-line px-5 ${panel}`} aria-label={t.inviteList}>
-                {invites.map((inv, i) => (
-                  <li key={inv.id} className="flex flex-wrap items-center gap-3 py-2 text-sm">
-                    <span className="font-mono text-xs text-muted">#{i + 1}</span>
-                    <span className="min-w-0 flex-1">
-                      {inv.usedBy === null
-                        ? t.inviteUnused
-                        : t.inviteUsedBy.replace("{name}", inv.usedBy || t.inviteSomeone)}
-                    </span>
-                    <button type="button" onClick={() => copy(inv.id)} className={smallButton}>
-                      {copied === inv.id ? t.copied : t.copyInvite}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p className="mt-2 text-sm text-muted">{t.inviteHint}</p>
-          </div>
-        )}
-      </section>
-
-      <RaceSettingsPanel
-        settings={room.settings}
-        editable={isHost}
-        t={t.settings}
-        onChange={(patch) => run(requestConfigure(patch))}
-      />
-
-      <section className="mt-12" aria-label={t.players}>
+      <section className="mt-10" aria-label={t.players}>
         <h2 className="font-display text-2xl">
           {t.players}{" "}
           <span className="font-mono text-base text-muted">
@@ -595,6 +520,81 @@ export default function RoomLobby({
           ))}
         </ul>
       </section>
+
+      {me && room.status === "lobby" && (
+        <LobbyNotePicker
+          current={me.note}
+          unlocked={me.notes}
+          guest={me.isGuest}
+          t={t.yourNote}
+          notesT={notesT}
+          onPick={(note) => run(requestNote(note))}
+        />
+      )}
+
+      <section className="mt-10 max-w-xl" aria-labelledby="visibility-title">
+        <h2
+          id="visibility-title"
+          className="font-mono text-xs uppercase tracking-[0.3em] text-muted"
+        >
+          {t.visibilityTitle}
+        </h2>
+        {isHost ? (
+          <SlidingChoice indicator="rounded-full border border-teal bg-teal/15" className="mt-3 flex flex-wrap gap-2" role="group" aria-labelledby="visibility-title">
+            {VISIBILITIES.map((v) => (
+              <button
+                key={v}
+                type="button"
+                aria-pressed={room.visibility === v}
+                onClick={() => run(requestVisibility(v))}
+                className={
+                  room.visibility === v
+                    ? "rounded-full border border-transparent px-4 py-1.5 text-sm font-medium text-ink transition-colors"
+                    : "rounded-full border border-line px-4 py-1.5 text-sm text-muted transition-colors hover:border-teal hover:text-ink"
+                }
+              >
+                {t.visibilities[v]}
+              </button>
+            ))}
+          </SlidingChoice>
+        ) : (
+          <p className="mt-2 font-display text-xl">{t.visibilities[room.visibility]}</p>
+        )}
+        <p className="mt-2 text-sm text-muted">{t.visibilityHints[room.visibility]}</p>
+
+        {isHost && isPrivate && (
+          <div className="mt-5">
+            <button type="button" onClick={newInvite} className={secondaryButton}>
+              {t.newInvite}
+            </button>
+            {invites.length > 0 && (
+              <ul className={`mt-4 divide-y divide-line px-5 ${panel}`} aria-label={t.inviteList}>
+                {invites.map((inv, i) => (
+                  <li key={inv.id} className="flex flex-wrap items-center gap-3 py-2 text-sm">
+                    <span className="font-mono text-xs text-muted">#{i + 1}</span>
+                    <span className="min-w-0 flex-1">
+                      {inv.usedBy === null
+                        ? t.inviteUnused
+                        : t.inviteUsedBy.replace("{name}", inv.usedBy || t.inviteSomeone)}
+                    </span>
+                    <button type="button" onClick={() => copy(inv.id)} className={smallButton}>
+                      {copied === inv.id ? t.copied : t.copyInvite}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="mt-2 text-sm text-muted">{t.inviteHint}</p>
+          </div>
+        )}
+      </section>
+
+      <RaceSettingsPanel
+        settings={room.settings}
+        editable={isHost}
+        t={t.settings}
+        onChange={(patch) => run(requestConfigure(patch))}
+      />
 
       <p className="mt-8 max-w-xl text-muted">
         {isPrivate ? t.waitingInvite : t.waiting}

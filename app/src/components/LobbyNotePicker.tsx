@@ -4,6 +4,7 @@ import { useState } from "react";
 import NoteIcon from "@/components/NoteIcon";
 import type { Dict } from "@/i18n/en";
 import { NOTES, winsFor, type NoteKind } from "@/lib/notes";
+import SlidingChoice from "@/components/SlidingChoice";
 
 type Props = {
   current: NoteKind;
@@ -22,7 +23,7 @@ export default function LobbyNotePicker({ current, unlocked, guest, t, notesT, o
         {t.title}
       </h2>
       <p className="mt-1 max-w-xl text-sm text-muted">{guest ? t.guestHint : t.hint}</p>
-      <div className="mt-4 flex flex-wrap gap-2">
+      <SlidingChoice indicator="rounded-2xl border border-teal bg-teal/15" className="mt-4 flex flex-wrap gap-2">
         {NOTES.map((note) => {
           const open = unlocked.includes(note) && !guest;
           const active = note === current;
@@ -42,7 +43,7 @@ export default function LobbyNotePicker({ current, unlocked, guest, t, notesT, o
               }}
               className={`flex h-16 w-14 flex-col items-center justify-center gap-1 rounded-2xl border transition-colors ${
                 active
-                  ? "border-teal bg-teal/15 text-teal"
+                  ? "border-transparent text-teal"
                   : open
                     ? "border-line text-ink hover:border-teal"
                     : "cursor-not-allowed border-line text-muted opacity-40"
@@ -57,7 +58,7 @@ export default function LobbyNotePicker({ current, unlocked, guest, t, notesT, o
             </button>
           );
         })}
-      </div>
+      </SlidingChoice>
     </section>
   );
 }

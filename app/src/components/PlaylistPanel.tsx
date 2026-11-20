@@ -16,6 +16,7 @@ import {
   type MusicSource,
 } from "@/lib/music";
 import type { Track } from "@/lib/track";
+import SlidingChoice from "@/components/SlidingChoice";
 
 const EMPTY: Track[] = [];
 
@@ -73,7 +74,7 @@ export default function PlaylistPanel({ t }: { t: Dict["player"] }) {
         setSource(value);
       }}
       className={`flex-1 rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
-        source === value ? "bg-teal text-on-teal" : "text-muted hover:text-ink"
+        source === value ? "text-on-teal" : "text-muted hover:text-ink"
       }`}
     >
       {label}
@@ -85,10 +86,10 @@ export default function PlaylistPanel({ t }: { t: Dict["player"] }) {
       id="playlist-panel"
       className="absolute bottom-12 right-0 flex max-h-[min(28rem,calc(100vh-6rem))] w-[min(20rem,calc(100vw-2rem))] flex-col rounded-3xl border border-line bg-raised p-3 shadow-xl shadow-black/15"
     >
-      <div role="tablist" aria-label={t.playlist} className="flex gap-1 rounded-full border border-line p-1">
+      <SlidingChoice role="tablist" aria-label={t.playlist} indicator="rounded-full bg-teal" className="flex gap-1 rounded-full border border-line p-1">
         {tab("site", t.siteList)}
         {tab("custom", t.customList)}
-      </div>
+      </SlidingChoice>
 
       <ul className="mt-3 min-h-0 flex-1 overflow-y-auto">
         {songs.length === 0 && (

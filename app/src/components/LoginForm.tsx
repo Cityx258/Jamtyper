@@ -9,6 +9,7 @@ import { createRecoveryCode } from "@/app/recovery-actions";
 import RecoveryCodeNotice from "@/components/RecoveryCodeNotice";
 import { authClient } from "@/lib/auth-client";
 import { USERNAME_RE } from "@/lib/username";
+import SlidingChoice from "@/components/SlidingChoice";
 
 type T = Dict["login"];
 
@@ -155,9 +156,10 @@ export default function LoginForm({
 
   return (
     <div className="w-full max-w-md">
-      <div
+      <SlidingChoice
         role="tablist"
         aria-label={t.tablistLabel}
+        indicator="rounded-full bg-teal"
         className="mb-8 flex gap-1 rounded-full border border-line bg-raised/70 p-1"
       >
         {(
@@ -174,14 +176,14 @@ export default function LoginForm({
             onClick={() => switchMode(id)}
             className={`flex-1 rounded-full px-4 py-2 font-display text-base transition-colors ${
               mode === id
-                ? "bg-teal text-on-teal"
+                ? "text-on-teal"
                 : "text-muted hover:text-ink"
             }`}
           >
             {label}
           </button>
         ))}
-      </div>
+      </SlidingChoice>
 
       <div className="space-y-3">
         {(["discord", "github"] as const).map((p) => (

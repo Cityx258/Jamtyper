@@ -46,6 +46,7 @@ import {
   requestWatch,
   resetSocket,
 } from "@/lib/socket";
+import SlidingChoice from "@/components/SlidingChoice";
 
 type Props = {
   code: string | null;
@@ -445,7 +446,7 @@ export default function RoomLobby({
           {t.visibilityTitle}
         </h2>
         {isHost ? (
-          <div className="mt-3 flex flex-wrap gap-2" role="group" aria-labelledby="visibility-title">
+          <SlidingChoice indicator="rounded-full border border-teal bg-teal/15" className="mt-3 flex flex-wrap gap-2" role="group" aria-labelledby="visibility-title">
             {VISIBILITIES.map((v) => (
               <button
                 key={v}
@@ -454,14 +455,14 @@ export default function RoomLobby({
                 onClick={() => run(requestVisibility(v))}
                 className={
                   room.visibility === v
-                    ? "rounded-full border border-teal bg-teal/15 px-4 py-1.5 text-sm font-medium text-ink"
+                    ? "rounded-full border border-transparent px-4 py-1.5 text-sm font-medium text-ink transition-colors"
                     : "rounded-full border border-line px-4 py-1.5 text-sm text-muted transition-colors hover:border-teal hover:text-ink"
                 }
               >
                 {t.visibilities[v]}
               </button>
             ))}
-          </div>
+          </SlidingChoice>
         ) : (
           <p className="mt-2 font-display text-xl">{t.visibilities[room.visibility]}</p>
         )}

@@ -5,6 +5,7 @@ import { pickNote } from "@/app/note-actions";
 import NoteIcon from "@/components/NoteIcon";
 import type { Dict } from "@/i18n/en";
 import { NOTES, unlockedNotes, winsFor, type NoteKind } from "@/lib/notes";
+import SlidingChoice from "@/components/SlidingChoice";
 
 type Props = {
   wins: number;
@@ -37,7 +38,7 @@ export default function NotePicker({ wins, current, t }: Props) {
               .replace("{note}", t.names[next])
           : t.allUnlocked}
       </p>
-      <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <SlidingChoice as="ul" indicator="rounded-2xl border border-teal bg-teal/15" className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {NOTES.map((note) => {
           const open = unlocked.includes(note);
           const active = note === selected;
@@ -50,7 +51,7 @@ export default function NotePicker({ wins, current, t }: Props) {
                 onClick={() => choose(note)}
                 className={`flex h-full w-full flex-col items-center gap-3 rounded-2xl border px-3 py-5 text-center transition-colors ${
                   active
-                    ? "border-teal bg-teal/15 text-ink"
+                    ? "border-transparent text-ink"
                     : open
                       ? "border-line text-ink hover:border-teal"
                       : "cursor-not-allowed border-line text-muted opacity-50"
@@ -65,7 +66,7 @@ export default function NotePicker({ wins, current, t }: Props) {
             </li>
           );
         })}
-      </ul>
+      </SlidingChoice>
     </section>
   );
 }

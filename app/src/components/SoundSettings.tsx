@@ -16,6 +16,7 @@ import {
 } from "@/lib/sound";
 import type { MelodyNote } from "@/lib/melody";
 import { panel } from "@/components/ui";
+import SlidingChoice from "@/components/SlidingChoice";
 
 type T = Dict["settings"]["sound"];
 
@@ -127,7 +128,7 @@ export default function SoundSettings({ t }: { t: T }) {
         <Slider value={musicLevel} onChange={setVolume} label={t.musicVolume} disabled={!music} />
       </Row>
       <Row label={t.playlist} hint={t.playlistHint}>
-        <span role="radiogroup" aria-label={t.playlist} className="flex gap-1 rounded-full border border-line p-1">
+        <SlidingChoice as="span" role="radiogroup" aria-label={t.playlist} indicator="rounded-full bg-teal" className="flex gap-1 rounded-full border border-line p-1">
           {(["site", "custom"] as const).map((value) => (
             <button
               key={value}
@@ -136,13 +137,13 @@ export default function SoundSettings({ t }: { t: T }) {
               aria-checked={source === value}
               onClick={() => setSource(value)}
               className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
-                source === value ? "bg-teal text-on-teal" : "text-muted hover:text-ink"
+                source === value ? "text-on-teal" : "text-muted hover:text-ink"
               }`}
             >
               {value === "site" ? t.siteList : t.customList}
             </button>
           ))}
-        </span>
+        </SlidingChoice>
       </Row>
     </div>
   );

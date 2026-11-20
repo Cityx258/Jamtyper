@@ -9,6 +9,7 @@ import { getDict, getLocale, getTheme } from "@/i18n";
 import { auth, enabledProviders } from "@/lib/auth";
 import { methodViews } from "@/lib/sign-in-methods";
 import { kicker, panel } from "@/components/ui";
+import SlidingChoice from "@/components/SlidingChoice";
 
 export async function generateMetadata() {
   return { title: `${(await getDict()).settings.title} | JamTyper` };
@@ -32,7 +33,7 @@ export default async function SettingsPage(props: PageProps<"/settings">) {
     : null;
   const choice = (active: boolean) =>
     `rounded-full px-4 py-1.5 text-xs font-bold transition-colors ${
-      active ? "bg-teal text-on-teal" : "text-muted hover:text-ink"
+      active ? "text-on-teal" : "text-muted hover:text-ink"
     }`;
 
   return (
@@ -71,7 +72,7 @@ export default async function SettingsPage(props: PageProps<"/settings">) {
           <div className={`mt-6 max-w-3xl divide-y divide-line px-5 sm:px-7 ${panel}`}>
             <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
               <p className="font-medium text-ink">{t.display.theme}</p>
-              <div role="group" aria-label={t.display.theme} className="flex gap-1 self-start rounded-full border border-line p-1">
+              <SlidingChoice role="group" aria-label={t.display.theme} indicator="rounded-full bg-teal" className="flex gap-1 self-start rounded-full border border-line p-1">
                 {(["system", "light", "dark"] as const).map((value) => (
                   <form key={value} action={setTheme.bind(null, value)}>
                     <button type="submit" aria-pressed={theme === value} className={choice(theme === value)}>
@@ -79,11 +80,11 @@ export default async function SettingsPage(props: PageProps<"/settings">) {
                     </button>
                   </form>
                 ))}
-              </div>
+              </SlidingChoice>
             </div>
             <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
               <p className="font-medium text-ink">{t.display.language}</p>
-              <div role="group" aria-label={t.display.language} className="flex gap-1 self-start rounded-full border border-line p-1">
+              <SlidingChoice role="group" aria-label={t.display.language} indicator="rounded-full bg-teal" className="flex gap-1 self-start rounded-full border border-line p-1">
                 {(["en", "fr"] as const).map((value) => (
                   <form key={value} action={setLocale.bind(null, value)}>
                     <button type="submit" lang={value} aria-pressed={locale === value} className={choice(locale === value)}>
@@ -91,7 +92,7 @@ export default async function SettingsPage(props: PageProps<"/settings">) {
                     </button>
                   </form>
                 ))}
-              </div>
+              </SlidingChoice>
             </div>
           </div>
         </section>

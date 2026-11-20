@@ -22,6 +22,7 @@ import {
   type SettingsView,
 } from "@/lib/race-settings";
 import { generateText } from "@/lib/texts";
+import SlidingChoice from "@/components/SlidingChoice";
 
 type T = Dict["room"]["settings"];
 
@@ -33,7 +34,7 @@ type Props = {
 };
 
 const chip = "rounded-full border px-3.5 py-1.5 text-sm transition-colors disabled:cursor-default";
-const chipOn = "border-teal bg-teal/15 font-medium text-ink";
+const chipOn = "border-transparent font-medium text-ink";
 const chipOff = "border-line text-muted enabled:hover:border-teal enabled:hover:text-ink";
 
 function useDraft<V>(value: V, send: (v: V) => Promise<unknown>) {
@@ -82,7 +83,7 @@ export function Choice<V extends string | number>({
   onPick: (v: V) => void;
 }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <SlidingChoice indicator="rounded-full border border-teal bg-teal/15" className="flex flex-wrap gap-2">
       {options.map((o) => (
         <button
           key={String(o)}
@@ -97,7 +98,7 @@ export function Choice<V extends string | number>({
           {label(o)}
         </button>
       ))}
-    </div>
+    </SlidingChoice>
   );
 }
 

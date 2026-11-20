@@ -57,3 +57,9 @@ test("a singer's phrase is drawn as beamed eighth notes", () => {
   expect(systems[0].symbols.map((s) => s.pitch)).toEqual(phrase);
   expect(beams(systems[0])[0].count).toBe(1);
 });
+
+test("Leek Miku's fast phrase is drawn as sixteenth notes", () => {
+  const { systems } = layout([racer("l", "mikuLeek", [2, 5, 4, 3, 5, 6, 1, 5])], 1000);
+  expect(systems[0].symbols.every((s) => s.note === "sixteenth")).toBe(true);
+  expect(beams(systems[0])[0].count).toBe(2);
+});

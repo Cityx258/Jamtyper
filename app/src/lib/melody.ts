@@ -17,6 +17,7 @@ const BEATS: Record<NoteKind, number> = {
   rin: 0.5,
   gumi: 0.5,
   teto: 0.5,
+  mikuLeek: 0.25,
 };
 
 export const PHRASE_LENGTH = 8;
@@ -27,6 +28,10 @@ export const SONGS: Record<Singer, number[] | null> = {
   rin: [3, 4, 5, 5, 5, 5, 6, 7, 5, 4, 4, 4, 3, 2, 4, 1, 1, 1, 1, 2, 3, 2, 1, 0, 2, 3, 4, 5, 5, 5, 5, 6],
   gumi: [3, 7, 5, 3, 5, 2, 3, 5, 2, 3, 7, 7, 7, 3, 7, 5, 3, 5, 2, 3, 5, 2, 3, 7],
   teto: null,
+  mikuLeek: [
+    2, 5, 4, 3, 5, 6, 1, 5, 3, 1, 4, 3, 3, 4, 6, 3, 5, 3, 1, 7, 5, 3, 1, 4, 5, 4, 1, 4, 7, 5, 5, 2, 5, 4, 5, 2,
+    5, 3, 5, 6, 4, 6, 8, 7, 6, 5, 2, 0, 2, 5, 3, 1, 5, 3, 1, 6,
+  ],
 };
 
 export function phrases(song: number[]): number[][] {

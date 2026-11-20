@@ -51,4 +51,5 @@ test("singers come after every classic note and draw as eighth notes on the staf
   expect(isSinger("whole")).toBe(false);
   expect(glyphFor("gumi")).toBe("eighth");
   expect(glyphFor("half")).toBe("half");
+  expect(glyphFor("mikuLeek")).toBe("sixteenth");
 });

@@ -424,6 +424,7 @@ const en = {
         rin: "Rin",
         gumi: "GUMI",
         teto: "Teto",
+        mikuLeek: "Leek Miku",
       },
     },
     heatmap: {

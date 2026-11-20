@@ -429,6 +429,7 @@ const fr: Dict = {
         rin: "Rin",
         gumi: "GUMI",
         teto: "Teto",
+        mikuLeek: "Miku au poireau",
       },
     },
     heatmap: {

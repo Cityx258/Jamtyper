@@ -6,7 +6,7 @@ import KeyboardOnly from "@/components/KeyboardOnly";
 import KickButton from "@/components/KickButton";
 import StaffLane from "@/components/StaffLane";
 import TypingBox from "@/components/TypingBox";
-import { dangerButton, secondaryButton } from "@/components/ui";
+import { dangerButton, secondaryButton, kicker } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import type { MemberView, RaceView, RoomStatus } from "@/lib/room-protocol";
 import { sendProgress } from "@/lib/socket";
@@ -64,7 +64,7 @@ export default function RaceScreen({
   if (status === "countdown") {
     return (
       <div className="flex flex-col items-center py-16 text-center">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal">
+        <p className={`${kicker} self-center`}>
           {t.getReady}
         </p>
         <p className="mt-6 font-display text-8xl" aria-live="polite">

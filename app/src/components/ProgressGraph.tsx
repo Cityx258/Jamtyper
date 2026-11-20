@@ -5,6 +5,7 @@ import type { Dict } from "@/i18n/en";
 import type { Locale } from "@/i18n";
 import { dailyAverages, localDay, type RacePoint, timeTicks } from "@/lib/progress-graph";
 import { niceMax } from "@/lib/race-graph";
+import { panel } from "@/components/ui";
 
 type Props = {
   points: RacePoint[];
@@ -79,138 +80,140 @@ export default function ProgressGraph({ points, locale, t }: Props) {
           {t.daily}
         </span>
       </div>
-      <div ref={box} className="relative mt-4">
-        <svg
-          width={W}
-          height={H}
-          viewBox={`0 0 ${W} ${H}`}
-          className="block touch-none select-none"
-          role="img"
-          aria-label={t.summary
-            .replace("{count}", String(points.length))
-            .replace("{first}", String(Math.round(days[0].wpm)))
-            .replace("{last}", String(Math.round(days[days.length - 1].wpm)))}
-          onPointerMove={onMove}
-          onPointerDown={onMove}
-          onPointerLeave={() => setHover(null)}
-        >
-          {yTicks.map((v) => (
-            <g key={v}>
-              <line
-                x1={PAD.left}
-                x2={W - PAD.right}
-                y1={y(v)}
-                y2={y(v)}
-                stroke="var(--line)"
-                strokeOpacity={v === 0 ? 1 : 0.6}
-                strokeWidth={1}
-              />
+      <div className={`mt-4 p-4 sm:p-6 ${panel}`}>
+        <div ref={box} className="relative">
+          <svg
+            width={W}
+            height={H}
+            viewBox={`0 0 ${W} ${H}`}
+            className="block touch-none select-none"
+            role="img"
+            aria-label={t.summary
+              .replace("{count}", String(points.length))
+              .replace("{first}", String(Math.round(days[0].wpm)))
+              .replace("{last}", String(Math.round(days[days.length - 1].wpm)))}
+            onPointerMove={onMove}
+            onPointerDown={onMove}
+            onPointerLeave={() => setHover(null)}
+          >
+            {yTicks.map((v) => (
+              <g key={v}>
+                <line
+                  x1={PAD.left}
+                  x2={W - PAD.right}
+                  y1={y(v)}
+                  y2={y(v)}
+                  stroke="var(--line)"
+                  strokeOpacity={v === 0 ? 1 : 0.6}
+                  strokeWidth={1}
+                />
+                <text
+                  x={PAD.left - 8}
+                  y={y(v)}
+                  textAnchor="end"
+                  dominantBaseline="middle"
+                  className="fill-muted font-mono text-[11px]"
+                >
+                  {v}
+                </text>
+              </g>
+            ))}
+            {ticks.map((at, i) => (
               <text
-                x={PAD.left - 8}
-                y={y(v)}
-                textAnchor="end"
-                dominantBaseline="middle"
+                key={i}
+                x={x(at)}
+                y={H - 8}
+                textAnchor={i === 0 ? "start" : i === ticks.length - 1 ? "end" : "middle"}
                 className="fill-muted font-mono text-[11px]"
               >
-                {v}
+                {tickFormat.format(at)}
               </text>
-            </g>
-          ))}
-          {ticks.map((at, i) => (
-            <text
-              key={i}
-              x={x(at)}
-              y={H - 8}
-              textAnchor={i === 0 ? "start" : i === ticks.length - 1 ? "end" : "middle"}
-              className="fill-muted font-mono text-[11px]"
-            >
-              {tickFormat.format(at)}
-            </text>
-          ))}
-          {points.map((p, i) => (
-            <circle
-              key={i}
-              cx={x(p.at)}
-              cy={y(p.wpm)}
-              r={3.5}
-              fill="var(--muted)"
-              fillOpacity={0.55}
-              stroke="var(--bg)"
-              strokeWidth={1}
-            />
-          ))}
-          {days.length > 1 && (
-            <>
-              <path d={dayLine} fill="none" stroke="var(--bg)" strokeWidth={5} strokeLinejoin="round" />
-              <path
-                d={dayLine}
-                fill="none"
-                stroke="var(--teal)"
-                strokeWidth={2}
-                strokeLinejoin="round"
-                strokeLinecap="round"
-              />
-            </>
-          )}
-          {days.map((d) => (
-            <circle
-              key={d.day}
-              cx={x(d.at)}
-              cy={y(d.wpm)}
-              r={4}
-              fill="var(--teal)"
-              stroke="var(--bg)"
-              strokeWidth={2}
-            />
-          ))}
-          {hovered && (
-            <>
-              <line
-                x1={x(hovered.at)}
-                x2={x(hovered.at)}
-                y1={PAD.top}
-                y2={PAD.top + PLOT_H}
-                stroke="var(--muted)"
-                strokeWidth={1}
-                strokeDasharray="3 3"
-              />
+            ))}
+            {points.map((p, i) => (
               <circle
-                cx={x(hovered.at)}
-                cy={y(hovered.wpm)}
-                r={5}
-                fill="var(--ink)"
+                key={i}
+                cx={x(p.at)}
+                cy={y(p.wpm)}
+                r={3.5}
+                fill="var(--muted)"
+                fillOpacity={0.55}
+                stroke="var(--bg)"
+                strokeWidth={1}
+              />
+            ))}
+            {days.length > 1 && (
+              <>
+                <path d={dayLine} fill="none" stroke="var(--bg)" strokeWidth={5} strokeLinejoin="round" />
+                <path
+                  d={dayLine}
+                  fill="none"
+                  stroke="var(--teal)"
+                  strokeWidth={2}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                />
+              </>
+            )}
+            {days.map((d) => (
+              <circle
+                key={d.day}
+                cx={x(d.at)}
+                cy={y(d.wpm)}
+                r={4}
+                fill="var(--teal)"
                 stroke="var(--bg)"
                 strokeWidth={2}
               />
-            </>
-          )}
-        </svg>
-        {hovered && (
-          <div
-            className="pointer-events-none absolute top-2 z-10 min-w-40 rounded-lg border border-line bg-raised px-3 py-2 text-xs shadow-lg"
-            style={hoverLeft > 60 ? { right: `${100 - hoverLeft + 2}%` } : { left: `${hoverLeft + 2}%` }}
-          >
-            <p className="font-mono text-muted">{hoverFormat.format(hovered.at)}</p>
-            <p className="mt-1 flex justify-between gap-4 text-ink">
-              <span>{t.thisRace}</span>
-              <span className="font-mono">
-                {Math.round(hovered.wpm)} {t.wpm}
-              </span>
-            </p>
-            {hoveredDay && (
-              <p className="flex justify-between gap-4 text-ink">
-                <span>
-                  {hoveredDay.races === 1
-                    ? t.dayAverageOne
-                    : t.dayAverage.replace("{n}", String(hoveredDay.races))}
-                </span>
+            ))}
+            {hovered && (
+              <>
+                <line
+                  x1={x(hovered.at)}
+                  x2={x(hovered.at)}
+                  y1={PAD.top}
+                  y2={PAD.top + PLOT_H}
+                  stroke="var(--muted)"
+                  strokeWidth={1}
+                  strokeDasharray="3 3"
+                />
+                <circle
+                  cx={x(hovered.at)}
+                  cy={y(hovered.wpm)}
+                  r={5}
+                  fill="var(--ink)"
+                  stroke="var(--bg)"
+                  strokeWidth={2}
+                />
+              </>
+            )}
+          </svg>
+          {hovered && (
+            <div
+              className="pointer-events-none absolute top-2 z-10 min-w-40 rounded-2xl border border-line bg-raised px-3 py-2 text-xs shadow-lg"
+              style={hoverLeft > 60 ? { right: `${100 - hoverLeft + 2}%` } : { left: `${hoverLeft + 2}%` }}
+            >
+              <p className="font-mono text-muted">{hoverFormat.format(hovered.at)}</p>
+              <p className="mt-1 flex justify-between gap-4 text-ink">
+                <span>{t.thisRace}</span>
                 <span className="font-mono">
-                  {Math.round(hoveredDay.wpm)} {t.wpm}
+                  {Math.round(hovered.wpm)} {t.wpm}
                 </span>
               </p>
-            )}
-          </div>
-        )}
+              {hoveredDay && (
+                <p className="flex justify-between gap-4 text-ink">
+                  <span>
+                    {hoveredDay.races === 1
+                      ? t.dayAverageOne
+                      : t.dayAverage.replace("{n}", String(hoveredDay.races))}
+                  </span>
+                  <span className="font-mono">
+                    {Math.round(hoveredDay.wpm)} {t.wpm}
+                  </span>
+                </p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );

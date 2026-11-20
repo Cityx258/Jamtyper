@@ -15,6 +15,8 @@ import {
   primaryButton,
   secondaryButton,
   smallButton,
+  kicker,
+  panel,
 } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import {
@@ -310,7 +312,7 @@ export default function RoomLobby({
             required
             autoFocus
             autoComplete="nickname"
-            className="w-full rounded-lg border border-line bg-bg/70 px-4 py-3 text-ink focus:border-teal focus:outline-none"
+            className="w-full rounded-full border border-line bg-bg/70 px-5 py-3 text-ink focus:border-teal focus:outline-none"
           />
         </label>
         <div className="mt-5 flex flex-wrap items-center gap-4">
@@ -412,11 +414,10 @@ export default function RoomLobby({
     <div className="w-full">
       {banner}
 
-      <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal">
+      <p className={kicker}>
         {t.kicker}
       </p>
       <div className="relative mt-4">
-        <div className="staff absolute inset-x-0 top-[calc(var(--staff-gap)*0.5)]" />
         <h1
           className="relative font-display text-5xl tracking-[0.18em] sm:text-7xl"
           aria-label={room.code.split("").join(" ")}
@@ -424,6 +425,7 @@ export default function RoomLobby({
           {room.code}
         </h1>
       </div>
+      <span aria-hidden="true" className="ribbon mt-5" />
       {!isPrivate && (
         <div className="mt-6 flex flex-wrap gap-3">
           <button type="button" onClick={() => copy("code")} className={secondaryButton}>
@@ -471,7 +473,7 @@ export default function RoomLobby({
               {t.newInvite}
             </button>
             {invites.length > 0 && (
-              <ul className="mt-4 divide-y divide-line border-y border-line" aria-label={t.inviteList}>
+              <ul className={`mt-4 divide-y divide-line px-5 ${panel}`} aria-label={t.inviteList}>
                 {invites.map((inv, i) => (
                   <li key={inv.id} className="flex flex-wrap items-center gap-3 py-2 text-sm">
                     <span className="font-mono text-xs text-muted">#{i + 1}</span>
@@ -519,7 +521,7 @@ export default function RoomLobby({
               .replace("{max}", String(room.settings.capacity))}
           </span>
         </h2>
-        <ul className="mt-4 divide-y divide-line border-y border-line">
+        <ul className={`mt-4 divide-y divide-line px-5 sm:px-6 ${panel}`}>
           {room.members.map((m) => (
             <li
               key={m.id}

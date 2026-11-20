@@ -15,6 +15,7 @@ import {
   type SoundChannel,
 } from "@/lib/sound";
 import type { MelodyNote } from "@/lib/melody";
+import { panel } from "@/components/ui";
 
 type T = Dict["settings"]["sound"];
 
@@ -27,7 +28,7 @@ const SAMPLE: MelodyNote[] = [
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-3 border-b border-line py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+    <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
       <div className="min-w-0">
         <p className="font-medium text-ink">{label}</p>
         {hint && <p className="mt-1 text-sm text-muted">{hint}</p>}
@@ -102,7 +103,7 @@ export default function SoundSettings({ t }: { t: T }) {
   const level = (channel: SoundChannel) => (v: number) => setSoundVolume(channel, v);
 
   return (
-    <div className="max-w-3xl border-t border-line">
+    <div className={`max-w-3xl divide-y divide-line px-5 sm:px-7 ${panel}`}>
       <Row label={t.effects} hint={t.effectsHint}>
         <Switch on={effects} onChange={setSound} label={t.effects} t={t} />
       </Row>

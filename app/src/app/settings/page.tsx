@@ -8,6 +8,7 @@ import SignInMethods from "@/components/SignInMethods";
 import { getDict, getLocale, getTheme } from "@/i18n";
 import { auth, enabledProviders } from "@/lib/auth";
 import { methodViews } from "@/lib/sign-in-methods";
+import { kicker, panel } from "@/components/ui";
 
 export async function generateMetadata() {
   return { title: `${(await getDict()).settings.title} | JamTyper` };
@@ -38,13 +39,13 @@ export default async function SettingsPage(props: PageProps<"/settings">) {
     <>
       <Header />
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pb-16 pt-8 sm:px-8 sm:pt-14">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal">
+        <p className={kicker}>
           {session ? t.kicker : t.kickerGuest}
         </p>
         <div className="relative mt-4">
-          <div className="staff absolute inset-x-0 top-[calc(var(--staff-gap)*0.5)]" />
           <h1 className="relative font-display text-4xl sm:text-7xl">{t.title}</h1>
         </div>
+        <span aria-hidden="true" className="ribbon mt-5" />
         {session && (
           <Link
             href="/profile"
@@ -67,8 +68,8 @@ export default async function SettingsPage(props: PageProps<"/settings">) {
           <h2 id="display-title" className="font-display text-3xl">
             {t.display.title}
           </h2>
-          <div className="mt-6 max-w-3xl border-t border-line">
-            <div className="flex flex-col gap-3 border-b border-line py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className={`mt-6 max-w-3xl divide-y divide-line px-5 sm:px-7 ${panel}`}>
+            <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
               <p className="font-medium text-ink">{t.display.theme}</p>
               <div role="group" aria-label={t.display.theme} className="flex gap-1 self-start rounded-full border border-line p-1">
                 {(["system", "light", "dark"] as const).map((value) => (
@@ -80,7 +81,7 @@ export default async function SettingsPage(props: PageProps<"/settings">) {
                 ))}
               </div>
             </div>
-            <div className="flex flex-col gap-3 border-b border-line py-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
               <p className="font-medium text-ink">{t.display.language}</p>
               <div role="group" aria-label={t.display.language} className="flex gap-1 self-start rounded-full border border-line p-1">
                 {(["en", "fr"] as const).map((value) => (

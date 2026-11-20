@@ -43,7 +43,7 @@ function Key({
   return (
     <div
       title={n ? title.replace("{n}", String(n)) : undefined}
-      className={`grid h-9 place-items-center rounded-md border border-line font-mono text-xs uppercase sm:h-11 sm:text-sm ${
+      className={`grid h-9 place-items-center rounded-lg border border-line font-mono text-xs uppercase sm:h-11 sm:text-sm ${
         wide ? "w-1/2 sm:w-64" : "min-w-0 flex-1 sm:w-11 sm:flex-none"
       } ${n ? "text-ink" : "text-muted"}`}
       style={{ background: heat(n, max) }}

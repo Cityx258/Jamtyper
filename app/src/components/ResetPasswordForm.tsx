@@ -7,7 +7,7 @@ import RecoveryCodeNotice from "@/components/RecoveryCodeNotice";
 import type { Dict } from "@/i18n/en";
 
 const field =
-  "w-full rounded-lg border border-line bg-bg/70 px-4 py-3 text-ink placeholder:text-muted/60 focus:border-teal focus:outline-none";
+  "w-full rounded-full border border-line bg-bg/70 px-5 py-3 text-ink placeholder:text-muted/60 focus:border-teal focus:outline-none";
 
 export default function ResetPasswordForm({ t }: { t: Dict["login"]["recovery"] }) {
   const [error, setError] = useState<keyof typeof t.errors | null>(null);

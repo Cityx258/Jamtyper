@@ -41,7 +41,7 @@ export default function JoinRoomForm({ action, t }: Props) {
           spellCheck={false}
           maxLength={CODE_LENGTH + 4}
           aria-invalid={invalid}
-          className="w-36 rounded-lg border border-line bg-bg/70 px-4 py-2.5 font-mono text-lg uppercase tracking-[0.25em] text-ink placeholder:text-muted/50 focus:border-teal focus:outline-none"
+          className="w-36 rounded-full border border-line bg-bg/70 px-4 py-2.5 font-mono text-lg uppercase tracking-[0.25em] text-ink placeholder:text-muted/50 focus:border-teal focus:outline-none"
         />
         <button type="submit" className={primaryButton}>
           {action}

@@ -172,7 +172,7 @@ function CharsInput({
       autoCapitalize="off"
       spellCheck={false}
       placeholder={none}
-      className="w-full max-w-64 rounded-lg border border-line bg-bg/70 px-3 py-2 font-mono tracking-[0.3em] text-ink placeholder:tracking-normal placeholder:text-muted/60 focus:border-teal focus:outline-none"
+      className="w-full max-w-64 rounded-full border border-line bg-bg/70 px-3 py-2 font-mono tracking-[0.3em] text-ink placeholder:tracking-normal placeholder:text-muted/60 focus:border-teal focus:outline-none"
     />
   );
 }
@@ -188,12 +188,12 @@ function Section({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="rounded-xl border border-line">
+    <div className="rounded-3xl border border-line bg-raised/70">
       <button
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between px-4 py-3 text-left font-display text-lg"
+        className="flex w-full items-center justify-between px-5 py-4 text-left font-display text-lg"
       >
         {title}
         <span
@@ -208,7 +208,7 @@ function Section({
         className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
       >
         <div className="min-h-0 overflow-hidden">
-          <div className="grid gap-6 border-t border-line px-4 py-5 sm:grid-cols-2">{children}</div>
+          <div className="grid gap-6 px-5 pb-5 pt-1 sm:grid-cols-2">{children}</div>
         </div>
       </div>
     </div>
@@ -365,7 +365,7 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
                     rows={4}
                     placeholder={t.customPlaceholder}
                     aria-label={t.customLabel}
-                    className="w-full rounded-lg border border-line bg-bg/70 px-4 py-3 text-ink focus:border-teal focus:outline-none"
+                    className="w-full rounded-2xl border border-line bg-bg/70 px-4 py-3 text-ink focus:border-teal focus:outline-none"
                   />
                 ) : (
                   <span className="text-muted">

@@ -83,7 +83,7 @@ export default function PlaylistPanel({ t }: { t: Dict["player"] }) {
   return (
     <div
       id="playlist-panel"
-      className="absolute bottom-12 right-0 flex max-h-[min(28rem,calc(100vh-6rem))] w-[min(20rem,calc(100vw-2rem))] flex-col rounded-2xl border border-line bg-raised p-3 shadow-xl shadow-black/15"
+      className="absolute bottom-12 right-0 flex max-h-[min(28rem,calc(100vh-6rem))] w-[min(20rem,calc(100vw-2rem))] flex-col rounded-3xl border border-line bg-raised p-3 shadow-xl shadow-black/15"
     >
       <div role="tablist" aria-label={t.playlist} className="flex gap-1 rounded-full border border-line p-1">
         {tab("site", t.siteList)}
@@ -104,7 +104,7 @@ export default function PlaylistPanel({ t }: { t: Dict["player"] }) {
                 type="button"
                 onClick={() => playTrack(song)}
                 aria-current={active ? "true" : undefined}
-                className={`flex min-w-0 flex-1 flex-col rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-teal/10 ${
+                className={`flex min-w-0 flex-1 flex-col rounded-2xl px-3 py-1.5 text-left transition-colors hover:bg-teal/10 ${
                   active ? "text-teal" : "text-ink"
                 }`}
               >
@@ -130,7 +130,7 @@ export default function PlaylistPanel({ t }: { t: Dict["player"] }) {
       </ul>
 
       {source === "custom" && (
-        <div className="mt-2 border-t border-line pt-3">
+        <div className="mt-2 rounded-2xl bg-teal/5 p-3">
           <input
             ref={input}
             id="playlist-files"

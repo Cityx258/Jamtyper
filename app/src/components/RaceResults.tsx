@@ -5,7 +5,7 @@ import NoteIcon from "@/components/NoteIcon";
 import Podium from "@/components/Podium";
 import RaceGraph from "@/components/RaceGraph";
 import RaceMelody from "@/components/RaceMelody";
-import { primaryButton, secondaryButton } from "@/components/ui";
+import { panel, primaryButton, secondaryButton } from "@/components/ui";
 import { clearRank, THANK_YOU_WPM } from "@/lib/miku";
 import type { Dict } from "@/i18n/en";
 import type { RacerView, RaceView } from "@/lib/room-protocol";
@@ -57,14 +57,14 @@ export default function RaceResults({
         )}
       </div>
       {rank && me?.wpm === THANK_YOU_WPM && (
-        <p role="status" className="mt-4 rounded-lg border border-teal bg-teal/10 px-4 py-3 font-medium text-ink">
+        <p role="status" className="mt-4 rounded-2xl border border-teal bg-teal/10 px-4 py-3 font-medium text-ink">
           {t.thankYou}
         </p>
       )}
       {me?.record && (
         <p
           role="status"
-          className="mt-4 rounded-lg border border-teal bg-teal/10 px-4 py-3 font-medium text-ink"
+          className="mt-4 rounded-2xl border border-teal bg-teal/10 px-4 py-3 font-medium text-ink"
         >
           {t.newRecord.replace("{wpm}", String(me.wpm))}
         </p>
@@ -72,7 +72,7 @@ export default function RaceResults({
       {me?.unlocked && (
         <p
           role="status"
-          className="mt-4 flex items-center gap-3 rounded-lg border border-teal bg-teal/10 px-4 py-3 text-ink"
+          className="mt-4 flex items-center gap-3 rounded-2xl border border-teal bg-teal/10 px-4 py-3 text-ink"
         >
           <NoteIcon note={me.unlocked} size={28} className="text-teal" />
           {t.unlockedNote.replace("{note}", noteNames[me.unlocked])}
@@ -98,7 +98,7 @@ export default function RaceResults({
             {scores.map((s) => (
               <div
                 key={s.team}
-                className={`rounded-lg border px-4 py-3 ${
+                className={`rounded-2xl border px-4 py-3 ${
                   s.team === winner ? "border-teal bg-teal/10" : "border-line"
                 }`}
               >
@@ -114,10 +114,10 @@ export default function RaceResults({
         </section>
       )}
 
-      <div className="mt-8 overflow-x-auto">
-        <table className="w-full text-left text-sm">
+      <div className={`mt-8 overflow-x-auto p-2 sm:p-3 ${panel}`}>
+        <table className="soft-table w-full text-left text-sm">
           <thead className="font-mono text-xs uppercase tracking-wider text-muted">
-            <tr className="border-b border-line">
+            <tr>
               <th className="py-2 pr-3 sm:pr-4 font-normal">{t.place}</th>
               <th className="py-2 pr-3 sm:pr-4 font-normal">{t.player}</th>
               <th className="py-2 pr-3 sm:pr-4 text-right font-normal">{t.wpm}</th>
@@ -129,7 +129,7 @@ export default function RaceResults({
               <th className="py-2 text-right font-normal">{t.boostsReceived}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-line">
+          <tbody>
             {race.racers.map((r) => (
               <tr key={r.id} className={r.id === you ? "text-teal" : ""}>
                 <td className="py-3 pr-3 sm:pr-4 font-mono">{r.place}</td>
@@ -179,7 +179,7 @@ export default function RaceResults({
       {me && (
         <section className="mt-12 max-w-2xl">
           <h2 className="font-display text-2xl">{t.yourMisses}</h2>
-          <div className="mt-4">
+          <div className={`mt-4 p-5 sm:p-7 ${panel}`}>
             <KeyHeatmap missed={me.missed} t={heatmapT} />
           </div>
         </section>

@@ -86,7 +86,7 @@ function Field({
       autoCorrect="off"
       autoCapitalize="off"
       spellCheck={false}
-      className={`mt-6 w-full rounded-lg border bg-bg/70 px-4 py-3 font-mono text-lg text-ink focus:outline-none ${
+      className={`mt-6 w-full rounded-full border bg-bg/70 px-6 py-3 font-mono text-lg text-ink focus:outline-none ${
         invalid ? "border-danger" : "border-line focus:border-teal"
       }`}
     />

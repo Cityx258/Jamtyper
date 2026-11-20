@@ -18,7 +18,7 @@ const internalEmail = (username: string) =>
   `${username.toLowerCase()}@users.invalid`;
 
 const field =
-  "w-full rounded-lg border border-line bg-bg/70 px-4 py-3 text-ink placeholder:text-muted/60 focus:border-teal focus:outline-none";
+  "w-full rounded-full border border-line bg-bg/70 px-5 py-3 text-ink placeholder:text-muted/60 focus:border-teal focus:outline-none";
 
 const PROVIDER_NAMES: Record<Provider, string> = {
   discord: "Discord",
@@ -43,7 +43,7 @@ function ProviderButton({
       type="button"
       disabled={!enabled || busy}
       onClick={onClick}
-      className="flex w-full items-center justify-between rounded-lg border border-line px-4 py-3 text-left font-medium text-ink/80 transition-colors enabled:hover:border-teal enabled:hover:text-ink disabled:cursor-not-allowed"
+      className="flex w-full items-center justify-between rounded-full border border-line px-5 py-3 text-left font-medium text-ink/80 transition-colors enabled:hover:border-teal enabled:hover:text-ink disabled:cursor-not-allowed"
     >
       <span>{t.continueWith.replace("{name}", PROVIDER_NAMES[provider])}</span>
       {!enabled && (
@@ -158,7 +158,7 @@ export default function LoginForm({
       <div
         role="tablist"
         aria-label={t.tablistLabel}
-        className="mb-8 flex gap-6 border-b border-line"
+        className="mb-8 flex gap-1 rounded-full border border-line bg-raised/70 p-1"
       >
         {(
           [
@@ -172,10 +172,10 @@ export default function LoginForm({
             role="tab"
             aria-selected={mode === id}
             onClick={() => switchMode(id)}
-            className={`-mb-px border-b-2 pb-3 font-display text-lg transition-colors ${
+            className={`flex-1 rounded-full px-4 py-2 font-display text-base transition-colors ${
               mode === id
-                ? "border-teal text-ink"
-                : "border-transparent text-muted hover:text-ink"
+                ? "bg-teal text-on-teal"
+                : "text-muted hover:text-ink"
             }`}
           >
             {label}

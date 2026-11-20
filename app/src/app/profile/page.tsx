@@ -8,7 +8,7 @@ import NotePicker from "@/components/NotePicker";
 import ProgressGraph from "@/components/ProgressGraph";
 import RecoveryCodeSection from "@/components/RecoveryCodeSection";
 import SignOutButton from "@/components/SignOutButton";
-import { primaryButton, secondaryButton } from "@/components/ui";
+import { kicker, panel, primaryButton, secondaryButton, tile } from "@/components/ui";
 import { getProfile } from "@/db/profile";
 import { getDict, getLocale } from "@/i18n";
 import { auth } from "@/lib/auth";
@@ -58,11 +58,10 @@ export default async function ProfilePage() {
     <>
       <Header />
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pb-16 pt-8 sm:px-8 sm:pt-14">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal">
+        <p className={kicker}>
           {t.kicker}
         </p>
         <div className="relative mt-4 flex items-center gap-5">
-          <div className="staff absolute inset-x-0 top-[calc(var(--staff-gap)*0.5)]" />
           <Avatar
             name={name}
             image={session.user.image ?? null}
@@ -74,6 +73,7 @@ export default async function ProfilePage() {
             {name}
           </h1>
         </div>
+        <span aria-hidden="true" className="ribbon mt-5" />
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
           <p className="text-muted">
             {t.memberSince.replace("{date}", date.format(session.user.createdAt))}
@@ -86,17 +86,10 @@ export default async function ProfilePage() {
 
         <section
           aria-label={t.title}
-          className="mt-12 grid grid-cols-2 border-y border-line sm:grid-cols-5"
+          className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-5"
         >
-          {stats.map((s, i) => (
-            <div
-              key={s.label}
-              className={`flex flex-col gap-2 py-6 sm:px-6 ${
-                i > 0 ? "sm:border-l sm:border-line" : "sm:pl-0"
-              } ${i % 2 === 1 ? "border-l border-line pl-5" : ""} ${
-                i >= 2 ? "border-t border-line sm:border-t-0" : ""
-              }`}
-            >
+          {stats.map((s) => (
+            <div key={s.label} className={`flex flex-col gap-2 px-5 py-4 ${tile}`}>
               <span className="font-mono text-xs uppercase tracking-wider text-muted">
                 {s.label}
               </span>
@@ -110,7 +103,7 @@ export default async function ProfilePage() {
         <section className="mt-16">
           <h2 className="font-display text-3xl">{t.heatmapTitle}</h2>
           <p className="mt-2 max-w-xl text-muted">{t.heatmapHint}</p>
-          <div className="mt-6 max-w-2xl">
+          <div className={`mt-6 max-w-2xl p-5 sm:p-7 ${panel}`}>
             <KeyHeatmap missed={profile.missed} t={t.heatmap} />
           </div>
         </section>
@@ -125,10 +118,10 @@ export default async function ProfilePage() {
               </Link>
             </div>
           ) : (
-            <div className="mt-6 overflow-x-auto">
-              <table className="w-full text-left text-sm">
+            <div className={`mt-6 overflow-x-auto p-2 sm:p-3 ${panel}`}>
+              <table className="soft-table w-full text-left text-sm">
                 <thead className="font-mono text-xs uppercase tracking-wider text-muted">
-                  <tr className="border-b border-line">
+                  <tr>
                     <th className="py-2 pr-4 font-normal">{t.date}</th>
                     <th className="py-2 pr-4 font-normal">{t.place}</th>
                     <th className="py-2 pr-4 text-right font-normal">{t.wpm}</th>
@@ -136,7 +129,7 @@ export default async function ProfilePage() {
                     <th className="py-2 font-normal">{t.outcome}</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-line">
+                <tbody>
                   {profile.recent.map((r) => (
                     <tr key={r.id}>
                       <td className="whitespace-nowrap py-3 pr-4">
@@ -166,10 +159,12 @@ export default async function ProfilePage() {
                   ))}
                 </tbody>
               </table>
-              <Link href="/history" className={`mt-6 inline-block ${secondaryButton}`}>
-                {dict.history.seeAll}
-              </Link>
             </div>
+          )}
+          {profile.recent.length > 0 && (
+            <Link href="/history" className={`mt-6 inline-block ${secondaryButton}`}>
+              {dict.history.seeAll}
+            </Link>
           )}
         </section>
 

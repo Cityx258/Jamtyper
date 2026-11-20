@@ -12,6 +12,8 @@
   --danger: #ff8f8f;
   --line: rgb(57 197 187 / 0.26);
   --glow: rgb(57 197 187 / 0.13);
+  --pink: #ff6fae;
+  --pink-glow: rgb(255 111 174 / 0.1);
   --staff-gap: 16px;
   color-scheme: dark;
 }
@@ -29,6 +31,8 @@
     --danger: #b42318;
     --line: rgb(14 138 130 / 0.3);
     --glow: rgb(57 197 187 / 0.22);
+    --pink: #d0256f;
+    --pink-glow: rgb(225 40 133 / 0.08);
     color-scheme: light;
   }
 }
@@ -45,6 +49,8 @@
   --danger: #b42318;
   --line: rgb(14 138 130 / 0.3);
   --glow: rgb(57 197 187 / 0.22);
+  --pink: #d0256f;
+  --pink-glow: rgb(225 40 133 / 0.08);
   color-scheme: light;
 }
 
@@ -59,6 +65,7 @@
   --color-line: var(--line);
   --color-on-teal: var(--on-teal);
   --color-danger: var(--danger);
+  --color-pink: var(--pink);
   --font-sans: var(--f-body);
   --font-display: var(--f-display);
   --font-mono: var(--f-mono);
@@ -72,7 +79,9 @@ html {
 body {
   background:
     radial-gradient(60rem 30rem at 85% -10%, var(--glow), transparent 70%),
+    radial-gradient(50rem 30rem at -10% 110%, var(--pink-glow), transparent 70%),
     var(--bg);
+  background-attachment: fixed;
   color: var(--ink);
   font-family: var(--f-body), system-ui, sans-serif;
   min-height: 100vh;
@@ -96,6 +105,50 @@ body {
     var(--line) 0 1px,
     transparent 1px var(--staff-gap)
   );
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 80%, transparent);
+}
+
+.ribbon {
+  display: block;
+  width: 4.5rem;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--teal), var(--teal-bright) 55%, var(--pink));
+}
+
+.soft-table {
+  border-collapse: separate;
+  border-spacing: 0 4px;
+}
+
+.soft-table thead th {
+  padding-bottom: 0.25rem;
+}
+
+.soft-table tbody tr {
+  transition: background-color 0.15s;
+}
+
+.soft-table tbody tr:nth-child(odd) {
+  background: color-mix(in srgb, var(--teal) 6%, transparent);
+}
+
+.soft-table tbody tr:hover {
+  background: color-mix(in srgb, var(--teal) 12%, transparent);
+}
+
+.soft-table td:first-child,
+.soft-table th:first-child {
+  padding-left: 1rem;
+  border-top-left-radius: 999px;
+  border-bottom-left-radius: 999px;
+}
+
+.soft-table td:last-child,
+.soft-table th:last-child {
+  padding-right: 1rem;
+  border-top-right-radius: 999px;
+  border-bottom-right-radius: 999px;
 }
 
 @keyframes drift {

@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
-import { primaryButton, secondaryButton } from "@/components/ui";
+import { kicker, panel, primaryButton, secondaryButton } from "@/components/ui";
 import { getHistory } from "@/db/history";
 import { getDict, getLocale } from "@/i18n";
 import { auth } from "@/lib/auth";
@@ -32,8 +32,9 @@ export default async function HistoryPage(props: PageProps<"/history">) {
     <>
       <Header />
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pb-16 pt-8 sm:px-8 sm:pt-14">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal">{t.kicker}</p>
+        <p className={kicker}>{t.kicker}</p>
         <h1 className="mt-4 font-display text-4xl sm:text-6xl">{t.title}</h1>
+        <span aria-hidden="true" className="ribbon mt-5" />
         <p className="mt-4 text-muted">
           {t.count.replace("{n}", number.format(history.total))}
         </p>
@@ -46,11 +47,11 @@ export default async function HistoryPage(props: PageProps<"/history">) {
             </Link>
           </div>
         ) : (
-          <div className="mt-8 overflow-x-auto">
-            <table className="w-full text-left text-sm">
+          <div className={`mt-8 overflow-x-auto p-2 sm:p-3 ${panel}`}>
+            <table className="soft-table w-full text-left text-sm">
               <caption className="sr-only">{t.title}</caption>
               <thead className="font-mono text-xs uppercase tracking-wider text-muted">
-                <tr className="border-b border-line">
+                <tr>
                   <th scope="col" className="py-2 pr-4 font-normal">{p.date}</th>
                   <th scope="col" className="py-2 pr-4 font-normal">{p.place}</th>
                   <th scope="col" className="py-2 pr-4 text-right font-normal">{p.wpm}</th>
@@ -58,7 +59,7 @@ export default async function HistoryPage(props: PageProps<"/history">) {
                   <th scope="col" className="py-2 font-normal">{p.outcome}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line">
+              <tbody>
                 {history.rows.map((r) => (
                   <tr key={r.raceId}>
                     <td className="whitespace-nowrap py-3 pr-4">

@@ -57,8 +57,8 @@ export default function Podium({
               </>
             )}
             <div
-              className={`mt-3 flex w-full items-start justify-center rounded-t-lg border border-b-0 pt-2 font-display text-2xl sm:text-3xl ${height} ${
-                place === 1 ? "border-teal bg-teal/20 text-ink" : "border-line bg-raised text-muted"
+              className={`mt-3 flex w-full items-start justify-center rounded-t-3xl border border-b-0 pt-2 font-display text-2xl sm:text-3xl ${height} ${
+                place === 1 ? "border-teal bg-gradient-to-b from-teal/30 to-teal/5 text-ink" : "border-line bg-gradient-to-b from-raised to-raised/30 text-muted"
               }`}
             >
               <span className="sr-only">{t.place} </span>

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import KeyHeatmap from "@/components/KeyHeatmap";
 import KeyboardOnly from "@/components/KeyboardOnly";
 import TypingBox from "@/components/TypingBox";
-import { primaryButton, secondaryButton } from "@/components/ui";
+import { kicker, panel, primaryButton, secondaryButton, tile } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import { clearRank, THANK_YOU_WPM } from "@/lib/miku";
 import type { ProgressPayload } from "@/lib/room-protocol";
@@ -37,7 +37,7 @@ function clock(ms: number) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className={`flex flex-col gap-1 px-5 py-4 ${tile}`}>
       <span className="font-mono text-xs uppercase tracking-wider text-muted">
         {label}
       </span>
@@ -83,13 +83,13 @@ export default function PracticeSession({ t, heatmapT, ranks }: Props) {
   if (!session) {
     return (
       <div className="w-full">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal">
+        <p className={kicker}>
           {t.kicker}
         </p>
         <div className="relative mt-4">
-          <div className="staff absolute inset-x-0 top-[calc(var(--staff-gap)*0.5)]" />
           <h1 className="relative font-display text-5xl sm:text-7xl">{t.heading}</h1>
         </div>
+        <span aria-hidden="true" className="ribbon mt-5" />
         <p className="mt-8 max-w-xl text-lg text-muted">{t.intro}</p>
         <button type="button" onClick={start} className={`mt-8 ${primaryButton}`}>
           {t.start}
@@ -101,7 +101,7 @@ export default function PracticeSession({ t, heatmapT, ranks }: Props) {
   if (now < session.startsAt) {
     return (
       <div className="flex flex-col items-center py-16 text-center">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal">
+        <p className={`${kicker} self-center`}>
           {t.getReady}
         </p>
         <p className="mt-6 font-display text-8xl" aria-live="polite">
@@ -119,26 +119,26 @@ export default function PracticeSession({ t, heatmapT, ranks }: Props) {
   if (session.finishedAt) {
     return (
       <div className="w-full">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal">
+        <p className={kicker}>
           {t.kicker}
         </p>
         <h1 className="mt-4 font-display text-5xl">{t.done}</h1>
 
-        <div className="mt-10 flex flex-wrap gap-x-12 gap-y-6 border-y border-line py-6">
+        <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Stat label={t.wpm} value={String(wpm)} />
           <Stat label={t.accuracy} value={`${accuracy}%`} />
           <Stat label={t.time} value={clock(elapsed)} />
           <Stat label={t.clearRank} value={ranks[clearRank(strokes ? progress.position / strokes : 1, progress.mistakes)]} />
         </div>
         {wpm === THANK_YOU_WPM && (
-          <p role="status" className="mt-6 rounded-lg border border-teal bg-teal/10 px-4 py-3 font-medium text-ink">
+          <p role="status" className="mt-6 rounded-2xl border border-teal bg-teal/10 px-4 py-3 font-medium text-ink">
             {t.thankYou}
           </p>
         )}
 
         <section className="mt-12 max-w-2xl">
           <h2 className="font-display text-2xl">{t.yourMisses}</h2>
-          <div className="mt-4">
+          <div className={`mt-4 p-5 sm:p-7 ${panel}`}>
             <KeyHeatmap missed={progress.missed} t={heatmapT} />
           </div>
         </section>

@@ -5,7 +5,7 @@ import CreateRoomButton from "@/components/CreateRoomButton";
 import Header from "@/components/Header";
 import JoinRoomForm from "@/components/JoinRoomForm";
 import QuickplayButton from "@/components/QuickplayButton";
-import { primaryButton } from "@/components/ui";
+import { kicker, panel, primaryButton } from "@/components/ui";
 import { getDict } from "@/i18n";
 import { auth } from "@/lib/auth";
 import { mikuDay } from "@/lib/miku";
@@ -36,9 +36,7 @@ export default async function Home() {
             <div className="relative flex items-start gap-4 sm:gap-8">
               <Clef className="-mt-[calc(var(--staff-gap)*1.7)] shrink-0" />
               <div className="pt-1">
-                <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal">
-                  {t.kicker}
-                </p>
+                <p className={kicker}>{t.kicker}</p>
                 <h1 className="mt-3 max-w-2xl font-display text-4xl leading-[1.08] sm:text-6xl">
                   {t.headingA}
                   <br />
@@ -54,18 +52,13 @@ export default async function Home() {
 
         <section
           aria-label={t.waysToPlay}
-          className="mt-16 grid border-y border-line md:grid-cols-3 md:grid-rows-[auto_auto_1fr_auto_auto]"
+          className="mt-16 grid gap-5 md:grid-cols-3 md:grid-rows-[auto_1fr_auto_auto]"
         >
           {t.measures.map((m, i) => (
             <div
               key={m.title}
-              className={`flex flex-col gap-4 px-1 py-8 md:row-span-5 md:grid md:grid-rows-subgrid md:px-8 ${
-                i > 0 ? "border-t border-line md:border-l md:border-t-0" : ""
-              } ${i === 0 ? "md:pl-0" : ""}`}
+              className={`flex flex-col gap-4 p-7 md:row-span-4 md:grid md:grid-rows-subgrid ${panel}`}
             >
-              <span className="font-mono text-xs text-teal">
-                {String(i + 1).padStart(2, "0")}
-              </span>
               <h2 className="font-display text-2xl">{m.title}</h2>
               <p className="flex-1 text-muted">{m.text}</p>
               {i === 0 && (

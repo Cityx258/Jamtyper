@@ -82,7 +82,7 @@ export default function ProfileForm({ name, image, t }: Props) {
             maxLength={DISPLAY_NAME_MAX}
             required
             aria-describedby="name-hint"
-            className="rounded-lg border border-line bg-bg/70 px-4 py-3 text-ink focus:border-teal focus:outline-none"
+            className="rounded-full border border-line bg-bg/70 px-5 py-3 text-ink focus:border-teal focus:outline-none"
           />
         </label>
         <p id="name-hint" className="text-xs text-muted">

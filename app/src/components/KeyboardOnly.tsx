@@ -7,7 +7,7 @@ export default function KeyboardOnly({ message, children }: Props) {
   return (
     <>
       <div className="keyboard-only">{children}</div>
-      <p role="note" className="keyboard-only-message rounded-lg border border-teal bg-teal/10 px-4 py-3 text-ink">
+      <p role="note" className="keyboard-only-message rounded-2xl border border-teal bg-teal/10 px-4 py-3 text-ink">
         {message}
       </p>
     </>

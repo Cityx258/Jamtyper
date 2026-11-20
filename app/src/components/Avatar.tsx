@@ -8,10 +8,12 @@ type Props = {
   className?: string;
 };
 
+const HUES = [174, 330, 48, 95, 355, 215, 280];
+
 function hue(name: string): number {
   let h = 0;
-  for (const c of name) h = (h * 31 + c.codePointAt(0)!) % 360;
-  return h;
+  for (const c of name) h = (h * 31 + c.codePointAt(0)!) % 997;
+  return HUES[h % HUES.length];
 }
 
 export function initials(name: string): string {
@@ -43,7 +45,7 @@ export default function Avatar({ name, image, size = 32, alt, className = "" }: 
         width: size,
         height: size,
         fontSize: Math.max(10, size * 0.38),
-        background: `hsl(${hue(name)} 45% 32%)`,
+        background: `hsl(${hue(name)} 55% 38%)`,
       }}
     >
       {initials(name)}

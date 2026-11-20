@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { addPassword } from "@/app/settings-actions";
 import RecoveryCodeNotice from "@/components/RecoveryCodeNotice";
-import { primaryButton, secondaryButton, smallButton } from "@/components/ui";
+import { panel, primaryButton, secondaryButton, smallButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import { authClient } from "@/lib/auth-client";
 import type { Method, MethodView } from "@/lib/sign-in-methods";
@@ -23,7 +23,7 @@ const NAMES: Record<Exclude<Method, "credential">, string> = {
 };
 
 const field =
-  "w-full rounded-lg border border-line bg-bg/70 px-4 py-3 text-ink placeholder:text-muted/60 focus:border-teal focus:outline-none";
+  "w-full rounded-full border border-line bg-bg/70 px-5 py-3 text-ink placeholder:text-muted/60 focus:border-teal focus:outline-none";
 
 export default function SignInMethods({ methods, username, linkError, t, recoveryT }: Props) {
   const router = useRouter();
@@ -84,7 +84,7 @@ export default function SignInMethods({ methods, username, linkError, t, recover
 
   return (
     <div className="max-w-2xl">
-      <ul className="divide-y divide-line border-y border-line">
+      <ul className={`divide-y divide-line px-5 sm:px-7 ${panel}`}>
         {methods.map((m) => (
           <li key={m.method} className="flex flex-wrap items-center justify-between gap-3 py-4">
             <div className="min-w-0">

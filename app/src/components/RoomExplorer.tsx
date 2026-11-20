@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { smallButton } from "@/components/ui";
+import { panel, smallButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import { DIFFICULTIES, LANGUAGES, type Difficulty, type Language } from "@/lib/race-settings";
 import type { RoomStatus, RoomSummary } from "@/lib/room-protocol";
@@ -15,7 +15,7 @@ type Props = {
 };
 
 const select =
-  "rounded-lg border border-line bg-bg px-3 py-2 text-sm text-ink focus:border-teal focus:outline-none";
+  "rounded-full border border-line bg-bg px-4 py-2 text-sm text-ink focus:border-teal focus:outline-none";
 
 const phase = (status: RoomStatus) =>
   status === "lobby" ? "waiting" : status === "results" ? "results" : "racing";
@@ -102,11 +102,11 @@ export default function RoomExplorer({ t, languages, difficulties }: Props) {
       ) : shown.length === 0 ? (
         <p className="mt-6 text-muted">{rooms.length === 0 ? t.empty : t.emptyFiltered}</p>
       ) : (
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-left text-sm">
+        <div className={`mt-4 overflow-x-auto p-2 sm:p-3 ${panel}`}>
+          <table className="soft-table w-full text-left text-sm">
             <caption className="sr-only">{t.title}</caption>
             <thead className="font-mono text-xs uppercase tracking-wider text-muted">
-              <tr className="border-b border-line">
+              <tr>
                 <th scope="col" className="py-2 pr-4 font-normal">{t.room}</th>
                 <th scope="col" className="py-2 pr-4 font-normal">{t.host}</th>
                 <th scope="col" className="py-2 pr-4 text-right font-normal">{t.players}</th>
@@ -118,7 +118,7 @@ export default function RoomExplorer({ t, languages, difficulties }: Props) {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-line">
+            <tbody>
               {shown.map((r) => {
                 const state = phase(r.status);
                 const full = r.participants >= r.capacity;

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Dict } from "@/i18n/en";
 import { niceMax, sampleTime } from "@/lib/race-graph";
 import type { RacerView } from "@/lib/room-protocol";
+import { panel } from "@/components/ui";
 
 type Props = {
   racers: RacerView[];
@@ -87,134 +88,136 @@ export default function RaceGraph({ racers, you, t }: Props) {
           </span>
         )}
       </div>
-      <div ref={box} className="relative mt-4">
-        <svg
-          width={W}
-          height={H}
-          viewBox={`0 0 ${W} ${H}`}
-          className="block touch-none select-none"
-          role="img"
-          aria-label={t.summary
-            .replace("{name}", focusId === you ? t.you : focus.name)
-            .replace("{peak}", String(peak))
-            .replace("{end}", String(focus.s[focus.s.length - 1]))}
-          onPointerMove={onMove}
-          onPointerDown={onMove}
-          onPointerLeave={() => setHover(null)}
-        >
-          {yTicks.map((v) => (
-            <g key={v}>
-              <line
-                x1={PAD.left}
-                x2={W - PAD.right}
-                y1={y(v)}
-                y2={y(v)}
-                stroke="var(--line)"
-                strokeOpacity={v === 0 ? 1 : 0.6}
-                strokeWidth={1}
+      <div className={`mt-4 p-4 sm:p-6 ${panel}`}>
+        <div ref={box} className="relative">
+          <svg
+            width={W}
+            height={H}
+            viewBox={`0 0 ${W} ${H}`}
+            className="block touch-none select-none"
+            role="img"
+            aria-label={t.summary
+              .replace("{name}", focusId === you ? t.you : focus.name)
+              .replace("{peak}", String(peak))
+              .replace("{end}", String(focus.s[focus.s.length - 1]))}
+            onPointerMove={onMove}
+            onPointerDown={onMove}
+            onPointerLeave={() => setHover(null)}
+          >
+            {yTicks.map((v) => (
+              <g key={v}>
+                <line
+                  x1={PAD.left}
+                  x2={W - PAD.right}
+                  y1={y(v)}
+                  y2={y(v)}
+                  stroke="var(--line)"
+                  strokeOpacity={v === 0 ? 1 : 0.6}
+                  strokeWidth={1}
+                />
+                <text
+                  x={PAD.left - 8}
+                  y={y(v)}
+                  textAnchor="end"
+                  dominantBaseline="middle"
+                  className="fill-muted font-mono text-[11px]"
+                >
+                  {v}
+                </text>
+              </g>
+            ))}
+            {timeTicks(endTime, W < 500 ? 4 : 8).map((s) => {
+              const px = PAD.left + ((s - sampleTime(0)) / (endTime - sampleTime(0) || 1)) * PLOT_W;
+              return px < PAD.left ? null : (
+                <text
+                  key={s}
+                  x={px}
+                  y={H - 8}
+                  textAnchor="middle"
+                  className="fill-muted font-mono text-[11px]"
+                >
+                  {t.seconds.replace("{n}", String(s))}
+                </text>
+              );
+            })}
+            {others.map((r) => (
+              <path
+                key={r.id}
+                d={path(r.s)}
+                fill="none"
+                stroke="var(--muted)"
+                strokeOpacity={0.55}
+                strokeWidth={1.5}
+                strokeLinejoin="round"
+                strokeLinecap="round"
               />
-              <text
-                x={PAD.left - 8}
-                y={y(v)}
-                textAnchor="end"
-                dominantBaseline="middle"
-                className="fill-muted font-mono text-[11px]"
-              >
-                {v}
-              </text>
-            </g>
-          ))}
-          {timeTicks(endTime, W < 500 ? 4 : 8).map((s) => {
-            const px = PAD.left + ((s - sampleTime(0)) / (endTime - sampleTime(0) || 1)) * PLOT_W;
-            return px < PAD.left ? null : (
-              <text
-                key={s}
-                x={px}
-                y={H - 8}
-                textAnchor="middle"
-                className="fill-muted font-mono text-[11px]"
-              >
-                {t.seconds.replace("{n}", String(s))}
-              </text>
-            );
-          })}
-          {others.map((r) => (
+            ))}
             <path
-              key={r.id}
-              d={path(r.s)}
+              d={path(focus.s)}
               fill="none"
-              stroke="var(--muted)"
-              strokeOpacity={0.55}
-              strokeWidth={1.5}
+              stroke="var(--bg)"
+              strokeWidth={5}
+              strokeLinejoin="round"
+            />
+            <path
+              d={path(focus.s)}
+              fill="none"
+              stroke="var(--teal)"
+              strokeWidth={2}
               strokeLinejoin="round"
               strokeLinecap="round"
             />
-          ))}
-          <path
-            d={path(focus.s)}
-            fill="none"
-            stroke="var(--bg)"
-            strokeWidth={5}
-            strokeLinejoin="round"
-          />
-          <path
-            d={path(focus.s)}
-            fill="none"
-            stroke="var(--teal)"
-            strokeWidth={2}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-          />
-          {hover !== null && (
-            <>
-              <line
-                x1={x(hover)}
-                x2={x(hover)}
-                y1={PAD.top}
-                y2={PAD.top + PLOT_H}
-                stroke="var(--muted)"
-                strokeWidth={1}
-                strokeDasharray="3 3"
-              />
-              {hover < focus.s.length && (
-                <circle
-                  cx={x(hover)}
-                  cy={y(focus.s[hover])}
-                  r={4.5}
-                  fill="var(--teal)"
-                  stroke="var(--bg)"
-                  strokeWidth={2}
+            {hover !== null && (
+              <>
+                <line
+                  x1={x(hover)}
+                  x2={x(hover)}
+                  y1={PAD.top}
+                  y2={PAD.top + PLOT_H}
+                  stroke="var(--muted)"
+                  strokeWidth={1}
+                  strokeDasharray="3 3"
                 />
-              )}
-            </>
+                {hover < focus.s.length && (
+                  <circle
+                    cx={x(hover)}
+                    cy={y(focus.s[hover])}
+                    r={4.5}
+                    fill="var(--teal)"
+                    stroke="var(--bg)"
+                    strokeWidth={2}
+                  />
+                )}
+              </>
+            )}
+          </svg>
+          {hover !== null && hoverRows.length > 0 && (
+            <div
+              className="pointer-events-none absolute top-2 z-10 min-w-40 rounded-2xl border border-line bg-raised px-3 py-2 text-xs shadow-lg"
+              style={
+                hoverLeft > 60
+                  ? { right: `${100 - hoverLeft + 2}%` }
+                  : { left: `${hoverLeft + 2}%` }
+              }
+            >
+              <p className="font-mono text-muted">
+                {t.seconds.replace("{n}", sampleTime(hover).toFixed(1))}
+              </p>
+              <ul className="mt-1 space-y-0.5">
+                {hoverRows.map(({ r, wpm }) => (
+                  <li key={r.id} className="flex justify-between gap-4 text-ink">
+                    <span className={`truncate ${r.id === focusId ? "font-medium" : ""}`}>
+                      {r.id === you ? t.you : r.name}
+                    </span>
+                    <span className="font-mono">
+                      {wpm} {t.wpm}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
-        </svg>
-        {hover !== null && hoverRows.length > 0 && (
-          <div
-            className="pointer-events-none absolute top-2 z-10 min-w-40 rounded-lg border border-line bg-raised px-3 py-2 text-xs shadow-lg"
-            style={
-              hoverLeft > 60
-                ? { right: `${100 - hoverLeft + 2}%` }
-                : { left: `${hoverLeft + 2}%` }
-            }
-          >
-            <p className="font-mono text-muted">
-              {t.seconds.replace("{n}", sampleTime(hover).toFixed(1))}
-            </p>
-            <ul className="mt-1 space-y-0.5">
-              {hoverRows.map(({ r, wpm }) => (
-                <li key={r.id} className="flex justify-between gap-4 text-ink">
-                  <span className={`truncate ${r.id === focusId ? "font-medium" : ""}`}>
-                    {r.id === you ? t.you : r.name}
-                  </span>
-                  <span className="font-mono">
-                    {wpm} {t.wpm}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        </div>
       </div>
     </section>
   );

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import NowPlaying from "@/components/NowPlaying";
 import { getDict } from "@/i18n";
+import { panel } from "@/components/ui";
 
 export default async function Footer() {
   const t = (await getDict()).footer;
@@ -10,8 +11,8 @@ export default async function Footer() {
       <div className="mx-auto w-full max-w-6xl px-5 sm:px-8">
         <NowPlaying label={t.nowPlaying} by={t.by} />
       </div>
-      <footer className="mx-auto w-full max-w-6xl border-t border-line px-5 pb-20 pt-8 text-sm sm:px-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <footer className="mx-auto w-full max-w-6xl px-5 pb-20 text-sm sm:px-8">
+        <div className={`flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between ${panel}`}>
           <p className="text-muted">
             <span className="font-display text-ink">JamTyper</span> · {t.tagline}{" "}
             <abbr title={t.thanks} className="font-mono text-teal no-underline">

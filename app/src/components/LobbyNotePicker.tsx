@@ -40,7 +40,7 @@ export default function LobbyNotePicker({ current, unlocked, guest, t, notesT, o
                 await onPick(note);
                 setPending(false);
               }}
-              className={`flex h-16 w-14 flex-col items-center justify-center gap-1 rounded-lg border transition-colors ${
+              className={`flex h-16 w-14 flex-col items-center justify-center gap-1 rounded-2xl border transition-colors ${
                 active
                   ? "border-teal bg-teal/15 text-teal"
                   : open

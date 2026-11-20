@@ -48,7 +48,7 @@ export default function NotePicker({ wins, current, t }: Props) {
                 disabled={!open || pending !== null}
                 aria-pressed={active}
                 onClick={() => choose(note)}
-                className={`flex h-full w-full flex-col items-center gap-3 rounded-lg border px-3 py-5 text-center transition-colors ${
+                className={`flex h-full w-full flex-col items-center gap-3 rounded-2xl border px-3 py-5 text-center transition-colors ${
                   active
                     ? "border-teal bg-teal/15 text-ink"
                     : open

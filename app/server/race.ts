@@ -39,7 +39,7 @@ import { botPlan } from "../src/lib/bot-plan";
 import { newlyUnlocked, winningPlaces } from "../src/lib/notes";
 import { noteState, winCount } from "../src/db/notes";
 
-export const COUNTDOWN_MS = 5_000;
+export const COUNTDOWN_MS = 3_000;
 export const CLOSING_MS = 30_000;
 const MAX_CHARS_PER_SECOND = 25;
 const TICK_MS = 100;
@@ -120,7 +120,7 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
     by: generated.by,
     settings,
     startsAt,
-    endsAt: startsAt + settings.timeLimitSec * 1000,
+    endsAt: settings.timeLimitSec ? startsAt + settings.timeLimitSec * 1000 : null,
     closesAt: null,
     endedAt: null,
     racers: new Map(
@@ -170,9 +170,10 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
 function beginRacing(io: AppServer, room: Room, race: Race) {
   if (room.race !== race || room.status !== "countdown") return;
   setStatus(room, "racing");
-  race.timers.push(
-    setTimeout(() => void endRace(io, room, race), race.endsAt - Date.now()),
-  );
+  if (race.endsAt !== null) {
+    const endsAt = race.endsAt;
+    race.timers.push(setTimeout(() => void endRace(io, room, race), endsAt - Date.now()));
+  }
   let last = Date.now();
   let lastBoostCheck = last;
   race.ticker = setInterval(() => {
@@ -331,15 +332,6 @@ export function forfeit(io: AppServer, socket: AppSocket): ActionResult {
   return ok;
 }
 
-export function isStillRacing(room: Room, member: Member): boolean {
-  const racer = room.race?.racers.get(member.id);
-  return (
-    !!racer &&
-    racer.outcome === "racing" &&
-    (room.status === "countdown" || isLive(room.status))
-  );
-}
-
 export function kickRacer(io: AppServer, room: Room, member: Member) {
   const race = room.race;
   const racer = race?.racers.get(member.id);
@@ -385,12 +377,21 @@ function settle(
   }
   if (outcome === "finished" && room.status === "racing") {
     setStatus(room, "finishing");
-    race.closesAt = Math.min(now + CLOSING_MS, race.endsAt);
+    race.closesAt = Math.min(now + CLOSING_MS, race.endsAt ?? Infinity);
     race.timers.push(
       setTimeout(() => void endRace(io, room, race), race.closesAt - now),
     );
   }
   broadcast(io, room);
+}
+
+export function compareRacers(race: Race) {
+  const progress = (r: Racer) => r.position / racerEnd(race, r);
+  return (a: Racer, b: Racer) =>
+    outcomeRank[a.outcome] - outcomeRank[b.outcome] ||
+    (a.outcome === "finished"
+      ? (a.doneAt ?? 0) - (b.doneAt ?? 0)
+      : progress(b) - progress(a));
 }
 
 const outcomeRank: Record<RacerOutcome, number> = {
@@ -405,22 +406,13 @@ const outcomeRank: Record<RacerOutcome, number> = {
 async function endRace(io: AppServer, room: Room, race: Race) {
   if (room.race !== race || !isLive(room.status)) return;
   stopRace(race);
-  race.endedAt = Math.min(Date.now(), race.endsAt);
+  race.endedAt = Math.min(Date.now(), race.endsAt ?? Infinity);
 
   const ranked = [...race.racers.values()];
   for (const r of ranked) {
     if (r.outcome === "racing") r.outcome = "timed_out";
   }
-  const net = (r: Racer) => r.position - r.errors;
-  const finishOrder =
-    race.settings.errorMode === "continue"
-      ? (a: Racer, b: Racer) => racerWpm(race, b) - racerWpm(race, a)
-      : (a: Racer, b: Racer) => (a.doneAt ?? 0) - (b.doneAt ?? 0);
-  ranked.sort(
-    (a, b) =>
-      outcomeRank[a.outcome] - outcomeRank[b.outcome] ||
-      (a.outcome === "finished" ? finishOrder(a, b) : net(b) - net(a)),
-  );
+  ranked.sort(compareRacers(race));
   ranked.forEach((r, i) => (r.place = i + 1));
 
   setStatus(room, "results");

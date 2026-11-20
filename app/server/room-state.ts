@@ -88,7 +88,7 @@ export interface Race {
   by: string | null;
   settings: RaceSettings;
   startsAt: number;
-  endsAt: number;
+  endsAt: number | null;
   closesAt: number | null;
   endedAt: number | null;
   racers: Map<string, Racer>;
@@ -140,7 +140,7 @@ export function balanceTeams(room: Room) {
 
 export function racerWpm(race: Race, racer: Racer, now = Date.now()): number {
   const elapsed =
-    racer.doneAt ?? Math.min(race.endedAt ?? now, race.endsAt) - race.startsAt;
+    racer.doneAt ?? Math.min(race.endedAt ?? now, race.endsAt ?? Infinity) - race.startsAt;
   if (elapsed <= 0) return 0;
   return Math.max(0, racer.position - racer.errors) / 5 / (elapsed / 60_000);
 }
@@ -183,7 +183,7 @@ export function racersView(race: Race, withSamples = false): RacerView[] {
 
 function raceView(room: Room, race: Race): RaceView {
   return {
-    text: room.status === "countdown" ? null : race.text,
+    text: race.text,
     by: race.by,
     errorMode: race.settings.errorMode,
     instantDeath: race.settings.instantDeath,

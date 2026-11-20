@@ -9,3 +9,6 @@ export const smallButton =
 
 export const smallDangerButton =
   "rounded-full border border-danger px-3 py-1 text-xs font-medium text-danger transition-colors hover:bg-danger hover:text-bg";
+
+export const dangerButton =
+  "rounded-full border border-danger px-5 py-2 text-sm font-medium text-danger transition-colors hover:bg-danger hover:text-bg";

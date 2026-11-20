@@ -211,3 +211,41 @@ describe("ending a race", () => {
     expect(place("host")).toBe(3);
   });
 });
+
+describe("final ranking", () => {
+  test("finishers are ranked by finish time even in keep-going mode", () => {
+    setupRoom([member("host"), member("guest")], { bots: false, errorMode: "continue" });
+    const r = startRacing(60_000);
+    progress("host", r.text.length, 30, 30);
+    progress("guest", r.text.length);
+    const place = (key: string) => r.racers.get(`id-${key}`)!.place;
+    expect(place("host")).toBe(1);
+    expect(place("guest")).toBe(2);
+  });
+
+  test("timed out racers rank by progress, forfeits come last", () => {
+    setupRoom([member("host"), member("guest")], { bots: false });
+    const r = startRacing(60_000);
+    const fast = { ...r.racers.get("id-host")! };
+    const sort = race.compareRacers(r);
+    const make = (id: string, outcome: "timed_out" | "forfeited", position: number) => ({
+      ...fast,
+      id,
+      outcome,
+      position,
+    });
+    const ranked = [
+      make("quit-far", "forfeited", 150),
+      make("slow", "timed_out", 20),
+      make("quit-near", "forfeited", 10),
+      make("fast", "timed_out", 90),
+    ].sort(sort);
+    expect(ranked.map((x) => x.id)).toEqual(["fast", "slow", "quit-far", "quit-near"]);
+  });
+
+  test("a race with no time limit has no end time", () => {
+    setupRoom([member("host"), member("guest")], { bots: false, timeLimitSec: 0 });
+    const r = startRacing();
+    expect(r.endsAt).toBeNull();
+  });
+});

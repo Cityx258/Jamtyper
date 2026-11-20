@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import ConfirmButton from "@/components/ConfirmButton";
 import KickButton from "@/components/KickButton";
 import StaffLane from "@/components/StaffLane";
 import TypingBox from "@/components/TypingBox";
-import { secondaryButton } from "@/components/ui";
+import { dangerButton, secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import type { MemberView, RaceView, RoomStatus } from "@/lib/room-protocol";
 import { sendProgress } from "@/lib/socket";
@@ -68,6 +69,9 @@ export default function RaceScreen({
         <p className="mt-6 font-display text-8xl" aria-live="polite">
           {secondsTo(race.startsAt)}
         </p>
+        <p className="mt-10 max-w-3xl select-none font-mono text-lg leading-relaxed text-muted">
+          {race.text}
+        </p>
         {isHost && (
           <button type="button" onClick={onCancel} className={`mt-10 ${secondaryButton}`}>
             {t.cancel}
@@ -83,7 +87,9 @@ export default function RaceScreen({
         <p className="font-mono text-sm text-muted">
           {race.closesAt ? t.closesIn : t.timeLeft}{" "}
           <span className="text-ink">
-            {clock(secondsTo(race.closesAt ?? race.endsAt))}
+            {race.closesAt === null && race.endsAt === null
+              ? t.noTimeLimit
+              : clock(secondsTo(race.closesAt ?? race.endsAt ?? 0))}
           </span>
         </p>
         {race.timeGoalSec > 0 && (
@@ -98,9 +104,13 @@ export default function RaceScreen({
           </p>
         )}
         {me?.outcome === "racing" && (
-          <button type="button" onClick={onForfeit} className={secondaryButton}>
-            {t.forfeit}
-          </button>
+          <ConfirmButton
+            label={t.forfeit}
+            confirmLabel={t.confirmForfeit}
+            onConfirm={onForfeit}
+            className={secondaryButton}
+            armedClassName={dangerButton}
+          />
         )}
       </div>
 
@@ -114,7 +124,7 @@ export default function RaceScreen({
       </p>
 
       <div className="mt-2">
-        {me?.outcome === "racing" && race.text ? (
+        {me?.outcome === "racing" ? (
           <TypingBox
             key={race.startsAt}
             text={race.text.slice(0, me.end)}

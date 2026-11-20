@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import ConfirmButton from "@/components/ConfirmButton";
 import { smallButton, smallDangerButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 
@@ -11,21 +11,13 @@ type Props = {
 };
 
 export default function KickButton({ name, t, onKick }: Props) {
-  const [armed, setArmed] = useState(false);
-
-  useEffect(() => {
-    if (!armed) return;
-    const id = setTimeout(() => setArmed(false), 4000);
-    return () => clearTimeout(id);
-  }, [armed]);
-
   return (
-    <button
-      type="button"
-      onClick={() => (armed ? onKick() : setArmed(true))}
-      className={armed ? smallDangerButton : smallButton}
-    >
-      {armed ? t.confirmKick.replace("{name}", name) : t.kick}
-    </button>
+    <ConfirmButton
+      label={t.kick}
+      confirmLabel={t.confirmKick.replace("{name}", name)}
+      onConfirm={onKick}
+      className={smallButton}
+      armedClassName={smallDangerButton}
+    />
   );
 }

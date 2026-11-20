@@ -21,7 +21,7 @@ export const CUSTOM_MAX = 1000;
 export const CHARS_MAX = 30;
 export const LENGTH_MIN = 10;
 export const LENGTH_MAX = 200;
-export const TIME_LIMITS = [30, 60, 120, 180, 300, 600] as const;
+export const TIME_LIMITS = [0, 30, 60, 120, 180, 300, 600] as const;
 export const TIME_GOALS = [0, 30, 45, 60, 90, 120] as const;
 export const BOT_COUNTS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 

@@ -15,7 +15,7 @@ import {
 import { DEFAULT_SETTINGS } from "../src/lib/race-settings";
 import { noteState } from "../src/db/notes";
 import { generateRoomCode } from "./codes";
-import { dropRacer, hostContext, isStillRacing, stopRace } from "./race";
+import { dropRacer, hostContext, stopRace } from "./race";
 import {
   broadcast,
   channel,
@@ -159,14 +159,7 @@ export async function leaveRoom(
   if (immediate) {
     await removeMember(io, room, member);
   } else {
-    const expire = () => {
-      if (isStillRacing(room, member)) {
-        member.graceTimer = setTimeout(expire, GRACE_MS);
-        return;
-      }
-      void removeMember(io, room, member);
-    };
-    member.graceTimer = setTimeout(expire, GRACE_MS);
+    member.graceTimer = setTimeout(() => void removeMember(io, room, member), GRACE_MS);
     broadcast(io, room);
   }
 }

@@ -471,7 +471,7 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
             <Choice
               options={TIME_LIMITS}
               value={settings.timeLimitSec as (typeof TIME_LIMITS)[number]}
-              label={(v) => timeLabel(v, t)}
+              label={(v) => (v ? timeLabel(v, t) : t.noLimit)}
               editable={editable}
               onPick={(v) => onChange({ timeLimitSec: v })}
             />

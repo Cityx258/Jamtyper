@@ -65,7 +65,7 @@ export interface RacerView {
 }
 
 export interface RaceView {
-  text: string | null;
+  text: string;
   by: string | null;
   errorMode: ErrorMode;
   instantDeath: boolean;
@@ -73,7 +73,7 @@ export interface RaceView {
   teams: boolean;
   length: number;
   startsAt: number;
-  endsAt: number;
+  endsAt: number | null;
   closesAt: number | null;
   serverNow: number;
   racers: RacerView[];

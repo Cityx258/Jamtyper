@@ -118,6 +118,17 @@ export function written(beats: number): { note: ClassicNote; dotted: boolean } {
   return { note, dotted };
 }
 
+export function spell(beats: number): { note: ClassicNote; dotted: boolean; beats: number }[] {
+  const out: { note: ClassicNote; dotted: boolean; beats: number }[] = [];
+  let left = beats;
+  while (left > 1e-9) {
+    const [value, note, dotted] = WRITTEN.find(([b]) => b <= left + 1e-9) ?? WRITTEN[WRITTEN.length - 1];
+    out.push({ note, dotted, beats: value });
+    left -= value;
+  }
+  return out;
+}
+
 export function schedule(notes: MelodyNote[]): ScheduledNote[] {
   let at = 0;
   const out: ScheduledNote[] = [];

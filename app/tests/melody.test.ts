@@ -12,6 +12,7 @@ import {
   noteSeconds,
   noteLengths,
   notesPerBeat,
+  spell,
   written,
   randomPitch,
   randomPitches,
@@ -119,6 +120,12 @@ describe("singer phrases", () => {
     expect(written(0.5)).toEqual({ note: "eighth", dotted: false });
     expect(written(0.25)).toEqual({ note: "sixteenth", dotted: false });
     expect(written(0.125)).toEqual({ note: "thirtySecond", dotted: false });
+  });
+
+  test("a length with no single note value is spelled as tied notes", () => {
+    expect(spell(3.5).map((p) => p.beats)).toEqual([3, 0.5]);
+    expect(spell(2.5).map((p) => p.beats)).toEqual([2, 0.5]);
+    expect(spell(1.25).map((p) => p.beats)).toEqual([1, 0.25]);
   });
 
   test("unknown pitches for a singer fall back to an even rhythm", () => {

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import NoteIcon from "@/components/NoteIcon";
 import { secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
-import { BEAT_SECONDS, melodyOrder, noteLengths, notesPerBeat, written, type MelodyNote } from "@/lib/melody";
+import { BEAT_SECONDS, melodyOrder, noteLengths, notesPerBeat, spell, type MelodyNote } from "@/lib/melody";
 import { NOTES, type ClassicNote } from "@/lib/notes";
 import type { RacerView } from "@/lib/room-protocol";
 import { playMelody, soundOn } from "@/lib/sound";
@@ -37,6 +37,7 @@ const DOT = 7;
 const heard = new Set<number>();
 
 type Symbol = {
+  id: number;
   x: number;
   pitch: number;
   note: ClassicNote;
@@ -44,6 +45,8 @@ type Symbol = {
   racer: number;
   beat: number;
   index: number;
+  tie: boolean;
+  tied: boolean;
 };
 type Group = { racer: number; from: number; to: number };
 type System = { symbols: Symbol[]; bars: number[]; groups: Group[] };
@@ -114,14 +117,39 @@ export function beams(system: System): Beam[] {
   });
 }
 
+type Piece = { pitch: number; note: ClassicNote; dotted: boolean; start: number; first: boolean; tie: boolean };
+
+function pieces(pitches: number[], beats: number[], from: number): Piece[] {
+  const out: Piece[] = [];
+  let position = from;
+  pitches.forEach((pitch, k) => {
+    let left = beats[k];
+    let first = true;
+    while (left > EPS) {
+      const room = (Math.floor((position + EPS) / 4) + 1) * 4 - position;
+      const take = Math.min(left, room);
+      for (const part of spell(take)) {
+        out.push({ pitch, note: part.note, dotted: part.dotted, start: position, first, tie: true });
+        first = false;
+        position += part.beats;
+      }
+      left -= take;
+    }
+    out[out.length - 1].tie = false;
+  });
+  return out;
+}
+
+const onBar = (position: number) => position > EPS && Math.abs(position / 4 - Math.round(position / 4)) < EPS;
+
 export function layout(racers: RacerView[], width: number) {
   const systems: System[] = [];
   const times: number[] = [];
   let system: System = { symbols: [], bars: [], groups: [] };
   let x = START;
   let position = 0;
-  let nextBar = 4;
   let at = 0;
+  let id = 0;
   const newSystem = () => {
     systems.push(system);
     system = { symbols: [], bars: [], groups: [] };
@@ -130,45 +158,62 @@ export function layout(racers: RacerView[], width: number) {
   racers.forEach((r, i) => {
     const pitches = r.pitches.slice(0, notesPerBeat(r.note));
     const beats = noteLengths(r.note, pitches).map((l) => l / BEAT_SECONDS);
-    const notes = beats.map(written);
-    const steps = notes.map((n) => SLOT + EXTRA[n.note] + (n.dotted ? DOT : 0));
+    const parts = pieces(pitches, beats, position);
+    const steps = parts.map((n) => SLOT + EXTRA[n.note] + (n.dotted ? DOT : 0));
     const total = steps.reduce((sum, w) => sum + w, 0);
     let group: Group | null = null;
-    let inPhrase = 0;
-    pitches.forEach((pitch, k) => {
-      if (position >= nextBar - EPS) {
-        if (x > START) {
-          system.bars.push(x - 4);
-          x += BAR - 8;
-        }
-        nextBar = (Math.floor((position + EPS) / 4) + 1) * 4;
+    let k = -1;
+    parts.forEach((part, n) => {
+      if (onBar(part.start) && x > START) {
+        system.bars.push(x - 4);
+        x += BAR - 8;
       }
-      const fits = k === 0 ? Math.min(total, width - START - END) : SLOT;
+      const fits = n === 0 ? Math.min(total, width - START - END) : SLOT;
       if (x > START && x + fits > width - END) {
         if (group) system.groups.push(group);
         newSystem();
         group = null;
       }
       group ??= { racer: i, from: x, to: x };
+      if (part.first) {
+        k++;
+        times.push(at);
+        at += beats[k] * BEAT_SECONDS;
+      }
       system.symbols.push({
+        id: id++,
         x,
-        pitch,
-        ...notes[k],
+        pitch: part.pitch,
+        note: part.note,
+        dotted: part.dotted,
         racer: i,
-        beat: Math.floor(inPhrase + EPS),
-        index: times.length,
+        beat: Math.floor(part.start + EPS),
+        index: times.length - 1,
+        tie: part.tie,
+        tied: !part.first,
       });
-      times.push(at);
       group.to = x;
-      x += steps[k];
-      at += beats[k] * BEAT_SECONDS;
-      position += beats[k];
-      inPhrase += beats[k];
+      x += steps[n];
     });
+    position += beats.reduce((sum, b) => sum + b, 0);
     if (group) system.groups.push(group);
   });
   if (system.symbols.length) systems.push(system);
   return { systems, times };
+}
+
+const TIE = 18;
+
+export function ties(system: System): { id: number; racer: number; x0: number; x1: number; y: number }[] {
+  const out: { id: number; racer: number; x0: number; x1: number; y: number }[] = [];
+  system.symbols.forEach((s, n) => {
+    const below = y(s.pitch) + 7;
+    if (s.tied && n === 0) out.push({ id: -1, racer: s.racer, x0: s.x - TIE, x1: s.x - 5, y: below });
+    if (!s.tie) return;
+    const next = system.symbols[n + 1];
+    out.push({ id: s.id, racer: s.racer, x0: s.x + 5, x1: next ? next.x - 5 : s.x + TIE, y: below });
+  });
+  return out;
 }
 
 export default function RaceMelody({ racers, you, raceKey, t }: Props) {
@@ -235,7 +280,8 @@ export default function RaceMelody({ racers, you, raceKey, t }: Props) {
           const last = n === systems.length - 1;
           const right = last ? (system.symbols.at(-1)?.x ?? START) + SLOT + 4 : width;
           const joined = beams(system);
-          const beamed = new Set(joined.flatMap((b) => b.notes.map((s) => s.index)));
+          const beamed = new Set(joined.flatMap((b) => b.notes.map((s) => s.id)));
+          const tied = ties(system);
           return (
             <div key={n} className="relative" style={{ width: right, maxWidth: "100%", height: HEIGHT }}>
               {[0, 1, 2, 3, 4].map((i) => (
@@ -267,7 +313,7 @@ export default function RaceMelody({ racers, you, raceKey, t }: Props) {
                 const racer = ordered[s.racer];
                 return (
                   <span
-                    key={s.index}
+                    key={s.id}
                     aria-hidden
                     className={`absolute transition-transform duration-100 ${
                       active === s.index
@@ -282,7 +328,7 @@ export default function RaceMelody({ racers, you, raceKey, t }: Props) {
                       transformOrigin: `${headX}px ${headY}px`,
                     }}
                   >
-                    <NoteIcon note={s.note} size={SIZE} stem={!beamed.has(s.index)} />
+                    <NoteIcon note={s.note} size={SIZE} stem={!beamed.has(s.id)} />
                     {s.dotted && (
                       <span
                         className="absolute size-[3.5px] rounded-full bg-current"
@@ -295,6 +341,26 @@ export default function RaceMelody({ racers, you, raceKey, t }: Props) {
                   </span>
                 );
               })}
+              {tied.length > 0 && (
+                <svg
+                  aria-hidden
+                  className="absolute left-0 top-0 overflow-visible"
+                  width={right}
+                  height={HEIGHT}
+                >
+                  {tied.map((t) => {
+                    const mid = (t.x0 + t.x1) / 2;
+                    return (
+                      <path
+                        key={`${t.id}-${t.x0}`}
+                        d={`M${t.x0},${t.y} Q${mid},${t.y + 8} ${t.x1},${t.y} Q${mid},${t.y + 5} ${t.x0},${t.y} Z`}
+                        className={ordered[t.racer].id === you ? "fill-teal stroke-teal" : "fill-ink stroke-ink"}
+                        strokeWidth={0.6}
+                      />
+                    );
+                  })}
+                </svg>
+              )}
               {joined.length > 0 && (
                 <svg
                   aria-hidden
@@ -305,10 +371,10 @@ export default function RaceMelody({ racers, you, raceKey, t }: Props) {
                   {joined.map((b) => {
                     const color = ordered[b.racer].id === you ? "fill-teal" : "fill-ink";
                     return (
-                      <g key={b.notes[0].index} className={color}>
+                      <g key={b.notes[0].id} className={color}>
                         {b.notes.map((s) => (
                           <rect
-                            key={s.index}
+                            key={s.id}
                             x={s.x + STEM_X}
                             y={b.at(s.x)}
                             width={STEM_W}

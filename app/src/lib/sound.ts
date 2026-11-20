@@ -4,9 +4,55 @@ import { schedule, type MelodyNote } from "./melody";
 
 export type Cue = "tick" | "go" | "typo" | "finish" | "out";
 
+export type SoundChannel = "effects" | "melody";
+
 const KEY = "jamtyper-sound";
+const VOLUME_KEYS: Record<SoundChannel, string> = {
+  effects: "jamtyper-effects-volume",
+  melody: "jamtyper-melody-volume",
+};
 const listeners = new Set<() => void>();
 let ctx: AudioContext | null = null;
+const volumes: Record<SoundChannel, number | null> = { effects: null, melody: null };
+const buses: Partial<Record<SoundChannel, GainNode>> = {};
+
+function readVolume(channel: SoundChannel): number {
+  const cached = volumes[channel];
+  if (cached !== null) return cached;
+  let value = 1;
+  try {
+    const saved = localStorage.getItem(VOLUME_KEYS[channel]);
+    const n = Number(saved);
+    if (saved !== null && n >= 0 && n <= 1) value = n;
+  } catch {}
+  volumes[channel] = value;
+  return value;
+}
+
+export const effectsVolume = () => readVolume("effects");
+export const melodyVolume = () => readVolume("melody");
+
+export function setSoundVolume(channel: SoundChannel, value: number) {
+  const v = Math.min(1, Math.max(0, value));
+  volumes[channel] = v;
+  try {
+    localStorage.setItem(VOLUME_KEYS[channel], String(v));
+  } catch {}
+  const bus = buses[channel];
+  if (bus && ctx) bus.gain.setValueAtTime(v, ctx.currentTime);
+  listeners.forEach((l) => l());
+}
+
+function bus(ac: AudioContext, channel: SoundChannel): GainNode {
+  let node = buses[channel];
+  if (!node) {
+    node = ac.createGain();
+    node.gain.value = readVolume(channel);
+    node.connect(ac.destination);
+    buses[channel] = node;
+  }
+  return node;
+}
 
 const NOTES: Record<Cue, { freqs: number[]; step: number; length: number; type: OscillatorType; gain: number }> = {
   tick: { freqs: [523.25], step: 0, length: 0.09, type: "triangle", gain: 0.12 },
@@ -64,7 +110,7 @@ export function playMelody(notes: MelodyNote[], force = false): number {
       amp.gain.exponentialRampToValueAtTime(level, from + 0.015);
       amp.gain.exponentialRampToValueAtTime(level * 0.45, from + Math.min(0.25, length));
       amp.gain.exponentialRampToValueAtTime(0.0001, from + ring);
-      osc.connect(amp).connect(ac.destination);
+      osc.connect(amp).connect(bus(ac, "melody"));
       osc.start(from);
       osc.stop(from + ring + 0.02);
     }
@@ -73,8 +119,8 @@ export function playMelody(notes: MelodyNote[], force = false): number {
   return last ? last.at + last.length : 0;
 }
 
-export function play(cue: Cue) {
-  if (!soundOn()) return;
+export function play(cue: Cue, force = false) {
+  if (!force && !soundOn()) return;
   const ctx = audio();
   if (!ctx) return;
   const { freqs, step, length, type, gain } = NOTES[cue];
@@ -87,7 +133,7 @@ export function play(cue: Cue) {
     osc.frequency.value = freq;
     amp.gain.setValueAtTime(gain, at);
     amp.gain.exponentialRampToValueAtTime(0.0001, at + length);
-    osc.connect(amp).connect(ctx.destination);
+    osc.connect(amp).connect(bus(ctx, "effects"));
     osc.start(at);
     osc.stop(at + length);
   });

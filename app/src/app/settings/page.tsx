@@ -1,10 +1,11 @@
 import { headers } from "next/headers";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import ProfileForm from "@/components/ProfileForm";
+import SoundSettings from "@/components/SoundSettings";
+import { setLocale, setTheme } from "@/app/actions";
 import SignInMethods from "@/components/SignInMethods";
-import { getDict } from "@/i18n";
+import { getDict, getLocale, getTheme } from "@/i18n";
 import { auth, enabledProviders } from "@/lib/auth";
 import { methodViews } from "@/lib/sign-in-methods";
 
@@ -15,63 +16,126 @@ export async function generateMetadata() {
 export default async function SettingsPage(props: PageProps<"/settings">) {
   const h = await headers();
   const session = await auth.api.getSession({ headers: h });
-  if (!session) redirect("/login");
 
-  const [dict, accounts, { error }] = await Promise.all([
+  const [dict, accounts, { error }, locale, theme] = await Promise.all([
     getDict(),
-    auth.api.listUserAccounts({ headers: h }),
+    session ? auth.api.listUserAccounts({ headers: h }) : Promise.resolve([]),
     props.searchParams,
+    getLocale(),
+    getTheme(),
   ]);
   const t = dict.settings;
   const methods = methodViews(accounts, enabledProviders);
-  const username = session.user.username
+  const username = session?.user.username
     ? (session.user.displayUsername ?? session.user.username)
     : null;
+  const choice = (active: boolean) =>
+    `rounded-full px-4 py-1.5 text-xs font-bold transition-colors ${
+      active ? "bg-teal text-on-teal" : "text-muted hover:text-ink"
+    }`;
 
   return (
     <>
       <Header />
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pb-16 pt-8 sm:px-8 sm:pt-14">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal">{t.kicker}</p>
+        <p className="font-mono text-xs uppercase tracking-[0.3em] text-teal">
+          {session ? t.kicker : t.kickerGuest}
+        </p>
         <div className="relative mt-4">
           <div className="staff absolute inset-x-0 top-[calc(var(--staff-gap)*0.5)]" />
           <h1 className="relative font-display text-4xl sm:text-7xl">{t.title}</h1>
         </div>
-        <Link
-          href="/profile"
-          className="mt-6 self-start text-sm text-teal underline underline-offset-4 hover:text-teal-bright"
-        >
-          {t.backToProfile}
-        </Link>
+        {session && (
+          <Link
+            href="/profile"
+            className="mt-6 self-start text-sm text-teal underline underline-offset-4 hover:text-teal-bright"
+          >
+            {t.backToProfile}
+          </Link>
+        )}
 
-        <section className="mt-12" aria-labelledby="profile-title">
-          <h2 id="profile-title" className="font-display text-3xl">
-            {t.profile.title}
+        <section className="mt-12" aria-labelledby="sound-title">
+          <h2 id="sound-title" className="font-display text-3xl">
+            {t.sound.title}
           </h2>
           <div className="mt-6">
-            <ProfileForm
-              name={session.user.displayUsername ?? session.user.name}
-              image={session.user.image ?? null}
-              t={t.profile}
-            />
+            <SoundSettings t={t.sound} />
           </div>
         </section>
 
-        <section className="mt-16" aria-labelledby="methods-title">
-          <h2 id="methods-title" className="font-display text-3xl">
-            {t.methodsTitle}
+        <section className="mt-16" aria-labelledby="display-title">
+          <h2 id="display-title" className="font-display text-3xl">
+            {t.display.title}
           </h2>
-          <p className="mt-2 max-w-xl text-muted">{t.methodsHint}</p>
-          <div className="mt-6">
-            <SignInMethods
-              methods={methods}
-              username={username}
-              linkError={error === "link"}
-              t={t}
-              recoveryT={dict.login.recovery}
-            />
+          <div className="mt-6 max-w-3xl border-t border-line">
+            <div className="flex flex-col gap-3 border-b border-line py-5 sm:flex-row sm:items-center sm:justify-between">
+              <p className="font-medium text-ink">{t.display.theme}</p>
+              <div role="group" aria-label={t.display.theme} className="flex gap-1 self-start rounded-full border border-line p-1">
+                {(["system", "light", "dark"] as const).map((value) => (
+                  <form key={value} action={setTheme.bind(null, value)}>
+                    <button type="submit" aria-pressed={theme === value} className={choice(theme === value)}>
+                      {dict.header.themes[value]}
+                    </button>
+                  </form>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col gap-3 border-b border-line py-5 sm:flex-row sm:items-center sm:justify-between">
+              <p className="font-medium text-ink">{t.display.language}</p>
+              <div role="group" aria-label={t.display.language} className="flex gap-1 self-start rounded-full border border-line p-1">
+                {(["en", "fr"] as const).map((value) => (
+                  <form key={value} action={setLocale.bind(null, value)}>
+                    <button type="submit" lang={value} aria-pressed={locale === value} className={choice(locale === value)}>
+                      {t.display.languages[value]}
+                    </button>
+                  </form>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
+
+        {!session && (
+          <p className="mt-16 max-w-xl text-muted">
+            {t.guestHint}{" "}
+            <Link href="/login" className="text-teal underline underline-offset-4 hover:text-teal-bright">
+              {dict.header.signIn}
+            </Link>
+          </p>
+        )}
+
+        {session && (
+          <>
+            <section className="mt-16" aria-labelledby="profile-title">
+              <h2 id="profile-title" className="font-display text-3xl">
+                {t.profile.title}
+              </h2>
+              <div className="mt-6">
+                <ProfileForm
+                  name={session.user.displayUsername ?? session.user.name}
+                  image={session.user.image ?? null}
+                  t={t.profile}
+                />
+              </div>
+            </section>
+
+            <section className="mt-16" aria-labelledby="methods-title">
+              <h2 id="methods-title" className="font-display text-3xl">
+                {t.methodsTitle}
+              </h2>
+              <p className="mt-2 max-w-xl text-muted">{t.methodsHint}</p>
+              <div className="mt-6">
+                <SignInMethods
+                  methods={methods}
+                  username={username}
+                  linkError={error === "link"}
+                  t={t}
+                  recoveryT={dict.login.recovery}
+                />
+              </div>
+            </section>
+          </>
+        )}
       </main>
     </>
   );

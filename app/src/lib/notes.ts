@@ -1,5 +1,21 @@
-export const NOTES = ["whole", "half", "quarter", "eighth", "sixteenth", "thirtySecond"] as const;
+export const CLASSIC_NOTES = ["whole", "half", "quarter", "eighth", "sixteenth", "thirtySecond"] as const;
+export const SINGERS = ["mikuMini", "mikuGuitar", "rin", "gumi", "teto"] as const;
+export const NOTES = [...CLASSIC_NOTES, ...SINGERS] as const;
 export type NoteKind = (typeof NOTES)[number];
+export type ClassicNote = (typeof CLASSIC_NOTES)[number];
+export type Singer = (typeof SINGERS)[number];
+
+export const isSinger = (note: NoteKind): note is Singer => (SINGERS as readonly string[]).includes(note);
+
+export const glyphFor = (note: NoteKind): ClassicNote => (isSinger(note) ? "eighth" : note);
+
+export const AVATARS: Record<Singer, string> = {
+  mikuMini: "/avatars/miku-mini.png",
+  mikuGuitar: "/avatars/miku-guitar.png",
+  rin: "/avatars/rin.png",
+  gumi: "/avatars/gumi.png",
+  teto: "/avatars/teto.png",
+};
 
 export const WINS_PER_NOTE = 5;
 

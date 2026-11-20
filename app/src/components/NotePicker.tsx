@@ -34,7 +34,7 @@ export default function NotePicker({ wins, current, t }: Props) {
         {next
           ? t.progress
               .replace("{n}", String(winsFor(next) - wins))
-              .replace("{note}", t.names[next].toLowerCase())
+              .replace("{note}", t.names[next])
           : t.allUnlocked}
       </p>
       <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">

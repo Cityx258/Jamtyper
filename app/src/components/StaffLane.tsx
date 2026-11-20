@@ -1,5 +1,5 @@
 import NoteIcon from "@/components/NoteIcon";
-import type { NoteKind } from "@/lib/notes";
+import { isSinger, type NoteKind } from "@/lib/notes";
 
 type Tone = "you" | "other" | "out";
 
@@ -20,6 +20,7 @@ const CLEF = 40;
 const END = 14;
 const SIZE = 34;
 const BARS = 4;
+const AVATAR = 40;
 
 const COLORS: Record<Tone, string> = {
   you: "text-teal",
@@ -32,8 +33,9 @@ const track = (fraction: number) =>
 
 export default function StaffLane({ progress, length, note, pitch, tone, label }: Props) {
   const fraction = length > 0 ? Math.min(1, progress / length) : 0;
-  const headX = (note === "whole" ? 14 : 9) * ((SIZE * 0.7) / 28);
-  const headY = ((note === "whole" ? 27 : 33) * SIZE) / 40;
+  const singer = isSinger(note);
+  const headX = singer ? AVATAR / 2 : (note === "whole" ? 14 : 9) * ((SIZE * 0.7) / 28);
+  const headY = singer ? AVATAR / 2 : ((note === "whole" ? 27 : 33) * SIZE) / 40;
   const y = TOP + STAFF - (pitch * GAP) / 2;
 
   return (
@@ -76,7 +78,7 @@ export default function StaffLane({ progress, length, note, pitch, tone, label }
         className={`absolute transition-[left] duration-200 ease-out ${COLORS[tone]}`}
         style={{ left: track(fraction), top: y - headY, marginLeft: -headX }}
       >
-        <NoteIcon note={note} size={SIZE} />
+        <NoteIcon note={note} size={singer ? AVATAR : SIZE} />
       </span>
     </div>
   );

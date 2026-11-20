@@ -5,7 +5,7 @@ import NoteIcon from "@/components/NoteIcon";
 import { secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import { melodyOrder, notesPerBeat, noteSeconds, type MelodyNote } from "@/lib/melody";
-import { NOTES, type NoteKind } from "@/lib/notes";
+import { glyphFor, NOTES, type ClassicNote } from "@/lib/notes";
 import type { RacerView } from "@/lib/room-protocol";
 import { playMelody, soundOn } from "@/lib/sound";
 
@@ -24,7 +24,7 @@ const CLEF = 40;
 const SLOT = 28;
 const BAR = 16;
 const SIZE = 34;
-const EXTRA: Record<NoteKind, number> = {
+const EXTRA: Record<ClassicNote, number> = {
   whole: 40,
   half: 20,
   quarter: 6,
@@ -35,7 +35,7 @@ const EXTRA: Record<NoteKind, number> = {
 
 const heard = new Set<number>();
 
-type Symbol = { x: number; pitch: number; note: NoteKind; racer: number; index: number };
+type Symbol = { x: number; pitch: number; note: ClassicNote; racer: number; index: number };
 type Group = { racer: number; from: number; to: number };
 type System = { symbols: Symbol[]; bars: number[]; groups: Group[] };
 
@@ -79,7 +79,7 @@ export function layout(racers: RacerView[], width: number) {
     x = START;
   };
   racers.forEach((r, i) => {
-    const step = SLOT + EXTRA[r.note];
+    const step = SLOT + EXTRA[glyphFor(r.note)];
     const pitches = r.pitches.slice(0, notesPerBeat(r.note));
     if (beats > 0 && beats % 4 === 0 && x > START) {
       system.bars.push(x - 4);
@@ -93,7 +93,7 @@ export function layout(racers: RacerView[], width: number) {
         newSystem();
         group = { racer: i, from: x, to: x };
       }
-      system.symbols.push({ x, pitch, note: r.note, racer: i, index: times.length });
+      system.symbols.push({ x, pitch, note: glyphFor(r.note), racer: i, index: times.length });
       times.push(at);
       group.to = x;
       x += step;

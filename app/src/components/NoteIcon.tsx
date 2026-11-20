@@ -1,4 +1,5 @@
-import { NOTES, type NoteKind } from "@/lib/notes";
+import Image from "next/image";
+import { AVATARS, isSinger, NOTES, type NoteKind } from "@/lib/notes";
 
 const FLAG = (y: number) =>
   `M16 ${y} C 18 ${y + 6}, 26 ${y + 8}, 24 ${y + 16} C 23 ${y + 11}, 19 ${y + 10}, 16 ${y + 9} Z`;
@@ -16,6 +17,20 @@ export default function NoteIcon({
   label?: string;
   stem?: boolean;
 }) {
+  if (isSinger(note)) {
+    return (
+      <Image
+        src={AVATARS[note]}
+        unoptimized
+        width={size}
+        height={size}
+        alt={label ?? ""}
+        aria-hidden={label ? undefined : true}
+        draggable={false}
+        className={`shrink-0 select-none [image-rendering:pixelated] ${className}`}
+      />
+    );
+  }
   const rank = NOTES.indexOf(note);
   const hollow = rank <= 1;
   const flags = Math.max(0, rank - 2);

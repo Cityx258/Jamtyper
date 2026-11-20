@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { NOTES } from "../src/lib/notes";
+import { CLASSIC_NOTES } from "../src/lib/notes";
 import type { BotLevel } from "../src/lib/race-settings";
 import { racerEnd, racerText, type Race, type Racer } from "./room-state";
 import { randomPitches } from "../src/lib/melody";
@@ -61,7 +61,7 @@ export function createBots(
     const name = names.length
       ? names.splice(rngInt(pickRng, names.length), 1)[0]
       : `Bot ${i + 1}`;
-    const note = NOTES[rngInt(rng, NOTES.length)];
+    const note = CLASSIC_NOTES[rngInt(rng, CLASSIC_NOTES.length)];
     return {
       id: `bot-${randomUUID()}`,
       userId: null,

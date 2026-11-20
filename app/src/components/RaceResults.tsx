@@ -75,7 +75,7 @@ export default function RaceResults({
           className="mt-4 flex items-center gap-3 rounded-lg border border-teal bg-teal/10 px-4 py-3 text-ink"
         >
           <NoteIcon note={me.unlocked} size={28} className="text-teal" />
-          {t.unlockedNote.replace("{note}", noteNames[me.unlocked].toLowerCase())}
+          {t.unlockedNote.replace("{note}", noteNames[me.unlocked])}
         </p>
       )}
       <Podium racers={race.racers} you={you} t={t} />

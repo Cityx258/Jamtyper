@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import {
   BEAT_SECONDS,
+  PHRASE_LENGTH,
+  SONGS,
+  phrases,
   PITCHES,
   STAFF_STEPS,
   frequency,
@@ -67,3 +70,25 @@ describe("melody", () => {
     expect(order.map((r) => r.id)).toEqual(["a", "b", "d", "c"]);
   });
 });
+
+describe("singer phrases", () => {
+  test("every song fits on the staff and splits into full phrases", () => {
+    for (const song of Object.values(SONGS)) {
+      if (!song) continue;
+      expect(song.every(isPitch)).toBe(true);
+      expect(phrases(song).length).toBeGreaterThan(0);
+      expect(phrases(song).every((p) => p.length === PHRASE_LENGTH)).toBe(true);
+    }
+  });
+
+  test("a singer plays one phrase of their song", () => {
+    const pitches = randomPitches("mikuGuitar", () => 0);
+    expect(pitches).toEqual(SONGS.mikuGuitar!.slice(0, PHRASE_LENGTH));
+    expect(notesPerBeat("mikuGuitar")).toBe(PHRASE_LENGTH);
+  });
+
+  test("a singer without a song still plays a full phrase", () => {
+    expect(randomPitches("teto")).toHaveLength(PHRASE_LENGTH);
+  });
+});
+

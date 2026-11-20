@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { layout } from "../src/components/RaceMelody";
+import { beams, layout } from "../src/components/RaceMelody";
 import type { RacerView } from "../src/lib/room-protocol";
 
 const racer = (id: string, note: RacerView["note"], pitches: number[]): RacerView => ({
@@ -47,4 +47,13 @@ test("a narrow screen wraps onto more staves without losing notes", () => {
   expect(symbols.map((s) => s.index)).toEqual([...Array(11).keys()]);
   for (const s of symbols) expect(s.x).toBeLessThanOrEqual(240);
   expect(times).toEqual([...times].sort((a, b) => a - b));
+});
+
+test("a singer's phrase is drawn as beamed eighth notes", () => {
+  const phrase = [3, 7, 3, 3, 2, 2, 3, 4];
+  const { systems, times } = layout([racer("m", "mikuMini", phrase)], 1000);
+  expect(times).toHaveLength(8);
+  expect(systems[0].symbols.map((s) => s.note)).toEqual(Array(8).fill("eighth"));
+  expect(systems[0].symbols.map((s) => s.pitch)).toEqual(phrase);
+  expect(beams(systems[0])[0].count).toBe(1);
 });

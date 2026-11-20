@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { isNote, newlyUnlocked, noteFor, unlockedNotes, winningPlaces, winsFor } from "../src/lib/notes";
+import { glyphFor, isNote, isSinger, NOTES, newlyUnlocked, noteFor, unlockedNotes, winningPlaces, winsFor } from "../src/lib/notes";
 
 test("a new note every 5 wins, starting with the whole note", () => {
   expect(unlockedNotes(0)).toEqual(["whole"]);
@@ -7,7 +7,8 @@ test("a new note every 5 wins, starting with the whole note", () => {
   expect(unlockedNotes(5)).toEqual(["whole", "half"]);
   expect(unlockedNotes(14)).toHaveLength(3);
   expect(unlockedNotes(25)).toHaveLength(6);
-  expect(unlockedNotes(400)).toHaveLength(6);
+  expect(unlockedNotes(30)).toContain("mikuMini");
+  expect(unlockedNotes(400)).toHaveLength(NOTES.length);
 });
 
 test("winsFor gives the wins needed for each note", () => {
@@ -42,4 +43,12 @@ test("bigger human lobbies let more places count as wins", () => {
   expect(winningPlaces(5)).toBe(2);
   expect(winningPlaces(6)).toBe(3);
   expect(winningPlaces(12)).toBe(3);
+});
+
+test("singers come after every classic note and draw as eighth notes on the staff", () => {
+  expect(winsFor("mikuMini")).toBe(30);
+  expect(isSinger("teto")).toBe(true);
+  expect(isSinger("whole")).toBe(false);
+  expect(glyphFor("gumi")).toBe("eighth");
+  expect(glyphFor("half")).toBe("half");
 });

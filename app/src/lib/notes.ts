@@ -3,6 +3,8 @@ export type NoteKind = (typeof NOTES)[number];
 
 export const WINS_PER_NOTE = 5;
 
+export const winningPlaces = (humans: number) => (humans >= 6 ? 3 : humans >= 4 ? 2 : 1);
+
 export const isNote = (v: unknown): v is NoteKind => NOTES.includes(v as NoteKind);
 
 export const winsFor = (note: NoteKind) => NOTES.indexOf(note) * WINS_PER_NOTE;

@@ -36,7 +36,7 @@ import { applyBoosts } from "./boosts";
 import { sampleRace, sampleRacer } from "./samples";
 import { randomPitches } from "../src/lib/melody";
 import { botPlan } from "../src/lib/bot-plan";
-import { newlyUnlocked } from "../src/lib/notes";
+import { newlyUnlocked, winningPlaces } from "../src/lib/notes";
 import { noteState, winCount } from "../src/db/notes";
 
 export const COUNTDOWN_MS = 5_000;
@@ -433,8 +433,9 @@ async function endRace(io: AppServer, room: Room, race: Race) {
 
 async function announceUnlocks(io: AppServer, room: Room, race: Race) {
   let changed = false;
+  const places = winningPlaces([...race.racers.values()].filter((r) => !r.bot).length);
   for (const r of race.racers.values()) {
-    if (!r.userId || r.place !== 1 || r.outcome !== "finished") continue;
+    if (!r.userId || !r.place || r.place > places || r.outcome !== "finished") continue;
     const wins = await winCount(r.userId);
     r.unlocked = newlyUnlocked(wins - 1, wins);
     const member = [...room.members.values()].find((m) => m.id === r.id);

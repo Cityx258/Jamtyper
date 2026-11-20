@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { isNote, newlyUnlocked, noteFor, unlockedNotes, winsFor } from "../src/lib/notes";
+import { isNote, newlyUnlocked, noteFor, unlockedNotes, winningPlaces, winsFor } from "../src/lib/notes";
 
 test("a new note every 5 wins, starting with the whole note", () => {
   expect(unlockedNotes(0)).toEqual(["whole"]);
@@ -33,4 +33,13 @@ test("newlyUnlocked only fires on the win that crosses a step", () => {
 test("isNote", () => {
   expect(isNote("sixteenth")).toBe(true);
   expect(isNote("crotchet")).toBe(false);
+});
+
+test("bigger human lobbies let more places count as wins", () => {
+  expect(winningPlaces(1)).toBe(1);
+  expect(winningPlaces(3)).toBe(1);
+  expect(winningPlaces(4)).toBe(2);
+  expect(winningPlaces(5)).toBe(2);
+  expect(winningPlaces(6)).toBe(3);
+  expect(winningPlaces(12)).toBe(3);
 });

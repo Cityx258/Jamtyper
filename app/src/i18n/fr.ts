@@ -14,6 +14,8 @@ const fr: Dict = {
     languageShort: "EN",
     themeLabel: "Thème : {current}. Passer à {next}",
     themes: { system: "système", light: "clair", dark: "sombre" },
+    musicOn: "Musique de fond activée. Clique pour arrêter.",
+    musicOff: "Musique de fond coupée. Clique pour la jouer.",
     soundOn: "Effets sonores activés. Clique pour couper.",
     soundOff: "Effets sonores coupés. Clique pour activer.",
   },
@@ -24,6 +26,8 @@ const fr: Dict = {
     rooms: "Salles",
     practice: "Entraînement",
     profile: "Profil",
+    nowPlaying: "En lecture :",
+    by: "par",
   },
   home: {
     kicker: "La frappe, en rythme",

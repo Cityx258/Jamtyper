@@ -1,4 +1,5 @@
 import Link from "next/link";
+import NowPlaying from "@/components/NowPlaying";
 import { getDict } from "@/i18n";
 
 export default async function Footer() {
@@ -35,6 +36,7 @@ export default async function Footer() {
           </ul>
         </nav>
       </div>
+      <NowPlaying label={t.nowPlaying} by={t.by} />
     </footer>
   );
 }

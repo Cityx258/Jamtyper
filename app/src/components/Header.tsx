@@ -2,20 +2,23 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { setLocale, setTheme } from "@/app/actions";
 import Avatar from "@/components/Avatar";
+import MusicToggle from "@/components/MusicToggle";
 import SignOutButton from "@/components/SignOutButton";
 import SoundToggle from "@/components/SoundToggle";
 import { getDict, getLocale, getTheme } from "@/i18n";
 import { auth } from "@/lib/auth";
+import { musicTracks } from "@/lib/tracks";
 
 const iconButton =
   "grid h-9 min-w-9 place-items-center rounded-full border border-line px-2 text-xs font-bold text-muted transition-colors hover:border-teal hover:text-ink";
 
 export default async function Header() {
-  const [session, t, locale, theme] = await Promise.all([
+  const [session, t, locale, theme, tracks] = await Promise.all([
     auth.api.getSession({ headers: await headers() }),
     getDict(),
     getLocale(),
     getTheme(),
+    musicTracks(),
   ]);
   const nextLocale = locale === "en" ? "fr" : "en";
   const nextTheme = theme === "system" ? "light" : theme === "light" ? "dark" : "system";
@@ -94,6 +97,12 @@ export default async function Header() {
             </svg>
           </button>
         </form>
+        <MusicToggle
+          tracks={tracks}
+          className={iconButton}
+          onLabel={t.header.musicOn}
+          offLabel={t.header.musicOff}
+        />
         <SoundToggle
           className={iconButton}
           onLabel={t.header.soundOn}

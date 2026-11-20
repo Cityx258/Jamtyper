@@ -12,6 +12,8 @@ const en = {
     languageShort: "FR",
     themeLabel: "Theme: {current}. Switch to {next}",
     themes: { system: "system", light: "light", dark: "dark" },
+    musicOn: "Background music on. Click to stop.",
+    musicOff: "Background music off. Click to play.",
     soundOn: "Sound effects on. Click to mute.",
     soundOff: "Sound effects off. Click to turn on.",
   },
@@ -22,6 +24,8 @@ const en = {
     rooms: "Rooms",
     practice: "Practice",
     profile: "Profile",
+    nowPlaying: "Now playing:",
+    by: "by",
   },
   home: {
     kicker: "Typing, in tempo",

@@ -6,7 +6,7 @@ export default async function Footer() {
   const t = (await getDict()).footer;
   const link = "text-muted transition-colors hover:text-ink";
   return (
-    <footer className="mx-auto w-full max-w-6xl border-t border-line px-5 py-8 text-sm sm:px-8">
+    <footer className="mx-auto w-full max-w-6xl border-t border-line px-5 pb-20 pt-8 text-sm sm:px-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-muted">
           <span className="font-display text-ink">JamTyper</span> · {t.tagline}{" "}

@@ -17,6 +17,13 @@ const en = {
     soundOn: "Sound effects on. Click to mute.",
     soundOff: "Sound effects off. Click to turn on.",
   },
+  player: {
+    player: "Music player",
+    play: "Play",
+    pause: "Pause",
+    next: "Next song",
+    previous: "Previous song",
+  },
   footer: {
     tagline: "Typing races for high school students. Web5 project, Cégep de Sorel-Tracy.",
     nav: "Footer",

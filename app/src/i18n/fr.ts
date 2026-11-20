@@ -19,6 +19,13 @@ const fr: Dict = {
     soundOn: "Effets sonores activés. Clique pour couper.",
     soundOff: "Effets sonores coupés. Clique pour activer.",
   },
+  player: {
+    player: "Lecteur de musique",
+    play: "Jouer",
+    pause: "Pause",
+    next: "Chanson suivante",
+    previous: "Chanson précédente",
+  },
   footer: {
     tagline: "Courses de dactylo pour les élèves du secondaire. Projet Web5, Cégep de Sorel-Tracy.",
     nav: "Pied de page",

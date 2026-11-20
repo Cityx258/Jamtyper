@@ -7,6 +7,7 @@ import {
 } from "next/font/google";
 import FloatingNotes from "@/components/FloatingNotes";
 import Footer from "@/components/Footer";
+import MusicPlayer from "@/components/MusicPlayer";
 import { getDict, getLocale, getTheme } from "@/i18n";
 import "./globals.css";
 
@@ -42,7 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const [locale, theme] = await Promise.all([getLocale(), getTheme()]);
+  const [locale, theme, t] = await Promise.all([getLocale(), getTheme(), getDict()]);
   return (
     <html
       lang={locale}
@@ -55,6 +56,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           {children}
           <Footer />
         </div>
+        <MusicPlayer t={t.player} />
       </body>
     </html>
   );

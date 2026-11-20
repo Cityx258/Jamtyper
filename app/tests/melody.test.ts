@@ -12,7 +12,7 @@ import {
   noteSeconds,
   noteLengths,
   notesPerBeat,
-  phraseBeats,
+  written,
   randomPitch,
   randomPitches,
   schedule,
@@ -111,12 +111,14 @@ describe("singer phrases", () => {
     });
   });
 
-  test("a phrase takes whole beats in the bar count", () => {
-    const phrase = phrases(SONGS.mikuMini)[0];
-    const total = phrase.beats.reduce((a, b) => a + b, 0);
-    expect(phraseBeats("mikuMini", phrase.pitches)).toBe(Math.ceil(total));
-    expect(phraseBeats("quarter", [3])).toBe(1);
-    expect(phraseBeats("sixteenth", [1, 2, 3, 4])).toBe(1);
+  test("each length is written as the note value that matches it", () => {
+    expect(written(4)).toEqual({ note: "whole", dotted: false });
+    expect(written(1.5)).toEqual({ note: "quarter", dotted: true });
+    expect(written(1)).toEqual({ note: "quarter", dotted: false });
+    expect(written(0.75)).toEqual({ note: "eighth", dotted: true });
+    expect(written(0.5)).toEqual({ note: "eighth", dotted: false });
+    expect(written(0.25)).toEqual({ note: "sixteenth", dotted: false });
+    expect(written(0.125)).toEqual({ note: "thirtySecond", dotted: false });
   });
 
   test("unknown pitches for a singer fall back to an even rhythm", () => {

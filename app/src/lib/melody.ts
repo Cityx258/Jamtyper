@@ -1,4 +1,4 @@
-import { isSinger, type NoteKind, type Singer } from "./notes";
+import { isSinger, type ClassicNote, type NoteKind, type Singer } from "./notes";
 
 export const STAFF_STEPS = 9;
 export const PITCHES = [0, 2, 3, 5, 6, 7] as const;
@@ -99,9 +99,23 @@ export function noteLengths(note: NoteKind, pitches: number[]): number[] {
   return played.map(() => noteSeconds(note));
 }
 
-export function phraseBeats(note: NoteKind, pitches: number[]): number {
-  const total = noteLengths(note, pitches).reduce((sum, s) => sum + s, 0) / BEAT_SECONDS;
-  return Math.max(1, Math.ceil(total - 1e-9));
+const WRITTEN: [number, ClassicNote, boolean][] = [
+  [4, "whole", false],
+  [3, "half", true],
+  [2, "half", false],
+  [1.5, "quarter", true],
+  [1, "quarter", false],
+  [0.75, "eighth", true],
+  [0.5, "eighth", false],
+  [0.375, "sixteenth", true],
+  [0.25, "sixteenth", false],
+  [0.1875, "thirtySecond", true],
+  [0.125, "thirtySecond", false],
+];
+
+export function written(beats: number): { note: ClassicNote; dotted: boolean } {
+  const [, note, dotted] = WRITTEN.find(([b]) => b <= beats + 1e-9) ?? WRITTEN[WRITTEN.length - 1];
+  return { note, dotted };
 }
 
 export function schedule(notes: MelodyNote[]): ScheduledNote[] {

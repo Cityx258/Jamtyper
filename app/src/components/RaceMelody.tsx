@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import NoteIcon from "@/components/NoteIcon";
 import { secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
-import { melodyOrder, noteLengths, notesPerBeat, phraseBeats, type MelodyNote } from "@/lib/melody";
-import { glyphFor, NOTES, type ClassicNote } from "@/lib/notes";
+import { BEAT_SECONDS, melodyOrder, noteLengths, notesPerBeat, written, type MelodyNote } from "@/lib/melody";
+import { NOTES, type ClassicNote } from "@/lib/notes";
 import type { RacerView } from "@/lib/room-protocol";
 import { playMelody, soundOn } from "@/lib/sound";
 
@@ -32,10 +32,19 @@ const EXTRA: Record<ClassicNote, number> = {
   sixteenth: 0,
   thirtySecond: 0,
 };
+const DOT = 7;
 
 const heard = new Set<number>();
 
-type Symbol = { x: number; pitch: number; note: ClassicNote; racer: number; index: number };
+type Symbol = {
+  x: number;
+  pitch: number;
+  note: ClassicNote;
+  dotted: boolean;
+  racer: number;
+  beat: number;
+  index: number;
+};
 type Group = { racer: number; from: number; to: number };
 type System = { symbols: Symbol[]; bars: number[]; groups: Group[] };
 
@@ -47,22 +56,61 @@ const STEM_W = 2 * SCALE;
 const STEM = 31 * SCALE;
 const BEAM = 4;
 const BEAM_GAP = 6.5;
+const STUB = 9;
+const EPS = 1e-6;
 
 const y = (pitch: number) => TOP + STAFF - (pitch * GAP) / 2;
+const flags = (note: ClassicNote) => Math.max(0, NOTES.indexOf(note) - 2);
 
-type Beam = { racer: number; count: number; notes: Symbol[]; at: (x: number) => number };
+type Segment = { level: number; x0: number; x1: number };
+type Beam = { racer: number; notes: Symbol[]; segments: Segment[]; at: (x: number) => number };
+
+function runs(system: System): Symbol[][] {
+  const out: Symbol[][] = [];
+  let run: Symbol[] = [];
+  for (const s of system.symbols) {
+    const prev = run.at(-1);
+    if (prev && (prev.racer !== s.racer || prev.beat !== s.beat || flags(s.note) < 1)) {
+      out.push(run);
+      run = [];
+    }
+    if (flags(s.note) >= 1) run.push(s);
+  }
+  out.push(run);
+  return out.filter((r) => r.length > 1);
+}
+
+function segments(notes: Symbol[]): Segment[] {
+  const out: Segment[] = [];
+  const depth = Math.max(...notes.map((s) => flags(s.note)));
+  for (let level = 0; level < depth; level++) {
+    let i = 0;
+    while (i < notes.length) {
+      if (flags(notes[i].note) <= level) {
+        i++;
+        continue;
+      }
+      let j = i;
+      while (j + 1 < notes.length && flags(notes[j + 1].note) > level) j++;
+      const left = notes[i].x + STEM_X;
+      const right = notes[j].x + STEM_X + STEM_W;
+      if (j > i) out.push({ level, x0: left, x1: right });
+      else if (i === notes.length - 1) out.push({ level, x0: right - STUB, x1: right });
+      else out.push({ level, x0: left, x1: left + STUB });
+      i = j + 1;
+    }
+  }
+  return out;
+}
 
 export function beams(system: System): Beam[] {
-  return system.groups.flatMap((g) => {
-    const notes = system.symbols.filter((s) => s.racer === g.racer);
-    const count = notes.length > 1 ? NOTES.indexOf(notes[0].note) - 2 : 0;
-    if (count < 1) return [];
+  return runs(system).map((notes) => {
     const x0 = notes[0].x;
     const span = notes.at(-1)!.x - x0;
     const tilt = Math.max(-GAP, Math.min(GAP, y(notes.at(-1)!.pitch) - y(notes[0].pitch)));
     const lift = (x: number) => (tilt * (x - x0)) / span;
     const base = Math.min(...notes.map((s) => y(s.pitch) - STEM - lift(s.x)));
-    return [{ racer: g.racer, count, notes, at: (x: number) => base + lift(x) }];
+    return { racer: notes[0].racer, notes, segments: segments(notes), at: (x: number) => base + lift(x) };
   });
 }
 
@@ -71,7 +119,8 @@ export function layout(racers: RacerView[], width: number) {
   const times: number[] = [];
   let system: System = { symbols: [], bars: [], groups: [] };
   let x = START;
-  let beats = 0;
+  let position = 0;
+  let nextBar = 4;
   let at = 0;
   const newSystem = () => {
     systems.push(system);
@@ -79,29 +128,44 @@ export function layout(racers: RacerView[], width: number) {
     x = START;
   };
   racers.forEach((r, i) => {
-    const step = SLOT + EXTRA[glyphFor(r.note)];
     const pitches = r.pitches.slice(0, notesPerBeat(r.note));
-    const lengths = noteLengths(r.note, pitches);
-    if (beats > 0 && beats % 4 === 0 && x > START) {
-      system.bars.push(x - 4);
-      x += BAR - 8;
-    }
-    if (x > START && x + Math.min(pitches.length * step, width - START - END) > width - END) newSystem();
-    let group: Group = { racer: i, from: x, to: x };
+    const beats = noteLengths(r.note, pitches).map((l) => l / BEAT_SECONDS);
+    const notes = beats.map(written);
+    const steps = notes.map((n) => SLOT + EXTRA[n.note] + (n.dotted ? DOT : 0));
+    const total = steps.reduce((sum, w) => sum + w, 0);
+    let group: Group | null = null;
+    let inPhrase = 0;
     pitches.forEach((pitch, k) => {
-      if (x > START && x + SLOT > width - END) {
-        system.groups.push(group);
-        newSystem();
-        group = { racer: i, from: x, to: x };
+      if (position >= nextBar - EPS) {
+        if (x > START) {
+          system.bars.push(x - 4);
+          x += BAR - 8;
+        }
+        nextBar = (Math.floor((position + EPS) / 4) + 1) * 4;
       }
-      system.symbols.push({ x, pitch, note: glyphFor(r.note), racer: i, index: times.length });
+      const fits = k === 0 ? Math.min(total, width - START - END) : SLOT;
+      if (x > START && x + fits > width - END) {
+        if (group) system.groups.push(group);
+        newSystem();
+        group = null;
+      }
+      group ??= { racer: i, from: x, to: x };
+      system.symbols.push({
+        x,
+        pitch,
+        ...notes[k],
+        racer: i,
+        beat: Math.floor(inPhrase + EPS),
+        index: times.length,
+      });
       times.push(at);
       group.to = x;
-      x += step;
-      at += lengths[k];
+      x += steps[k];
+      at += beats[k] * BEAT_SECONDS;
+      position += beats[k];
+      inPhrase += beats[k];
     });
-    system.groups.push(group);
-    beats += phraseBeats(r.note, pitches);
+    if (group) system.groups.push(group);
   });
   if (system.symbols.length) systems.push(system);
   return { systems, times };
@@ -219,6 +283,15 @@ export default function RaceMelody({ racers, you, raceKey, t }: Props) {
                     }}
                   >
                     <NoteIcon note={s.note} size={SIZE} stem={!beamed.has(s.index)} />
+                    {s.dotted && (
+                      <span
+                        className="absolute size-[3.5px] rounded-full bg-current"
+                        style={{
+                          left: headX + (s.note === "whole" ? 12 : 9),
+                          top: headY - 1.75 - (s.pitch % 2 === 0 ? GAP / 2 : 0),
+                        }}
+                      />
+                    )}
                   </span>
                 );
               })}
@@ -230,8 +303,6 @@ export default function RaceMelody({ racers, you, raceKey, t }: Props) {
                   height={HEIGHT}
                 >
                   {joined.map((b) => {
-                    const x0 = b.notes[0].x + STEM_X;
-                    const x1 = b.notes.at(-1)!.x + STEM_X + STEM_W;
                     const color = ordered[b.racer].id === you ? "fill-teal" : "fill-ink";
                     return (
                       <g key={b.notes[0].index} className={color}>
@@ -245,12 +316,12 @@ export default function RaceMelody({ racers, you, raceKey, t }: Props) {
                             className={active === s.index ? "fill-teal-bright" : undefined}
                           />
                         ))}
-                        {Array.from({ length: b.count }, (_, k) => {
-                          const top0 = b.at(b.notes[0].x) + k * BEAM_GAP;
-                          const top1 = b.at(b.notes.at(-1)!.x) + k * BEAM_GAP;
+                        {b.segments.map(({ level, x0, x1 }) => {
+                          const top0 = b.at(x0 - STEM_X) + level * BEAM_GAP;
+                          const top1 = b.at(x1 - STEM_X - STEM_W) + level * BEAM_GAP;
                           return (
                             <polygon
-                              key={k}
+                              key={`${level}-${x0}`}
                               points={`${x0},${top0} ${x1},${top1} ${x1},${top1 + BEAM} ${x0},${top0 + BEAM}`}
                             />
                           );

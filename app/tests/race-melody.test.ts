@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { beams, layout } from "../src/components/RaceMelody";
+import { phrases, SONGS } from "../src/lib/melody";
 import type { RacerView } from "../src/lib/room-protocol";
 
 const racer = (id: string, note: RacerView["note"], pitches: number[]): RacerView => ({
@@ -49,17 +50,49 @@ test("a narrow screen wraps onto more staves without losing notes", () => {
   expect(times).toEqual([...times].sort((a, b) => a - b));
 });
 
-test("a singer's phrase is drawn as beamed eighth notes", () => {
+test("a singer's phrase is written in the rhythm it plays", () => {
   const phrase = [3, 7, 3, 3, 2, 2, 3, 4];
   const { systems, times } = layout([racer("m", "mikuMini", phrase)], 1000);
-  expect(times).toHaveLength(8);
-  expect(systems[0].symbols.map((s) => s.note)).toEqual(Array(8).fill("eighth"));
-  expect(systems[0].symbols.map((s) => s.pitch)).toEqual(phrase);
-  expect(beams(systems[0])[0].count).toBe(1);
+  const symbols = systems[0].symbols;
+  expect(symbols.map((s) => s.pitch)).toEqual(phrase);
+  expect(symbols.map((s) => s.note)).toEqual([
+    "eighth",
+    "quarter",
+    "sixteenth",
+    "sixteenth",
+    "eighth",
+    "sixteenth",
+    "eighth",
+    "eighth",
+  ]);
+  expect(symbols.map((s) => s.dotted)).toEqual([false, true, false, false, true, false, false, false]);
+  expect(times.map((t) => t / 0.5)).toEqual([0, 0.5, 2, 2.25, 2.5, 3.25, 3.5, 4]);
+  const joined = beams(systems[0]);
+  expect(joined.map((b) => b.notes.map((s) => s.index))).toEqual([
+    [2, 3, 4],
+    [5, 6],
+  ]);
+  expect(joined[0].segments.map((g) => g.level)).toEqual([0, 1]);
+  expect(joined[1].segments.map((g) => g.level)).toEqual([0, 1]);
+});
+
+test("a bar line falls where four beats have played, even inside a phrase", () => {
+  const { systems } = layout(
+    [racer("q", "quarter", [0]), racer("m", "mikuMini", [3, 7, 3, 3, 2, 2, 3, 4])],
+    1000,
+  );
+  const [bar] = systems[0].bars;
+  const after = systems[0].symbols.find((s) => s.x > bar)!;
+  expect(after.index).toBe(6);
 });
 
 test("Leek Miku's fast phrase is drawn as sixteenth notes", () => {
-  const { systems } = layout([racer("l", "mikuLeek", [2, 5, 4, 3, 5, 6, 1, 5])], 1000);
-  expect(systems[0].symbols.every((s) => s.note === "sixteenth")).toBe(true);
-  expect(beams(systems[0])[0].count).toBe(2);
+  const { systems } = layout([racer("l", "mikuLeek", phrases(SONGS.mikuLeek)[2].pitches)], 1000);
+  expect(systems[0].symbols.every((s) => s.note === "sixteenth" || s.note === "eighth")).toBe(true);
+  expect(Math.max(...beams(systems[0]).flatMap((b) => b.segments.map((g) => g.level)))).toBe(1);
+});
+
+test("classic notes keep one beam group per racer", () => {
+  const { systems } = layout(racers, 1000);
+  expect(beams(systems[0]).map((b) => b.notes.length)).toEqual([8, 2]);
 });

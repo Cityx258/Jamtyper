@@ -145,11 +145,13 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
           unlocked: null,
           samples: [],
           cut: 0,
+          extra: "",
+          bonuses: 0,
           boost: null,
-          lastBoostAt: 0,
         },
       ]),
     ),
+    checkpoints: 0,
     dirty: false,
     timers: [],
   };
@@ -178,14 +180,13 @@ function beginRacing(io: AppServer, room: Room, race: Race) {
     race.timers.push(setTimeout(() => void endRace(io, room, race), endsAt - Date.now()));
   }
   let last = Date.now();
-  let lastBoostCheck = last;
   race.ticker = setInterval(() => {
     const now = Date.now();
     const dt = now - last;
     last = now;
     for (const racer of race.racers.values()) {
       if (room.race !== race || !isLive(room.status)) return;
-      if (!stepBot(race, racer, dt)) continue;
+      if (!stepBot(race, racer, dt, now)) continue;
       race.dirty = true;
       if (race.settings.instantDeath && racer.mistakes > 0) {
         settle(io, room, race, racer, "eliminated");
@@ -194,10 +195,7 @@ function beginRacing(io: AppServer, room: Room, race: Race) {
       }
     }
     sampleRace(race, now);
-    if (race.settings.boosts && now - lastBoostCheck >= 1000) {
-      lastBoostCheck = now;
-      if (applyBoosts(race, now)) race.dirty = true;
-    }
+    if (race.settings.boosts && applyBoosts(race, now)) race.dirty = true;
     if (!race.dirty) return;
     race.dirty = false;
     io.to(channel(room.code)).emit("race:positions", racersView(race));

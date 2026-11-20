@@ -78,8 +78,9 @@ export interface Racer {
   unlocked: NoteKind | null;
   samples: number[];
   cut: number;
+  extra: string;
+  bonuses: number;
   boost: BoostView | null;
-  lastBoostAt: number;
 }
 
 export interface Race {
@@ -92,6 +93,7 @@ export interface Race {
   closesAt: number | null;
   endedAt: number | null;
   racers: Map<string, Racer>;
+  checkpoints: number;
   dirty: boolean;
   timers: NodeJS.Timeout[];
   ticker?: NodeJS.Timeout;
@@ -150,7 +152,11 @@ export function racerAccuracy(racer: Racer): number {
   return strokes === 0 ? 1 : racer.position / strokes;
 }
 
-export const racerEnd = (race: Race, racer: Racer) => race.text.length - racer.cut;
+export const racerText = (race: Race, racer: Racer) =>
+  race.text.slice(0, race.text.length - racer.cut) + racer.extra;
+
+export const racerEnd = (race: Race, racer: Racer) =>
+  race.text.length - racer.cut + racer.extra.length;
 
 export function racersView(race: Race, withSamples = false): RacerView[] {
   const now = Date.now();
@@ -177,6 +183,8 @@ export function racersView(race: Race, withSamples = false): RacerView[] {
       timeMs: r.outcome === "finished" ? r.doneAt : null,
       missed: r.missed,
       end: racerEnd(race, r),
+      extra: r.extra,
+      bonuses: r.bonuses,
       boost: r.boost,
     }));
 }

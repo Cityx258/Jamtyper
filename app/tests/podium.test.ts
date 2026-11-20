@@ -19,6 +19,8 @@ const view = (name: string, place: number | null, outcome: RacerOutcome): RacerV
   place,
   missed: {},
   end: 100,
+  extra: "",
+  bonuses: 0,
   boost: null,
   timeMs: null,
 });

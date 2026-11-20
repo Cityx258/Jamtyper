@@ -20,8 +20,9 @@ export function racer(patch: Partial<Racer> = {}): Racer {
     unlocked: null,
     samples: [],
     cut: 0,
+    extra: "",
+    bonuses: 0,
     boost: null,
-    lastBoostAt: 0,
     ...patch,
   };
 }
@@ -37,6 +38,7 @@ export function race(racers: Racer[], settings: Partial<RaceSettings> = {}, text
     closesAt: null,
     endedAt: null,
     racers: new Map(racers.map((r) => [r.id, r])),
+    checkpoints: 0,
     dirty: false,
     timers: [],
   };

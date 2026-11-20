@@ -127,10 +127,10 @@ export default function RaceScreen({
         {me?.outcome === "racing" ? (
           <TypingBox
             key={race.startsAt}
-            text={race.text.slice(0, me.end)}
+            text={race.text.slice(0, me.end - me.extra.length) + me.extra}
             start={me.progress}
             startErrors={me.errors}
-            fogged={myBoost === "spotlight"}
+            fogged={myBoost === "fog"}
             mode={race.errorMode}
             label={t.typeHere}
             onProgress={sendProgress}

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NOTES } from "../src/lib/notes";
 import type { BotLevel } from "../src/lib/race-settings";
-import { racerEnd, type Race, type Racer } from "./room-state";
+import { racerEnd, racerText, type Race, type Racer } from "./room-state";
 import { randomPitches } from "../src/lib/melody";
 import { rngInt, seededRng, type Rng } from "../src/lib/rng";
 
@@ -30,6 +30,7 @@ const PAUSE_COMPENSATION = 1.15;
 const SENTENCE_END = /[.!?;:]/;
 const HARD_CHAR = /[^a-z ]/;
 const HARD_CHAR_COST = 1.6;
+const FOG_SLOWDOWN = 2;
 
 export interface BotState {
   rng: Rng;
@@ -73,8 +74,9 @@ export function createBots(
       unlocked: null,
       samples: [],
       cut: 0,
+      extra: "",
+      bonuses: 0,
       boost: null,
-      lastBoostAt: 0,
       bot: {
         rng,
         cps: ((wpm * 5) / 60) * PAUSE_COMPENSATION,
@@ -88,7 +90,7 @@ export function createBots(
   });
 }
 
-export function stepBot(race: Race, racer: Racer, dtMs: number): boolean {
+export function stepBot(race: Race, racer: Racer, dtMs: number, now = Date.now()): boolean {
   const bot = racer.bot;
   if (!bot || racer.outcome !== "racing") return false;
   const { rng } = bot;
@@ -102,9 +104,11 @@ export function stepBot(race: Race, racer: Racer, dtMs: number): boolean {
   bot.pace += (bot.target - bot.pace) * Math.min(1, dtMs / 700);
   bot.carry += (bot.cps * bot.pace * dtMs) / 1000;
   let moved = false;
+  const text = racerText(race, racer);
+  const fogged = racer.boost?.kind === "fog" && racer.boost.until > now ? FOG_SLOWDOWN : 1;
   while (racer.position < racerEnd(race, racer)) {
-    const key = race.text[racer.position];
-    const cost = HARD_CHAR.test(key) ? HARD_CHAR_COST : 1;
+    const key = text[racer.position];
+    const cost = (HARD_CHAR.test(key) ? HARD_CHAR_COST : 1) * fogged;
     if (bot.carry < cost) break;
     bot.carry -= cost;
     if (rng() < bot.typoRate) {

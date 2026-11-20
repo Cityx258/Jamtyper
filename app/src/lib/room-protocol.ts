@@ -36,7 +36,7 @@ export type RacerOutcome =
   | "eliminated"
   | "timed_out";
 
-export type BoostKind = "shortcut" | "spotlight";
+export type BoostKind = "shortcut" | "extra" | "fog";
 
 export interface BoostView {
   kind: BoostKind;
@@ -61,6 +61,8 @@ export interface RacerView {
   timeMs: number | null;
   missed: MissedKeys;
   end: number;
+  extra: string;
+  bonuses: number;
   boost: BoostView | null;
 }
 

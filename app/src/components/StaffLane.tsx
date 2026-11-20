@@ -1,5 +1,5 @@
 import NoteIcon from "@/components/NoteIcon";
-import { isSinger, type NoteKind } from "@/lib/notes";
+import { iconSize, isSinger, type NoteKind } from "@/lib/notes";
 import type { Move } from "@/lib/use-overtakes";
 
 type Tone = "you" | "other" | "out";
@@ -36,8 +36,9 @@ const track = (fraction: number) =>
 export default function StaffLane({ progress, length, note, pitch, tone, label, move }: Props) {
   const fraction = length > 0 ? Math.min(1, progress / length) : 0;
   const singer = isSinger(note);
-  const headX = singer ? AVATAR / 2 : (note === "whole" ? 14 : 9) * ((SIZE * 0.7) / 28);
-  const headY = singer ? AVATAR / 2 : ((note === "whole" ? 27 : 33) * SIZE) / 40;
+  const avatar = iconSize(note, AVATAR);
+  const headX = singer ? avatar / 2 : (note === "whole" ? 14 : 9) * ((SIZE * 0.7) / 28);
+  const headY = singer ? avatar / 2 : ((note === "whole" ? 27 : 33) * SIZE) / 40;
   const y = TOP + STAFF - (pitch * GAP) / 2;
 
   return (

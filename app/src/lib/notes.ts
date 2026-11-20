@@ -29,16 +29,20 @@ export const AVATARS: Record<Singer, string> = {
 
 export const WINS_PER_NOTE = 5;
 
+// Leek Miku is the trophy for pro typers: she takes far more wins and draws bigger than the rest.
+const TROPHY_WINS: Partial<Record<NoteKind, number>> = { mikuLeek: 100 };
+const SINGER_SCALE: Partial<Record<Singer, number>> = { mikuLeek: 1.3 };
+
+export const iconSize = (note: NoteKind, size: number) =>
+  isSinger(note) ? Math.round(size * (SINGER_SCALE[note] ?? 1)) : size;
+
 export const winningPlaces = (humans: number) => (humans >= 6 ? 3 : humans >= 4 ? 2 : 1);
 
 export const isNote = (v: unknown): v is NoteKind => NOTES.includes(v as NoteKind);
 
-export const winsFor = (note: NoteKind) => NOTES.indexOf(note) * WINS_PER_NOTE;
+export const winsFor = (note: NoteKind) => TROPHY_WINS[note] ?? NOTES.indexOf(note) * WINS_PER_NOTE;
 
-export function unlockedNotes(wins: number): NoteKind[] {
-  const count = Math.min(NOTES.length, 1 + Math.floor(Math.max(0, wins) / WINS_PER_NOTE));
-  return NOTES.slice(0, count);
-}
+export const unlockedNotes = (wins: number): NoteKind[] => NOTES.filter((note) => winsFor(note) <= Math.max(0, wins));
 
 export function noteFor(wins: number, chosen: string | null): NoteKind {
   const unlocked = unlockedNotes(wins);

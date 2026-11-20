@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { glyphFor, isNote, isSinger, NOTES, newlyUnlocked, noteFor, unlockedNotes, winningPlaces, winsFor } from "../src/lib/notes";
+import { glyphFor, iconSize, isNote, isSinger, NOTES, newlyUnlocked, noteFor, unlockedNotes, winningPlaces, winsFor } from "../src/lib/notes";
 
 test("a new note every 5 wins, starting with the whole note", () => {
   expect(unlockedNotes(0)).toEqual(["whole"]);
@@ -52,4 +52,17 @@ test("singers come after every classic note and draw as eighth notes on the staf
   expect(glyphFor("gumi")).toBe("eighth");
   expect(glyphFor("half")).toBe("half");
   expect(glyphFor("mikuLeek")).toBe("sixteenth");
+});
+
+test("Leek Miku is the pro trophy: 100 wins and a bigger avatar", () => {
+  expect(winsFor("teto")).toBe(50);
+  expect(winsFor("mikuLeek")).toBe(100);
+  expect(unlockedNotes(99)).not.toContain("mikuLeek");
+  expect(unlockedNotes(99)).toHaveLength(NOTES.length - 1);
+  expect(unlockedNotes(100)).toContain("mikuLeek");
+  expect(newlyUnlocked(54, 55)).toBeNull();
+  expect(newlyUnlocked(99, 100)).toBe("mikuLeek");
+  expect(iconSize("mikuLeek", 40)).toBe(52);
+  expect(iconSize("teto", 40)).toBe(40);
+  expect(iconSize("half", 40)).toBe(40);
 });

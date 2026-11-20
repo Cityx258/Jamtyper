@@ -37,11 +37,11 @@ function clock(ms: number) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className={`flex flex-col gap-1 px-5 py-4 ${tile}`}>
+    <div className={`@container flex min-w-0 flex-col gap-1 px-5 py-4 ${tile}`}>
       <span className="font-mono text-xs uppercase tracking-wider text-muted">
         {label}
       </span>
-      <span className="font-display text-4xl">{value}</span>
+      <span className="whitespace-nowrap font-display text-[min(2.25rem,12cqw)] leading-10">{value}</span>
     </div>
   );
 }

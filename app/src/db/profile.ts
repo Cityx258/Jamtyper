@@ -21,6 +21,7 @@ export async function getProfile(userId: string) {
     db
       .select({
         id: raceResult.id,
+        raceId: raceResult.raceId,
         startedAt: race.startedAt,
         position: raceResult.position,
         racers: sql<number>`(select count(*)::int from ${raceResult} r2 where r2.race_id = ${raceResult.raceId})`,

@@ -11,6 +11,7 @@ export const DEMO_PASSWORD = "jamtyper-demo";
 const DEMO_USERS = ["demo", "melodie", "tempo"];
 const RACES = 24;
 const DAY = 24 * 60 * 60 * 1000;
+const TEXT = "the quick brown fox jumps over the lazy dog while the band plays a slow tune";
 
 async function seedCorpus() {
   const rows = LANGUAGES.flatMap((language) =>
@@ -43,6 +44,13 @@ async function seedUser(username: string): Promise<{ id: string; created: boolea
   return { id: res.user.id, created: true };
 }
 
+function samplesFor(wpm: number, seconds: number): number[] {
+  return Array.from({ length: seconds * 10 }, (_, i) => {
+    const warmup = Math.min(1, (i + 5) / 40);
+    return Math.max(0, Math.round(wpm * warmup + Math.sin(i / 7) * 4));
+  });
+}
+
 async function seedHistory(players: { id: string; name: string }[]) {
   const [host] = players;
   const [demoRoom] = await db
@@ -60,7 +68,7 @@ async function seedHistory(players: { id: string; name: string }[]) {
       .insert(race)
       .values({
         roomId: demoRoom.id,
-        textBody: "the quick brown fox jumps over the lazy dog",
+        textBody: TEXT,
         startedAt,
         endedAt: new Date(startedAt.getTime() + seconds * 1000),
       })
@@ -84,6 +92,14 @@ async function seedHistory(players: { id: string; name: string }[]) {
         accuracy: 0.9 + ((i + place) % 9) / 100,
         missedKeys: { e: 1 + (i % 3), r: i % 2, t: 1 },
         outcome: "finished" as const,
+        rawWpm: Math.round(f.wpm * 1.06 * 100) / 100,
+        mistakes: 2 + ((i + place) % 5),
+        progress: TEXT.length,
+        textEnd: TEXT.length,
+        timeMs: Math.round(((TEXT.length / 5 / f.wpm) * 60_000)),
+        samples: samplesFor(f.wpm, seconds),
+        note: "whole",
+        pitches: [place % 5],
       })),
     );
   }

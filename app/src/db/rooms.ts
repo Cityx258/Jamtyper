@@ -118,10 +118,23 @@ export const raceResult = pgTable(
     outcome: text("outcome", {
       enum: ["finished", "forfeited", "kicked", "eliminated", "timed_out"],
     }).notNull(),
+    rawWpm: numeric("raw_wpm", { precision: 6, scale: 2, mode: "number" }).notNull().default(0),
+    mistakes: integer("mistakes").notNull().default(0),
+    errors: integer("errors").notNull().default(0),
+    bonuses: integer("bonuses").notNull().default(0),
+    progress: integer("progress").notNull().default(0),
+    textEnd: integer("text_end").notNull().default(0),
+    timeMs: integer("time_ms"),
+    samples: jsonb("samples").$type<number[]>().notNull().default([]),
+    note: text("note").notNull().default("whole"),
+    pitches: jsonb("pitches").$type<number[]>().notNull().default([]),
+    team: integer("team"),
+    record: boolean("record").notNull().default(false),
   },
   (table) => [
     index("race_result_race_idx").on(table.raceId),
     index("race_result_user_idx").on(table.userId),
+    index("race_result_race_place_idx").on(table.raceId, table.position),
   ],
 );
 

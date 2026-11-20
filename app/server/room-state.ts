@@ -81,6 +81,7 @@ export interface Racer {
   extra: string;
   bonuses: number;
   boost: BoostView | null;
+  record: boolean;
 }
 
 export interface Race {
@@ -147,9 +148,18 @@ export function racerWpm(race: Race, racer: Racer, now = Date.now()): number {
   return Math.max(0, racer.position - racer.errors) / 5 / (elapsed / 60_000);
 }
 
+export function racerRawWpm(race: Race, racer: Racer, now = Date.now()): number {
+  const elapsed =
+    racer.doneAt ?? Math.min(race.endedAt ?? now, race.endsAt ?? Infinity) - race.startsAt;
+  if (elapsed <= 0) return 0;
+  return keystrokes(racer) / 5 / (elapsed / 60_000);
+}
+
+const keystrokes = (racer: Racer) => racer.position + racer.mistakes - racer.errors;
+
 export function racerAccuracy(racer: Racer): number {
-  const strokes = racer.position + racer.mistakes;
-  return strokes === 0 ? 1 : racer.position / strokes;
+  const strokes = keystrokes(racer);
+  return strokes === 0 ? 1 : (racer.position - racer.errors) / strokes;
 }
 
 export const racerText = (race: Race, racer: Racer) =>
@@ -177,6 +187,9 @@ export function racersView(race: Race, withSamples = false): RacerView[] {
       unlocked: r.unlocked,
       samples: withSamples ? r.samples : null,
       wpm: Math.round(racerWpm(race, r, now)),
+      rawWpm: Math.round(racerRawWpm(race, r, now)),
+      mistakes: r.mistakes,
+      record: r.record,
       accuracy: racerAccuracy(r),
       outcome: r.outcome,
       place: r.place,

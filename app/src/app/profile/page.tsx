@@ -131,8 +131,13 @@ export default async function ProfilePage() {
                 <tbody className="divide-y divide-line">
                   {profile.recent.map((r) => (
                     <tr key={r.id}>
-                      <td className="whitespace-nowrap py-3 pr-4 text-muted">
-                        {dateTime.format(r.startedAt)}
+                      <td className="whitespace-nowrap py-3 pr-4">
+                        <Link
+                          href={`/race/${r.raceId}`}
+                          className="text-teal underline-offset-4 hover:underline"
+                        >
+                          {dateTime.format(r.startedAt)}
+                        </Link>
                       </td>
                       <td className="py-3 pr-4 font-mono">
                         <span className={r.position === 1 ? "text-teal" : ""}>
@@ -153,6 +158,9 @@ export default async function ProfilePage() {
                   ))}
                 </tbody>
               </table>
+              <Link href="/history" className={`mt-6 inline-block ${secondaryButton}`}>
+                {dict.history.seeAll}
+              </Link>
             </div>
           )}
         </section>

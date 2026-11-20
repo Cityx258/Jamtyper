@@ -77,6 +77,7 @@ export function createBots(
       extra: "",
       bonuses: 0,
       boost: null,
+      record: false,
       bot: {
         rng,
         cps: ((wpm * 5) / 60) * PAUSE_COMPENSATION,

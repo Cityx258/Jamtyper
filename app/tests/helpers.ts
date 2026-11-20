@@ -23,6 +23,7 @@ export function racer(patch: Partial<Racer> = {}): Racer {
     extra: "",
     bonuses: 0,
     boost: null,
+    record: false,
     ...patch,
   };
 }

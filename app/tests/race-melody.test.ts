@@ -22,6 +22,9 @@ const racer = (id: string, note: RacerView["note"], pitches: number[]): RacerVie
   end: 100,
   extra: "",
   bonuses: 0,
+  rawWpm: 0,
+  mistakes: 0,
+  record: false,
   boost: null,
 });
 

@@ -55,6 +55,9 @@ export interface RacerView {
   unlocked: NoteKind | null;
   samples: number[] | null;
   wpm: number;
+  rawWpm: number;
+  mistakes: number;
+  record: boolean;
   accuracy: number;
   outcome: RacerOutcome;
   place: number | null;

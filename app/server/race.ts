@@ -1,5 +1,5 @@
 import { randomInt } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../src/db";
 import {
   race as raceTable,
@@ -20,6 +20,7 @@ import {
   channel,
   MIN_RACERS,
   racerAccuracy,
+  racerRawWpm,
   racersView,
   racerWpm,
   rooms,
@@ -45,7 +46,7 @@ export const COUNTDOWN_MS = 3_000;
 export const CLOSING_MS = 30_000;
 const MAX_CHARS_PER_SECOND = 25;
 const TICK_MS = 100;
-const MAX_WPM = 9999;
+const MAX_WPM = 9999.99;
 const MAX_MISSED_KEYS = 64;
 
 const ok: ActionResult = { ok: true };
@@ -149,6 +150,7 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
           extra: "",
           bonuses: 0,
           boost: null,
+          record: false,
         },
       ]),
     ),
@@ -420,12 +422,36 @@ async function endRace(io: AppServer, room: Room, race: Race) {
   setStatus(room, "results");
   broadcast(io, room);
   if (!(await saveResults(race, ranked))) return;
-  await announceUnlocks(io, room, race).catch((e) =>
-    console.error("[race] failed to check unlocked notes", e),
-  );
+  const records = ranked.some((r) => r.record);
+  const unlocks = await announceUnlocks(room, race).catch((e) => {
+    console.error("[race] failed to check unlocked notes", e);
+    return false;
+  });
+  if ((records || unlocks) && room.race === race) broadcast(io, room);
 }
 
-async function announceUnlocks(io: AppServer, room: Room, race: Race) {
+const round2 = (n: number) => Math.min(Math.round(n * 100) / 100, MAX_WPM);
+
+async function markRecords(race: Race, ranked: Racer[]) {
+  const humans = ranked.filter((r) => r.userId && r.outcome === "finished");
+  if (humans.length === 0) return;
+  const rows = await db
+    .select({ userId: raceResult.userId, best: sql<string | null>`max(${raceResult.wpm})` })
+    .from(raceResult)
+    .where(
+      and(
+        inArray(raceResult.userId, humans.map((r) => r.userId!)),
+        eq(raceResult.outcome, "finished"),
+      ),
+    )
+    .groupBy(raceResult.userId);
+  const best = new Map(rows.map((r) => [r.userId, Number(r.best ?? 0)]));
+  for (const r of humans) {
+    r.record = round2(racerWpm(race, r)) > (best.get(r.userId) ?? 0);
+  }
+}
+
+async function announceUnlocks(room: Room, race: Race): Promise<boolean> {
   let changed = false;
   const places = winningPlaces([...race.racers.values()].filter((r) => !r.bot).length);
   for (const r of race.racers.values()) {
@@ -436,13 +462,14 @@ async function announceUnlocks(io: AppServer, room: Room, race: Race) {
     if (member) Object.assign(member, await noteState(r.userId));
     changed = true;
   }
-  if (changed && room.race === race) broadcast(io, room);
+  return changed;
 }
 
 async function saveResults(race: Race, ranked: Racer[]): Promise<boolean> {
   const raceId = await race.dbId;
   if (!raceId) return false;
   try {
+    await markRecords(race, ranked);
     await db.transaction(async (tx) => {
       await tx.insert(raceResult).values(
         ranked.map((r) => ({
@@ -450,11 +477,23 @@ async function saveResults(race: Race, ranked: Racer[]): Promise<boolean> {
           userId: r.userId,
           displayName: r.name,
           position: r.place ?? ranked.length,
-          wpm: Math.min(Math.round(racerWpm(race, r) * 100) / 100, MAX_WPM),
+          wpm: round2(racerWpm(race, r)),
+          rawWpm: round2(racerRawWpm(race, r)),
           accuracy: Math.round(racerAccuracy(r) * 10_000) / 10_000,
           missedKeys: r.missed,
           outcome: r.outcome as Exclude<RacerOutcome, "racing">,
           isBot: !!r.bot,
+          mistakes: r.mistakes,
+          errors: r.errors,
+          bonuses: r.bonuses,
+          progress: r.position,
+          textEnd: racerEnd(race, r),
+          timeMs: r.outcome === "finished" ? r.doneAt : null,
+          samples: r.samples,
+          note: r.note,
+          pitches: r.pitches,
+          team: r.team,
+          record: r.record,
         })),
       );
       await tx

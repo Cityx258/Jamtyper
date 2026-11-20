@@ -19,8 +19,9 @@ type Props = {
   t: Dict["room"];
   heatmapT: Dict["profile"]["heatmap"];
   noteNames: Dict["profile"]["notes"]["names"];
-  onAgain: () => void;
-  onClose: () => void;
+  title?: string;
+  onAgain?: () => void;
+  onClose?: () => void;
 };
 
 export default function RaceResults({
@@ -30,6 +31,7 @@ export default function RaceResults({
   t,
   heatmapT,
   noteNames,
+  title,
   onAgain,
   onClose,
 }: Props) {
@@ -41,7 +43,15 @@ export default function RaceResults({
   const winner = scores ? winningTeam(scores) : null;
   return (
     <div className="w-full">
-      <h1 className="font-display text-4xl">{t.results}</h1>
+      <h1 className="font-display text-4xl">{title ?? t.results}</h1>
+      {me?.record && (
+        <p
+          role="status"
+          className="mt-4 rounded-lg border border-teal bg-teal/10 px-4 py-3 font-medium text-ink"
+        >
+          {t.newRecord.replace("{wpm}", String(me.wpm))}
+        </p>
+      )}
       {me?.unlocked && (
         <p
           role="status"
@@ -94,9 +104,12 @@ export default function RaceResults({
               <th className="py-2 pr-3 sm:pr-4 font-normal">{t.place}</th>
               <th className="py-2 pr-3 sm:pr-4 font-normal">{t.player}</th>
               <th className="py-2 pr-3 sm:pr-4 text-right font-normal">{t.wpm}</th>
+              <th className="py-2 pr-3 sm:pr-4 text-right font-normal">{t.rawWpm}</th>
               <th className="py-2 pr-3 sm:pr-4 text-right font-normal">{t.accuracy}</th>
+              <th className="py-2 pr-3 sm:pr-4 text-right font-normal">{t.errorCount}</th>
               <th className="py-2 pr-3 sm:pr-4 text-right font-normal">{t.time}</th>
-              <th className="py-2 font-normal" />
+              <th className="py-2 pr-3 sm:pr-4 font-normal">{t.status}</th>
+              <th className="py-2 text-right font-normal">{t.boostsReceived}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
@@ -113,10 +126,19 @@ export default function RaceResults({
                     </span>
                   )}
                 </td>
-                <td className="py-3 pr-3 sm:pr-4 text-right font-mono">{r.wpm}</td>
+                <td className="py-3 pr-3 sm:pr-4 text-right font-mono">
+                  {r.wpm}
+                  {r.record && (
+                    <span className="ml-2 rounded-full border border-teal px-1.5 text-[10px] uppercase text-teal">
+                      {t.recordTag}
+                    </span>
+                  )}
+                </td>
+                <td className="py-3 pr-3 sm:pr-4 text-right font-mono text-muted">{r.rawWpm}</td>
                 <td className="py-3 pr-3 sm:pr-4 text-right font-mono">
                   {Math.round(r.accuracy * 100)}%
                 </td>
+                <td className="py-3 pr-3 sm:pr-4 text-right font-mono">{r.mistakes}</td>
                 <td className="whitespace-nowrap py-3 pr-3 sm:pr-4 text-right font-mono">
                   {r.timeMs === null ? "-" : seconds(r.timeMs)}
                   {goalMs > 0 && metGoal(r) && (
@@ -125,9 +147,10 @@ export default function RaceResults({
                     </span>
                   )}
                 </td>
-                <td className="py-3 font-mono text-xs uppercase text-muted">
+                <td className="py-3 pr-3 sm:pr-4 font-mono text-xs uppercase text-muted">
                   {t.outcomes[r.outcome]}
                 </td>
+                <td className="py-3 text-right font-mono">{r.bonuses}</td>
               </tr>
             ))}
           </tbody>
@@ -145,7 +168,7 @@ export default function RaceResults({
         </section>
       )}
 
-      {isHost ? (
+      {!onAgain || !onClose ? null : isHost ? (
         <div className="mt-10 flex flex-wrap gap-3">
           <button type="button" onClick={onAgain} className={primaryButton}>
             {t.raceAgain}

@@ -2,6 +2,8 @@ import type { Server, Socket } from "socket.io";
 import type {
   BoostView,
   ClientToServerEvents,
+  InviteView,
+  RoomSummary,
   MemberRole,
   MissedKeys,
   RacerOutcome,
@@ -25,6 +27,7 @@ export interface Identity {
   key: string;
   userId: string | null;
   name: string;
+  ip: string;
 }
 
 interface SocketData {
@@ -109,13 +112,85 @@ export interface Room {
   settings: RaceSettings;
   members: Map<string, Member>;
   banned: Set<string>;
-  invitesIssued: number;
+  invites: Invite[];
+  createdAt: number;
   race: Race | null;
+}
+
+export interface Invite {
+  id: string;
+  token: string;
+  createdAt: number;
+  usedBy: string | null;
+  usedName: string | null;
+  ip: string | null;
+  revoked: boolean;
 }
 
 export const rooms = new Map<string, Room>();
 
 export const channel = (code: string) => `room:${code}`;
+export const EXPLORER = "explorer";
+const EXPLORER_DELAY_MS = 300;
+
+export function participants(room: Room): number {
+  let racers = 0;
+  for (const m of room.members.values()) if (!m.watching) racers++;
+  return racers + room.settings.botLevels.length;
+}
+
+export const isFull = (room: Room) => participants(room) >= room.settings.capacity;
+
+export const isJoinable = (room: Room) => room.status === "lobby" || room.status === "results";
+
+export function findRoomOf(key: string): Room | undefined {
+  for (const room of rooms.values()) if (room.members.has(key)) return room;
+  return undefined;
+}
+
+export function roomSummary(room: Room): RoomSummary {
+  const host = room.members.get(room.hostKey);
+  return {
+    code: room.code,
+    host: host?.name ?? "",
+    status: room.status,
+    participants: participants(room),
+    capacity: room.settings.capacity,
+    language: room.settings.language,
+    difficulty: room.settings.difficulty,
+    source: room.settings.source,
+    createdAt: room.createdAt,
+  };
+}
+
+export const publicRooms = () =>
+  [...rooms.values()]
+    .filter((r) => r.visibility === "public")
+    .sort((a, b) => a.createdAt - b.createdAt)
+    .map(roomSummary);
+
+let explorerTimer: NodeJS.Timeout | undefined;
+
+export function notifyExplorer(io: AppServer) {
+  if (explorerTimer) return;
+  explorerTimer = setTimeout(() => {
+    explorerTimer = undefined;
+    io.to(EXPLORER).emit("rooms:list", publicRooms());
+  }, EXPLORER_DELAY_MS);
+}
+
+export function inviteViews(room: Room): InviteView[] {
+  return room.invites
+    .filter((i) => !i.revoked)
+    .map((i) => ({ id: i.id, token: i.token, createdAt: i.createdAt, usedBy: i.usedName }));
+}
+
+export function pushInvites(io: AppServer, room: Room) {
+  const host = room.members.get(room.hostKey);
+  if (!host) return;
+  const list = inviteViews(room);
+  for (const id of host.sockets) io.to(id).emit("room:invites", list);
+}
 
 export function memberRole(room: Room, member: Member): MemberRole {
   if (room.race && room.status !== "lobby") {
@@ -247,4 +322,5 @@ export function toView(room: Room): RoomView {
 
 export function broadcast(io: AppServer, room: Room) {
   io.to(channel(room.code)).emit("room:state", toView(room));
+  notifyExplorer(io);
 }

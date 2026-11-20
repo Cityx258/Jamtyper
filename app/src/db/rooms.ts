@@ -55,8 +55,8 @@ export const roomMember = pgTable(
   },
   (table) => [
     index("room_member_room_idx").on(table.roomId),
-    uniqueIndex("room_member_active_user_idx")
-      .on(table.roomId, table.userId)
+    uniqueIndex("room_member_one_room_idx")
+      .on(table.userId)
       .where(sql`${table.userId} is not null and ${table.leftAt} is null`),
   ],
 );
@@ -78,6 +78,8 @@ export const inviteLink = pgTable(
     usedBy: uuid("used_by").references(() => roomMember.id, {
       onDelete: "set null",
     }),
+    usedIp: text("used_ip"),
+    revokedAt: timestamp("revoked_at"),
   },
   (table) => [index("invite_link_room_idx").on(table.roomId)],
 );

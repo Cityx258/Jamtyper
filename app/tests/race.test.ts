@@ -55,7 +55,8 @@ function setupRoom(members: Member[], settings: Partial<RaceSettings> = {}) {
     settings: { ...DEFAULT_SETTINGS, ...settings },
     members: new Map(members.map((m) => [m.key, m])),
     banned: new Set(),
-    invitesIssued: 0,
+    invites: [],
+    createdAt: Date.now(),
     race: null,
   };
   state.rooms.set(room.code, room);

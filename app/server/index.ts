@@ -25,13 +25,14 @@ import {
   startRace,
 } from "./race";
 import { loadCorpus } from "./corpus";
-import type { AppSocket } from "./room-state";
+import { EXPLORER, publicRooms, type AppSocket } from "./room-state";
 import {
   closeRoomByHost,
   closeStaleRooms,
   createInvite,
   createRoom,
   joinRoom,
+  listInvites,
   leaveRoom,
   quickplay,
   setVisibility,
@@ -59,6 +60,12 @@ const serverError = { ok: false, error: "server_error" } as const satisfies {
   ok: false;
   error: RoomError;
 };
+
+function clientIp(forwarded: string | string[] | undefined, address: string): string {
+  const header = Array.isArray(forwarded) ? forwarded[0] : forwarded;
+  const first = !dev && header ? header.split(",")[0].trim() : "";
+  return first || address;
+}
 
 async function respond<T>(
   event: string,
@@ -112,12 +119,14 @@ async function main() {
       if (cookie) headers.set("cookie", cookie);
       const session = await auth.api.getSession({ headers });
 
+      const ip = clientIp(socket.handshake.headers["x-forwarded-for"], socket.handshake.address);
       let identity: Identity;
       if (session) {
         identity = {
           key: `user:${session.user.id}`,
           userId: session.user.id,
           name: session.user.displayUsername ?? session.user.name,
+          ip,
         };
       } else {
         const sent = socket.handshake.auth?.guestId;
@@ -129,6 +138,7 @@ async function main() {
           key: `guest:${guestId}`,
           userId: null,
           name: `Guest ${guestId.slice(-4).toUpperCase()}`,
+          ip,
         };
       }
       socket.data.identity = identity;
@@ -152,23 +162,23 @@ async function main() {
       nextPacket();
     });
 
-    socket.on("room:create", (ack) =>
-      respond("room:create", ack, () => createRoom(io, socket)),
+    socket.on("room:create", (payload, ack) =>
+      respond("room:create", ack, () => createRoom(io, socket, payload)),
     );
     socket.on("room:join", (payload, ack) =>
-      respond("room:join", ack, () =>
-        joinRoom(
-          io,
-          socket,
-          payload?.code,
-          payload?.guestName,
-          payload?.invite,
-        ),
-      ),
+      respond("room:join", ack, () => joinRoom(io, socket, payload)),
     );
     socket.on("room:quickplay", (ack) =>
-      respond("room:quickplay", ack, () => quickplay(io, socket)),
+      respond("room:quickplay", ack, () => quickplay(socket)),
     );
+    socket.on("room:invites", (ack) => respond("room:invites", ack, () => listInvites(socket)));
+    socket.on("explorer:watch", (ack) =>
+      respond("explorer:watch", ack, () => {
+        void socket.join(EXPLORER);
+        return publicRooms();
+      }),
+    );
+    socket.on("explorer:unwatch", () => void socket.leave(EXPLORER));
     socket.on("room:visibility", (payload, ack) =>
       respond("room:visibility", ack, () =>
         setVisibility(io, socket, payload),
@@ -178,7 +188,7 @@ async function main() {
       respond("room:configure", ack, () => configureRoom(io, socket, payload)),
     );
     socket.on("room:invite", (ack) =>
-      respond("room:invite", ack, () => createInvite(socket)),
+      respond("room:invite", ack, () => createInvite(io, socket)),
     );
     socket.on("member:watch", (payload, ack) =>
       respond("member:watch", ack, () => setWatching(io, socket, payload)),

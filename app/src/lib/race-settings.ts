@@ -24,6 +24,8 @@ export const LENGTH_MAX = 200;
 export const TIME_LIMITS = [0, 30, 60, 120, 180, 300, 600] as const;
 export const TIME_GOALS = [0, 30, 45, 60, 90, 120] as const;
 export const BOTS_MAX = 9;
+export const CAPACITY_MIN = 2;
+export const CAPACITY_MAX = 30;
 
 export interface RaceSettings {
   source: TextSource;
@@ -47,6 +49,7 @@ export interface RaceSettings {
   length: number;
   timeLimitSec: number;
   timeGoalSec: number;
+  capacity: number;
 }
 
 export type SettingsView = Omit<RaceSettings, "customText"> & {
@@ -75,6 +78,7 @@ export const DEFAULT_SETTINGS: RaceSettings = {
   length: 30,
   timeLimitSec: 180,
   timeGoalSec: 0,
+  capacity: 10,
 };
 
 const bool = (value: unknown, fallback: boolean) =>
@@ -128,6 +132,7 @@ export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettin
     length: clampInt(p.length, LENGTH_MIN, LENGTH_MAX, current.length),
     timeLimitSec: pick(TIME_LIMITS, p.timeLimitSec, current.timeLimitSec),
     timeGoalSec: pick(TIME_GOALS, p.timeGoalSec, current.timeGoalSec),
+    capacity: clampInt(p.capacity, CAPACITY_MIN, CAPACITY_MAX, current.capacity),
   };
 }
 

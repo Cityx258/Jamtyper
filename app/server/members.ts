@@ -10,11 +10,12 @@ import {
   broadcast,
   channel,
   findMember,
+  isFull,
   type AppServer,
   type AppSocket,
   type Member,
 } from "./room-state";
-import { removeMember, setHost } from "./rooms";
+import { removeMember, revokeInvitesOf, setHost } from "./rooms";
 
 const ok: ActionResult = { ok: true };
 const fail = (error: RoomError): ActionResult => ({ ok: false, error });
@@ -44,6 +45,7 @@ export function setWatching(
   if (room.status !== "lobby") return fail("bad_state");
 
   if (!watching) {
+    if (member.watching && isFull(room)) return fail("over_capacity");
     member.watching = false;
     member.watchRequested = false;
   } else if (room.hostKey === member.key) {
@@ -88,6 +90,7 @@ export async function kickMember(
   if (!target || target.key === room.hostKey) return fail("bad_request");
 
   room.banned.add(target.key);
+  revokeInvitesOf(io, room, target);
   kickRacer(io, room, target);
   for (const id of target.sockets) {
     const s = io.sockets.sockets.get(id);
@@ -112,7 +115,7 @@ export async function promoteMember(
   if (!target || !target.userId) return fail("bad_request");
   if (target.key === ctx.room.hostKey) return ok;
 
-  await setHost(ctx.room, target);
+  await setHost(io, ctx.room, target);
   if (target.watchRequested) {
     target.watchRequested = false;
     target.watching = true;

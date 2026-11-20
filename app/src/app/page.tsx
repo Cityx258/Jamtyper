@@ -10,10 +10,11 @@ import { getDict } from "@/i18n";
 import { auth } from "@/lib/auth";
 
 export default async function Home() {
-  const [t, session] = await Promise.all([
-    getDict().then((d) => d.home),
+  const [dict, session] = await Promise.all([
+    getDict(),
     headers().then((h) => auth.api.getSession({ headers: h })),
   ]);
+  const t = dict.home;
   return (
     <>
       <Header />
@@ -62,8 +63,16 @@ export default async function Home() {
                     signedIn={!!session}
                     label={m.action}
                     t={t.quickplay}
+                    otherRoomT={dict.room.otherRoom}
                   />
-                  <CreateRoomButton signedIn={!!session} t={t.create} />
+                  <CreateRoomButton
+                    signedIn={!!session}
+                    t={t.create}
+                    otherRoomT={dict.room.otherRoom}
+                  />
+                  <Link href="/rooms" className="text-sm text-teal underline underline-offset-4 hover:text-teal-bright">
+                    {t.quickplay.browse}
+                  </Link>
                 </div>
               )}
               {i === 1 && <JoinRoomForm action={m.action} t={t.join} />}

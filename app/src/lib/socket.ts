@@ -3,9 +3,11 @@ import type {
   ActionResult,
   ClientToServerEvents,
   InviteResult,
+  InviteView,
   ProgressPayload,
   QuickplayResult,
   RoomResult,
+  RoomSummary,
   ServerToClientEvents,
   Visibility,
 } from "./room-protocol";
@@ -55,22 +57,34 @@ function connected(s: AppClientSocket): Promise<void> {
 
 const ACK_TIMEOUT_MS = 8000;
 
-export async function requestCreateRoom(): Promise<RoomResult> {
-  const s = getSocket();
-  await connected(s);
-  return s.timeout(ACK_TIMEOUT_MS).emitWithAck("room:create");
-}
-
-export async function requestJoinRoom(
-  code: string,
-  guestName?: string,
-  invite?: string,
+export async function requestCreateRoom(
+  options: { visibility?: Visibility; leaveOther?: boolean } = {},
 ): Promise<RoomResult> {
   const s = getSocket();
   await connected(s);
-  return s
-    .timeout(ACK_TIMEOUT_MS)
-    .emitWithAck("room:join", { code, guestName, invite });
+  return s.timeout(ACK_TIMEOUT_MS).emitWithAck("room:create", options);
+}
+
+export async function requestJoinRoom(payload: {
+  code: string;
+  guestName?: string;
+  invite?: string;
+  leaveOther?: boolean;
+}): Promise<RoomResult> {
+  const s = getSocket();
+  await connected(s);
+  return s.timeout(ACK_TIMEOUT_MS).emitWithAck("room:join", payload);
+}
+
+export async function watchExplorer(): Promise<RoomSummary[]> {
+  const s = getSocket();
+  await connected(s);
+  return s.timeout(ACK_TIMEOUT_MS).emitWithAck("explorer:watch");
+}
+
+export function unwatchExplorer() {
+  const s = getSocket();
+  if (s.connected) s.emit("explorer:unwatch");
 }
 
 export async function requestQuickplay(): Promise<QuickplayResult> {
@@ -118,6 +132,16 @@ export const requestConfigure = (patch: Record<string, unknown>) =>
 export const requestInvite = (): Promise<InviteResult> =>
   guarded((s) => s.emitWithAck("room:invite"));
 
+export async function requestInvites(): Promise<InviteView[]> {
+  const s = getSocket();
+  if (!s.connected) return [];
+  try {
+    return await s.timeout(ACK_TIMEOUT_MS).emitWithAck("room:invites");
+  } catch {
+    return [];
+  }
+}
+
 export const requestWatch = (watching: boolean) =>
   guarded((s) => s.emitWithAck("member:watch", { watching }));
 
@@ -136,6 +160,24 @@ export const requestTeam = (memberId: string, team: Team) =>
 export const requestNote = (note: NoteKind) =>
   guarded((s) => s.emitWithAck("member:note", { note }));
 
+export const PROGRESS_INTERVAL_MS = 100;
+
+let lastSent = 0;
+let pending: ProgressPayload | null = null;
+let flushTimer: ReturnType<typeof setTimeout> | undefined;
+
+function flush() {
+  flushTimer = undefined;
+  if (!pending) return;
+  getSocket().emit("race:progress", pending);
+  pending = null;
+  lastSent = Date.now();
+}
+
 export function sendProgress(progress: ProgressPayload) {
-  getSocket().emit("race:progress", progress);
+  pending = progress;
+  if (flushTimer) return;
+  const wait = PROGRESS_INTERVAL_MS - (Date.now() - lastSent);
+  if (wait <= 0) flush();
+  else flushTimer = setTimeout(flush, wait);
 }

@@ -18,17 +18,20 @@ import type { Dict } from "@/i18n/en";
 import {
   VISIBILITIES,
   type ActionResult,
+  type InviteView,
   type RacerView,
   type RoomError,
   type RoomView,
 } from "@/lib/room-protocol";
 import { botPlan } from "@/lib/bot-plan";
+import { cleanGuestName, DISPLAY_NAME_MAX } from "@/lib/username";
 import {
   getSocket,
   requestAction,
   requestAnswerWatch,
   requestConfigure,
   requestInvite,
+  requestInvites,
   requestJoinRoom,
   requestKick,
   requestLeaveRoom,
@@ -118,10 +121,13 @@ export default function RoomLobby({
   const [error, setError] = useState<RoomError | null>(code ? null : "bad_request");
   const [closed, setClosed] = useState(false);
   const [live, setLive] = useState(true);
-  const [copied, setCopied] = useState<"code" | "link" | "invite" | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
   const [offset, setOffset] = useState(0);
   const [actionError, setActionError] = useState<RoomError | null>(null);
-  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
+  const [invites, setInvites] = useState<InviteView[]>([]);
+  const [otherRoom, setOtherRoom] = useState<string | null>(null);
+  const [moved, setMoved] = useState(false);
+  const [leaveOther, setLeaveOther] = useState(false);
   const inviteRef = useRef(invite);
 
   useEffect(() => {
@@ -132,12 +138,17 @@ export default function RoomLobby({
     async function join() {
       setLive(true);
       try {
-        const res = await requestJoinRoom(
-          code!,
-          accountName ? undefined : guestName,
-          inviteRef.current ?? undefined,
-        );
+        const res = await requestJoinRoom({
+          code: code!,
+          guestName: accountName ? undefined : guestName,
+          invite: inviteRef.current ?? undefined,
+          leaveOther,
+        });
         if (cancelled) return;
+        if (!res.ok && res.error === "in_other_room") {
+          setOtherRoom(res.otherRoom ?? "");
+          return;
+        }
         if (res.ok) {
           if (inviteRef.current) {
             inviteRef.current = null;
@@ -164,6 +175,8 @@ export default function RoomLobby({
       setRoom((r) => (r?.race ? { ...r, race: { ...r.race, racers } } : r));
     const onClosed = () => setClosed(true);
     const onKicked = () => setError("kicked");
+    const onMoved = () => setMoved(true);
+    const onInvites = (list: InviteView[]) => setInvites(list);
     const onDisconnect = () => setLive(false);
 
     socket.on("connect", join);
@@ -171,6 +184,8 @@ export default function RoomLobby({
     socket.on("room:state", onState);
     socket.on("room:closed", onClosed);
     socket.on("room:kicked", onKicked);
+    socket.on("room:moved", onMoved);
+    socket.on("room:invites", onInvites);
     socket.on("race:positions", onPositions);
     if (socket.connected) void join();
     else socket.connect();
@@ -182,19 +197,38 @@ export default function RoomLobby({
       socket.off("room:state", onState);
       socket.off("room:closed", onClosed);
       socket.off("room:kicked", onKicked);
+      socket.off("room:moved", onMoved);
+      socket.off("room:invites", onInvites);
       socket.off("race:positions", onPositions);
       socket.disconnect();
     };
-  }, [code, ready, accountName, guestName]);
+  }, [code, ready, accountName, guestName, leaveOther]);
 
-  async function copy(what: "code" | "link" | "invite") {
+  const amHost = !!room?.members.find((m) => m.id === you)?.isHost;
+  useEffect(() => {
+    if (!amHost) return;
+    let cancelled = false;
+    void requestInvites().then((list) => {
+      if (!cancelled) setInvites(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [amHost]);
+
+  const inviteLink = (token: string) => `${location.origin}/room/${code}?invite=${token}`;
+
+  async function copy(what: string) {
     if (!code) return;
+    const invite = invites.find((i) => i.id === what);
     const text =
       what === "code"
         ? code
         : what === "link"
           ? `${location.origin}/room/${code}`
-          : inviteUrl;
+          : invite
+            ? inviteLink(invite.token)
+            : null;
     if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
@@ -217,12 +251,7 @@ export default function RoomLobby({
   async function newInvite() {
     setActionError(null);
     const res = await requestInvite();
-    if (!res.ok) {
-      setActionError(res.error);
-      return;
-    }
-    setInviteUrl(`${location.origin}/room/${code}?invite=${res.token}`);
-    setCopied(null);
+    if (!res.ok) setActionError(res.error);
   }
 
   async function leave() {
@@ -233,6 +262,29 @@ export default function RoomLobby({
     router.push("/");
   }
 
+  if (otherRoom !== null && !leaveOther) {
+    return (
+      <Message
+        text={t.otherRoom.text.replace("{code}", otherRoom)}
+        t={t}
+        action={
+          <>
+            <button type="button" onClick={() => setLeaveOther(true)} className={primaryButton}>
+              {t.otherRoom.leave}
+            </button>
+            {otherRoom && (
+              <Link href={`/room/${otherRoom}`} className={secondaryButton}>
+                {t.otherRoom.back.replace("{code}", otherRoom)}
+              </Link>
+            )}
+          </>
+        }
+      />
+    );
+  }
+  if (moved) {
+    return <Message text={t.moved} t={t} />;
+  }
   if (error) {
     return <Message text={t.errors[error]} t={t} />;
   }
@@ -246,7 +298,7 @@ export default function RoomLobby({
         className="w-full max-w-md"
         onSubmit={(e) => {
           e.preventDefault();
-          const name = draftName.trim();
+          const name = cleanGuestName(draftName);
           if (!name) return;
           try {
             sessionStorage.setItem(NAME_KEY, name);
@@ -262,7 +314,9 @@ export default function RoomLobby({
           <input
             value={draftName}
             onChange={(e) => setDraftName(e.target.value)}
-            maxLength={20}
+            minLength={3}
+            maxLength={DISPLAY_NAME_MAX}
+            required
             autoFocus
             autoComplete="nickname"
             className="w-full rounded-lg border border-line bg-bg/70 px-4 py-3 text-ink focus:border-teal focus:outline-none"
@@ -271,7 +325,7 @@ export default function RoomLobby({
         <div className="mt-5 flex flex-wrap items-center gap-4">
           <button
             type="submit"
-            disabled={!draftName.trim()}
+            disabled={!cleanGuestName(draftName)}
             className={primaryButton}
           >
             {t.nameAction}
@@ -425,19 +479,22 @@ export default function RoomLobby({
             <button type="button" onClick={newInvite} className={secondaryButton}>
               {t.newInvite}
             </button>
-            {inviteUrl && (
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <input
-                  readOnly
-                  value={inviteUrl}
-                  aria-label={t.newInvite}
-                  onFocus={(e) => e.currentTarget.select()}
-                  className="min-w-0 flex-1 rounded-lg border border-line bg-bg/70 px-3 py-2 font-mono text-xs text-ink"
-                />
-                <button type="button" onClick={() => copy("invite")} className={smallButton}>
-                  {copied === "invite" ? t.copied : t.copyInvite}
-                </button>
-              </div>
+            {invites.length > 0 && (
+              <ul className="mt-4 divide-y divide-line border-y border-line" aria-label={t.inviteList}>
+                {invites.map((inv, i) => (
+                  <li key={inv.id} className="flex flex-wrap items-center gap-3 py-2 text-sm">
+                    <span className="font-mono text-xs text-muted">#{i + 1}</span>
+                    <span className="min-w-0 flex-1">
+                      {inv.usedBy === null
+                        ? t.inviteUnused
+                        : t.inviteUsedBy.replace("{name}", inv.usedBy || t.inviteSomeone)}
+                    </span>
+                    <button type="button" onClick={() => copy(inv.id)} className={smallButton}>
+                      {copied === inv.id ? t.copied : t.copyInvite}
+                    </button>
+                  </li>
+                ))}
+              </ul>
             )}
             <p className="mt-2 text-sm text-muted">{t.inviteHint}</p>
           </div>
@@ -466,7 +523,9 @@ export default function RoomLobby({
         <h2 className="font-display text-2xl">
           {t.players}{" "}
           <span className="font-mono text-base text-muted">
-            {room.members.length}
+            {t.participantsOf
+              .replace("{n}", String(room.members.filter((m) => m.role === "racer").length + room.settings.botLevels.length))
+              .replace("{max}", String(room.settings.capacity))}
           </span>
         </h2>
         <ul className="mt-4 divide-y divide-line border-y border-line">

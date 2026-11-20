@@ -6,6 +6,8 @@ import {
   CHARS_MAX,
   CUSTOM_MAX,
   BOTS_MAX,
+  CAPACITY_MAX,
+  CAPACITY_MIN,
   BOT_LEVELS,
   DIFFICULTIES,
   ERROR_MODES,
@@ -221,6 +223,7 @@ function timeLabel(sec: number, t: T) {
 
 export default function RaceSettingsPanel({ settings, editable, t, onChange }: Props) {
   const [length, setLength] = useDraft(settings.length, (v) => onChange({ length: v }));
+  const [capacity, setCapacity] = useDraft(settings.capacity, (v) => onChange({ capacity: v }));
   const [blacklist, setBlacklist] = useDraft(settings.blacklist, (v) => onChange({ blacklist: v }));
   const [priority, setPriority] = useDraft(settings.priority, (v) => onChange({ priority: v }));
   const impossible = useMemo(
@@ -254,6 +257,30 @@ export default function RaceSettingsPanel({ settings, editable, t, onChange }: P
         </p>
       )}
       <div className="mt-5 flex flex-col gap-3">
+        <Section title={t.groups.room}>
+          <Field label={t.capacity} hint={t.capacityHint}>
+            {editable ? (
+              <div className="flex items-center gap-4">
+                <input
+                  type="range"
+                  min={CAPACITY_MIN}
+                  max={CAPACITY_MAX}
+                  value={capacity}
+                  onChange={(e) => setCapacity(Number(e.target.value))}
+                  aria-label={t.capacity}
+                  className="w-full max-w-64 accent-teal"
+                />
+                <span className="w-32 font-mono text-sm">
+                  {t.capacityValue.replace("{n}", String(capacity))}
+                </span>
+              </div>
+            ) : (
+              <span className="font-medium">
+                {t.capacityValue.replace("{n}", String(settings.capacity))}
+              </span>
+            )}
+          </Field>
+        </Section>
         <Section title={t.groups.text} defaultOpen>
           <Field label={t.source}>
             <Choice

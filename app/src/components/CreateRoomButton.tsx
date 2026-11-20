@@ -1,23 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import OtherRoomNotice from "@/components/OtherRoomNotice";
 import type { Dict } from "@/i18n/en";
-import { requestCreateRoom } from "@/lib/socket";
+import { useCreateRoom } from "@/lib/use-create-room";
 
 type Props = {
   signedIn: boolean;
   t: Dict["home"]["create"];
+  otherRoomT: Dict["room"]["otherRoom"];
 };
 
 const linkStyle =
   "text-sm text-teal underline underline-offset-4 hover:text-teal-bright disabled:opacity-60";
 
-export default function CreateRoomButton({ signedIn, t }: Props) {
-  const router = useRouter();
-  const [pending, setPending] = useState(false);
-  const [failed, setFailed] = useState(false);
+export default function CreateRoomButton({ signedIn, t, otherRoomT }: Props) {
+  const { create, pending, failed, otherRoom } = useCreateRoom();
 
   if (!signedIn) {
     return (
@@ -27,31 +25,14 @@ export default function CreateRoomButton({ signedIn, t }: Props) {
     );
   }
 
-  async function create() {
-    setPending(true);
-    setFailed(false);
-    try {
-      const res = await requestCreateRoom();
-      if (res.ok) {
-        router.push(`/room/${res.room.code}`);
-        return;
-      }
-    } catch {
-    }
-    setFailed(true);
-    setPending(false);
-  }
-
   return (
     <div className="self-start">
-      <button
-        type="button"
-        onClick={create}
-        disabled={pending}
-        className={linkStyle}
-      >
+      <button type="button" onClick={() => create()} disabled={pending} className={linkStyle}>
         {pending ? t.pending : t.hostOwn}
       </button>
+      {otherRoom !== null && (
+        <OtherRoomNotice code={otherRoom} t={otherRoomT} onLeave={() => create(true)} />
+      )}
       {failed && (
         <p role="alert" className="mt-2 text-sm text-danger">
           {t.error}

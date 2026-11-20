@@ -6,7 +6,7 @@ export type RoomStatus =
   | "results"
   | "closed";
 
-import type { ErrorMode, SettingsView } from "./race-settings";
+import type { Difficulty, ErrorMode, Language, SettingsView, TextSource } from "./race-settings";
 import type { NoteKind } from "./notes";
 import type { Team } from "./teams";
 
@@ -106,11 +106,36 @@ export type RoomError =
   | "kicked"
   | "no_public_room"
   | "bad_state"
+  | "in_other_room"
+  | "race_in_progress"
+  | "too_many_attempts"
+  | "invite_used"
+  | "bad_name"
+  | "over_capacity"
   | "server_error";
 
 export type RoomResult =
   | { ok: true; room: RoomView; you: string }
-  | { ok: false; error: RoomError };
+  | { ok: false; error: RoomError; otherRoom?: string };
+
+export interface InviteView {
+  id: string;
+  token: string;
+  createdAt: number;
+  usedBy: string | null;
+}
+
+export interface RoomSummary {
+  code: string;
+  host: string;
+  status: RoomStatus;
+  participants: number;
+  capacity: number;
+  language: Language;
+  difficulty: Difficulty;
+  source: TextSource;
+  createdAt: number;
+}
 
 export type ActionResult = { ok: true } | { ok: false; error: RoomError };
 
@@ -132,11 +157,17 @@ export interface ProgressPayload {
 }
 
 export interface ClientToServerEvents {
-  "room:create": (ack: (result: RoomResult) => void) => void;
-  "room:join": (
-    payload: { code: string; guestName?: string; invite?: string },
+  "room:create": (
+    payload: { visibility?: Visibility; leaveOther?: boolean },
     ack: (result: RoomResult) => void,
   ) => void;
+  "room:join": (
+    payload: { code: string; guestName?: string; invite?: string; leaveOther?: boolean },
+    ack: (result: RoomResult) => void,
+  ) => void;
+  "room:invites": (ack: (result: InviteView[]) => void) => void;
+  "explorer:watch": (ack: (rooms: RoomSummary[]) => void) => void;
+  "explorer:unwatch": () => void;
   "room:quickplay": (ack: (result: QuickplayResult) => void) => void;
   "room:visibility": (
     payload: { visibility: Visibility },
@@ -184,5 +215,8 @@ export interface ServerToClientEvents {
   "room:state": (room: RoomView) => void;
   "room:closed": () => void;
   "room:kicked": () => void;
+  "room:moved": () => void;
+  "room:invites": (invites: InviteView[]) => void;
+  "rooms:list": (rooms: RoomSummary[]) => void;
   "race:positions": (racers: RacerView[]) => void;
 }

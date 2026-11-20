@@ -57,6 +57,13 @@
       "when": 1795140086843,
       "tag": "0007_result_details",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795140378467,
+      "tag": "0008_one_room_and_invite_ip",
+      "breakpoints": true
     }
   ]
 }

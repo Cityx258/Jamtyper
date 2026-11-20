@@ -19,6 +19,7 @@ import {
   broadcast,
   channel,
   MIN_RACERS,
+  participants,
   racerAccuracy,
   racerRawWpm,
   racersView,
@@ -108,6 +109,7 @@ export function startRace(io: AppServer, socket: AppSocket): ActionResult {
   for (const m of entrants) sizes[m.team]++;
   const plan = botPlan(sizes, settings);
   if (entrants.length + plan.length < MIN_RACERS) return fail("not_enough_racers");
+  if (entrants.length + plan.length > settings.capacity) return fail("over_capacity");
   if (settings.teams) {
     for (const b of plan) if (b.team !== null) sizes[b.team]++;
     if (sizes.includes(0)) return fail("empty_team");
@@ -234,7 +236,9 @@ export function configureRoom(
     return fail("bad_state");
   }
   const before = room.settings.teams;
-  room.settings = mergeSettings(room.settings, payload);
+  const next = mergeSettings(room.settings, payload);
+  if (participants({ ...room, settings: next }) > next.capacity) return fail("over_capacity");
+  room.settings = next;
   if (room.settings.teams && !before) balanceTeams(room);
   broadcast(io, room);
   db.update(roomTable)

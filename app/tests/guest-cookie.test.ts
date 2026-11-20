@@ -17,7 +17,8 @@ test("a tampered cookie is rejected", () => {
     "base64url",
   );
   expect(decodeGuest(`${forged}.${signature}`)).toBeNull();
-  expect(decodeGuest(`${payload}.x${signature.slice(1)}`)).toBeNull();
+  const flipped = (signature[0] === "A" ? "B" : "A") + signature.slice(1);
+  expect(decodeGuest(`${payload}.${flipped}`)).toBeNull();
   expect(decodeGuest("garbage")).toBeNull();
   expect(decodeGuest(undefined)).toBeNull();
 });

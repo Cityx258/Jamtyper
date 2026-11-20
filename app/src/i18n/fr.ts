@@ -277,6 +277,7 @@ const fr: Dict = {
     forfeitedMsg: "Tu as abandonné cette course.",
     eliminatedMsg: "Une faute t'a éliminé. Regarde les autres finir.",
     instantDeathOn: "Mort instantanée : une faute et tu es éliminé",
+    passed: "Tu as dépassé {name}",
     results: "Résultats",
     rawWpm: "MPM brut",
     errorCount: "Erreurs",

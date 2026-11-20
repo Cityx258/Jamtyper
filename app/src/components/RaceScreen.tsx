@@ -13,6 +13,7 @@ import { sendProgress } from "@/lib/socket";
 import { countdownCue } from "@/lib/sound";
 import { useCue } from "@/lib/use-cue";
 import { useFinishNotes } from "@/lib/use-finish-notes";
+import { useOvertakes } from "@/lib/use-overtakes";
 
 type Props = {
   status: RoomStatus;
@@ -59,6 +60,10 @@ export default function RaceScreen({
   useCue(status === "countdown" ? secondsTo(race.startsAt) : 0, countdownCue);
   useCue(me?.outcome, (o) => (o === "eliminated" ? "out" : null));
   useFinishNotes(race.racers);
+  const { row, moves, passed } = useOvertakes(
+    race.racers.map((r) => r.id),
+    you,
+  );
   const offline = new Set(members.filter((m) => !m.connected).map((m) => m.id));
 
   if (status === "countdown") {
@@ -159,10 +164,32 @@ export default function RaceScreen({
         )}
       </div>
 
-      <ul className="mt-12 space-y-2">
+      <ul className="relative mt-12 space-y-2">
         {race.racers.map((r) => (
-          <li key={r.id}>
-            <div className="flex items-baseline gap-3 text-sm">
+          <li key={r.id} ref={row(r.id)} className="relative rounded-2xl">
+            {moves[r.id]?.dir === "up" && (
+              <span
+                key={moves[r.id].key}
+                aria-hidden
+                className="overtake-flash pointer-events-none absolute -inset-x-3 inset-y-0 rounded-2xl"
+              />
+            )}
+            {r.id === you && passed && (
+              <span
+                key={passed.key}
+                role="status"
+                className="overtake-callout pointer-events-none absolute right-0 top-6 z-10 rounded-full bg-pink px-3 py-0.5 font-mono text-xs font-medium text-on-teal"
+              >
+                {"\u25B2 "}
+                {t.passed.replace(
+                  "{name}",
+                  passed.ids
+                    .map((id) => race.racers.find((x) => x.id === id)?.name ?? "")
+                    .join(", "),
+                )}
+              </span>
+            )}
+            <div className="relative flex items-baseline gap-3 text-sm">
               <span className="w-6 font-mono text-muted">{r.place ?? ""}</span>
               <span className="min-w-0 flex-1 truncate font-medium">
                 {r.name}
@@ -209,6 +236,7 @@ export default function RaceScreen({
                   : "out"
               }
               label={r.name}
+              move={moves[r.id]}
             />
           </li>
         ))}

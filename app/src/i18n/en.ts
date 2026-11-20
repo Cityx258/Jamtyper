@@ -272,6 +272,7 @@ const en = {
     forfeitedMsg: "You forfeited this race.",
     eliminatedMsg: "A typo knocked you out. Watch the others finish.",
     instantDeathOn: "Instant death: one typo and you're out",
+    passed: "Passed {name}",
     results: "Results",
     rawWpm: "Raw WPM",
     errorCount: "Errors",

@@ -1,5 +1,6 @@
 import NoteIcon from "@/components/NoteIcon";
 import { isSinger, type NoteKind } from "@/lib/notes";
+import type { Move } from "@/lib/use-overtakes";
 
 type Tone = "you" | "other" | "out";
 
@@ -10,6 +11,7 @@ type Props = {
   pitch: number;
   tone: Tone;
   label: string;
+  move?: Move;
 };
 
 const GAP = 9;
@@ -31,7 +33,7 @@ const COLORS: Record<Tone, string> = {
 const track = (fraction: number) =>
   `calc(${CLEF}px + (100% - ${CLEF + END}px) * ${fraction})`;
 
-export default function StaffLane({ progress, length, note, pitch, tone, label }: Props) {
+export default function StaffLane({ progress, length, note, pitch, tone, label, move }: Props) {
   const fraction = length > 0 ? Math.min(1, progress / length) : 0;
   const singer = isSinger(note);
   const headX = singer ? AVATAR / 2 : (note === "whole" ? 14 : 9) * ((SIZE * 0.7) / 28);
@@ -78,7 +80,9 @@ export default function StaffLane({ progress, length, note, pitch, tone, label }
         className={`absolute transition-[left] duration-200 ease-out ${COLORS[tone]}`}
         style={{ left: track(fraction), top: y - headY, marginLeft: -headX }}
       >
-        <NoteIcon note={note} size={singer ? AVATAR : SIZE} />
+        <span key={move?.key} className={`block ${move ? `overtake-${move.dir}` : ""}`}>
+          <NoteIcon note={note} size={singer ? AVATAR : SIZE} />
+        </span>
       </span>
     </div>
   );

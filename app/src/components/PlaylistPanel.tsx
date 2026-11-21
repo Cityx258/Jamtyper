@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { useRef, useState, useSyncExternalStore, type FormEvent, type ReactNode } from "react";
 import type { Dict } from "@/i18n/en";
 import {
   addCustomLink,
@@ -20,7 +20,7 @@ import SlidingChoice from "@/components/SlidingChoice";
 
 const EMPTY: Track[] = [];
 
-export default function PlaylistPanel({ t }: { t: Dict["player"] }) {
+export default function PlaylistPanel({ t, top }: { t: Dict["player"]; top?: ReactNode }) {
   const source = useSyncExternalStore(subscribeMusic, musicSource, () => "site" as MusicSource);
   const site = useSyncExternalStore(subscribeMusic, siteSongs, () => EMPTY);
   const custom = useSyncExternalStore(subscribeMusic, customSongs, () => EMPTY);
@@ -86,6 +86,7 @@ export default function PlaylistPanel({ t }: { t: Dict["player"] }) {
       id="playlist-panel"
       className="absolute bottom-12 left-1/2 -translate-x-1/2 flex max-h-[min(28rem,calc(100vh-6rem))] w-[min(20rem,calc(100vw-2rem))] flex-col rounded-3xl border border-line bg-raised p-3 shadow-xl shadow-black/15"
     >
+      {top}
       <SlidingChoice role="tablist" aria-label={t.playlist} indicator="rounded-full bg-teal" className="flex gap-1 rounded-full border border-line p-1">
         {tab("site", t.siteList)}
         {tab("custom", t.customList)}

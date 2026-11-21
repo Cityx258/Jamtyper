@@ -77,7 +77,15 @@ function pickCrew(): Singer[] {
   return crew;
 }
 
-function Crew({ up, crew }: { up: boolean; crew: Singer[] }) {
+function Crew({ up: wanted, crew }: { up: boolean; crew: Singer[] }) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => setReady(true));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  const up = wanted && ready;
   return (
     <div
       aria-hidden="true"
@@ -143,7 +151,7 @@ function Cover({ src, className, note }: { src: string | null; className: string
   );
 }
 
-function BigPlayer({ t, track }: { t: Dict["player"]; track: Track | null }) {
+function BigPlayer({ t, track, top }: { t: Dict["player"]; track: Track | null; top?: ReactNode }) {
   const queue = useSyncExternalStore(subscribeMusic, upcoming, () => EMPTY);
   const next = queue.slice(0, SHOWN);
   return (
@@ -151,6 +159,7 @@ function BigPlayer({ t, track }: { t: Dict["player"]; track: Track | null }) {
       id="big-player"
       className="absolute bottom-12 left-1/2 -translate-x-1/2 flex max-h-[min(36rem,calc(100vh-6rem))] w-[min(20rem,calc(100vw-2rem))] flex-col rounded-3xl border border-line bg-raised p-3 shadow-xl shadow-black/15"
     >
+      {top}
       <Cover src={track?.src ?? null} note={64} className="aspect-square w-full rounded-2xl" />
       <div className="mt-3 min-w-0 px-1">
         <Marquee text={track?.title ?? t.noSong} className={`text-sm font-bold ${track ? "text-ink" : "text-muted"}`} />
@@ -238,6 +247,7 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
       requestAnimationFrame(() => requestAnimationFrame(() => setCrewUp(true)));
     }, CREW_DELAY_MS);
   };
+  const panelCrew = crew && <Crew up={crewUp} crew={crew} />;
   const crewOut = () => {
     clearTimeout(crewTimer.current);
     setCrewUp(false);
@@ -259,7 +269,7 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
             visible ? "[&>*]:translate-y-0" : "[&>*]:translate-y-[calc(100%+3rem)]"
           }`}
         >
-          {shown === "playlist" ? <PlaylistPanel t={t} /> : <BigPlayer t={t} track={track} />}
+          {shown === "playlist" ? <PlaylistPanel t={t} top={panelCrew} /> : <BigPlayer t={t} track={track} top={panelCrew} />}
         </div>
       )}
       <span

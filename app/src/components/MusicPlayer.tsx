@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent, type ReactNode } from "react";
+import NoteIcon from "@/components/NoteIcon";
 import PlaylistPanel from "@/components/PlaylistPanel";
+import type { Singer } from "@/lib/notes";
 import type { Track } from "@/lib/track";
 import { coverFor } from "@/lib/cover";
 import type { Dict } from "@/i18n/en";
@@ -24,6 +26,48 @@ import {
 
 const EMPTY: Track[] = [];
 const SHOWN = 8;
+const MIKUS: Singer[] = ["mikuMini", "mikuGuitar", "mikuLeek"];
+const BAND: Singer[] = ["rin", "gumi", "teto"];
+const CREW_SIZE = 44;
+const CREW_DELAY_MS = 300;
+const STAGGER_MS = 90;
+
+function pickCrew(): Singer[] {
+  const miku = MIKUS[Math.floor(Math.random() * MIKUS.length)];
+  const crew = [miku, ...BAND];
+  for (let i = crew.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [crew[i], crew[j]] = [crew[j], crew[i]];
+  }
+  return crew;
+}
+
+function Crew({ up, crew }: { up: boolean; crew: Singer[] }) {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-x-4 bottom-full -z-10 flex items-end justify-around overflow-hidden px-2 pt-7"
+    >
+      {crew.map((singer, i) => (
+        <div
+          key={singer}
+          className="origin-bottom transition-transform duration-500 ease-[cubic-bezier(0.34,1.4,0.64,1)] motion-reduce:transition-none"
+          style={{
+            transform: up ? "translateY(0)" : "translateY(115%)",
+            transitionDelay: `${(up ? i : crew.length - 1 - i) * STAGGER_MS}ms`,
+          }}
+        >
+          <div
+            className={up ? "winner-dance" : ""}
+            style={{ animationDelay: `${-i * 0.45}s`, animationDuration: `${1.6 + (i % 2) * 0.3}s` }}
+          >
+            <NoteIcon note={singer} size={CREW_SIZE} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const control =
   "grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-teal/10 hover:text-ink";
@@ -111,6 +155,10 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
   const [panel, setPanel] = useState<"playlist" | "big" | null>(null);
   const open = panel !== null;
   const box = useRef<HTMLElement>(null);
+  const [crew, setCrew] = useState<Singer[] | null>(null);
+  const [crewUp, setCrewUp] = useState(false);
+  const crewTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(crewTimer.current), []);
   useEffect(() => {
     void loadCustomSongs();
   }, []);
@@ -127,14 +175,29 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
     };
   }, [open]);
   if (!on) return null;
+  const crewIn = (e: PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
+    clearTimeout(crewTimer.current);
+    crewTimer.current = setTimeout(() => {
+      if (!crewUp) setCrew(pickCrew());
+      requestAnimationFrame(() => requestAnimationFrame(() => setCrewUp(true)));
+    }, CREW_DELAY_MS);
+  };
+  const crewOut = () => {
+    clearTimeout(crewTimer.current);
+    setCrewUp(false);
+  };
   const title = track?.title ?? t.noSong;
   const name = track?.artist ? `${title} · ${track.artist}` : title;
   return (
     <section
       ref={box}
+      onPointerEnter={crewIn}
+      onPointerLeave={crewOut}
       aria-label={t.player}
       className="fixed bottom-4 right-4 z-30 flex h-10 max-w-[calc(100vw-2rem)] items-center gap-0.5 rounded-full border border-line bg-raised/90 pl-1 pr-1 shadow-lg shadow-black/10 backdrop-blur"
     >
+      {crew && <Crew up={crewUp && !open} crew={crew} />}
       {panel === "playlist" && <PlaylistPanel t={t} />}
       {panel === "big" && <BigPlayer t={t} track={track} />}
       <button

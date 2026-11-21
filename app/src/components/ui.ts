@@ -14,9 +14,9 @@ export const dangerButton =
   "rounded-full border border-danger px-5 py-2 text-sm font-medium text-danger transition-colors hover:bg-danger hover:text-bg";
 
 export const panel =
-  "rounded-3xl border border-line bg-raised/70";
+  "card rounded-3xl border border-line bg-raised/70";
 
-export const tile = "rounded-2xl border border-line bg-raised/70";
+export const tile = "card rounded-2xl border border-line bg-raised/70";
 
 export const kicker =
   "inline-flex items-center gap-2 self-start rounded-full border border-line bg-raised/60 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.25em] text-teal before:h-1.5 before:w-1.5 before:rounded-full before:bg-pink before:content-['']";

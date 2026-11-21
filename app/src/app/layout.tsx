@@ -5,6 +5,7 @@ import {
   Noto_Music,
   Zen_Maru_Gothic,
 } from "next/font/google";
+import CardPeek from "@/components/CardPeek";
 import FloatingNotes from "@/components/FloatingNotes";
 import Footer from "@/components/Footer";
 import MusicPlayer from "@/components/MusicPlayer";
@@ -56,6 +57,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           {children}
           <Footer />
         </div>
+        <CardPeek />
         <MusicPlayer t={t.player} />
       </body>
     </html>

@@ -3,14 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import NoteIcon from "@/components/NoteIcon";
 import { peekSize, type Singer } from "@/lib/notes";
+import { CHARGE_AT, DONE_AT, FIRE_AT, SWAP_AT, WORD_AT } from "@/lib/beam";
 import { playBeam } from "@/lib/sound";
 
-const CHARGE_AT = 2000;
-const FIRE_AT = 2750;
-const SWAP_AT = 3000;
-const DONE_AT = 3800;
 const MIKU_SIZE = 150;
-const WORD_AT = [0, 500, 1000, 1500, CHARGE_AT, FIRE_AT];
+const START_WAIT_MS = 1500;
 
 type Phase = "chant" | "charge" | "fire" | "fade";
 
@@ -32,17 +29,24 @@ export default function MikuBeam({ singer, ready, onSwap, onDone }: Props) {
   });
   const chant = ["1", "2", "3", ready, "Miku Miku", "BEAM!"];
   useEffect(() => {
-    const stop = playBeam();
-    const timers = [
-      ...WORD_AT.map((at, i) => setTimeout(() => setStep(i), at)),
-      setTimeout(() => setPhase("charge"), CHARGE_AT),
-      setTimeout(() => setPhase("fire"), FIRE_AT),
-      setTimeout(() => {
-        setPhase("fade");
-        swap.current();
-      }, SWAP_AT),
-      setTimeout(() => done.current(), DONE_AT),
-    ];
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    let begun = false;
+    const begin = () => {
+      if (begun) return;
+      begun = true;
+      timers.push(
+        ...WORD_AT.map((at, i) => setTimeout(() => setStep(i), at)),
+        setTimeout(() => setPhase("charge"), CHARGE_AT),
+        setTimeout(() => setPhase("fire"), FIRE_AT),
+        setTimeout(() => {
+          setPhase("fade");
+          swap.current();
+        }, SWAP_AT),
+        setTimeout(() => done.current(), DONE_AT),
+      );
+    };
+    const stop = playBeam(begin);
+    timers.push(setTimeout(begin, START_WAIT_MS));
     return () => {
       timers.forEach(clearTimeout);
       stop();
@@ -106,7 +110,7 @@ export default function MikuBeam({ singer, ready, onSwap, onDone }: Props) {
             opacity: phase === "fade" ? 0 : 1,
             transition:
               phase === "charge"
-                ? "transform 750ms cubic-bezier(0.5,0,0.75,0)"
+                ? `transform ${FIRE_AT - CHARGE_AT}ms cubic-bezier(0.5,0,0.75,0)`
                 : phase === "fire"
                   ? "transform 250ms cubic-bezier(0.5,0,0.75,0)"
                   : "opacity 800ms ease-out",

@@ -4,6 +4,12 @@ import type { NoteKind, Singer } from "./notes";
 
 const KEY = "jamtyper-beam";
 const MIKUS: Singer[] = ["mikuMini", "mikuGuitar", "mikuLeek"];
+export const WORD_AT = [40, 1420, 2670, 3770, 4470, 5170];
+export const CHARGE_AT = WORD_AT[4];
+export const FIRE_AT = WORD_AT[5];
+export const SWAP_AT = FIRE_AT + 250;
+export const DONE_AT = SWAP_AT + 800;
+
 const listeners = new Set<() => void>();
 
 export function beamOn(): boolean {

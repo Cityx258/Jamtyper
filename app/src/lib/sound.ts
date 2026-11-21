@@ -1,6 +1,7 @@
 "use client";
 
 import { keystrokeMidi, midiToFreq, nextStep } from "./keystroke";
+import { WORD_AT } from "./beam";
 import { schedule, type MelodyNote } from "./melody";
 
 export type Cue = "tick" | "go" | "finish" | "out";
@@ -176,6 +177,7 @@ const BEAM_CLIP = "/sounds/miku-beam.mp3";
 function beamSynth(ac: AudioContext): AudioScheduledSourceNode[] {
   const out = bus(ac, "effects");
   const start = ac.currentTime + 0.02;
+  const [one, two, three, ready, miku, fire] = WORD_AT.map((ms) => ms / 1000);
   const nodes: AudioScheduledSourceNode[] = [];
   const tone = (freq: number, at: number, length: number, level: number, type: OscillatorType = "triangle") => {
     const osc = ac.createOscillator();
@@ -191,25 +193,25 @@ function beamSynth(ac: AudioContext): AudioScheduledSourceNode[] {
     nodes.push(osc);
     return osc;
   };
-  [0, 0.5, 1].forEach((at, i) => tone([523.25, 587.33, 659.25][i], at, 0.12, 0.12));
-  tone(659.25, 1.5, 0.18, 0.1);
-  tone(783.99, 1.72, 0.22, 0.1);
+  [one, two, three].forEach((at, i) => tone([523.25, 587.33, 659.25][i], at, 0.12, 0.12));
+  tone(659.25, ready, 0.18, 0.1);
+  tone(783.99, ready + 0.22, 0.22, 0.1);
 
   const charge = ac.createOscillator();
   const chargeAmp = ac.createGain();
   const filter = ac.createBiquadFilter();
   charge.type = "sawtooth";
   filter.type = "lowpass";
-  filter.frequency.setValueAtTime(600, start + 2);
-  filter.frequency.exponentialRampToValueAtTime(5000, start + 2.75);
-  charge.frequency.setValueAtTime(160, start + 2);
-  charge.frequency.exponentialRampToValueAtTime(1400, start + 2.75);
-  chargeAmp.gain.setValueAtTime(0.0001, start + 2);
-  chargeAmp.gain.exponentialRampToValueAtTime(0.05, start + 2.7);
-  chargeAmp.gain.exponentialRampToValueAtTime(0.0001, start + 2.8);
+  filter.frequency.setValueAtTime(600, start + miku);
+  filter.frequency.exponentialRampToValueAtTime(5000, start + fire);
+  charge.frequency.setValueAtTime(160, start + miku);
+  charge.frequency.exponentialRampToValueAtTime(1400, start + fire);
+  chargeAmp.gain.setValueAtTime(0.0001, start + miku);
+  chargeAmp.gain.exponentialRampToValueAtTime(0.05, start + fire - 0.05);
+  chargeAmp.gain.exponentialRampToValueAtTime(0.0001, start + fire + 0.05);
   charge.connect(filter).connect(chargeAmp).connect(out);
-  charge.start(start + 2);
-  charge.stop(start + 2.85);
+  charge.start(start + miku);
+  charge.stop(start + fire + 0.1);
   nodes.push(charge);
 
   const length = 1.1;
@@ -221,30 +223,35 @@ function beamSynth(ac: AudioContext): AudioScheduledSourceNode[] {
   const burstAmp = ac.createGain();
   burst.buffer = noise;
   burstFilter.type = "lowpass";
-  burstFilter.frequency.setValueAtTime(8000, start + 2.75);
-  burstFilter.frequency.exponentialRampToValueAtTime(300, start + 2.75 + length);
-  burstAmp.gain.setValueAtTime(0.0001, start + 2.75);
-  burstAmp.gain.exponentialRampToValueAtTime(0.16, start + 2.77);
-  burstAmp.gain.exponentialRampToValueAtTime(0.0001, start + 2.75 + length);
+  burstFilter.frequency.setValueAtTime(8000, start + fire);
+  burstFilter.frequency.exponentialRampToValueAtTime(300, start + fire + length);
+  burstAmp.gain.setValueAtTime(0.0001, start + fire);
+  burstAmp.gain.exponentialRampToValueAtTime(0.16, start + fire + 0.02);
+  burstAmp.gain.exponentialRampToValueAtTime(0.0001, start + fire + length);
   burst.connect(burstFilter).connect(burstAmp).connect(out);
-  burst.start(start + 2.75);
+  burst.start(start + fire);
   nodes.push(burst);
 
-  const boom = tone(120, 2.75, 0.9, 0.2, "sine");
-  boom.frequency.setValueAtTime(120, start + 2.75);
-  boom.frequency.exponentialRampToValueAtTime(40, start + 3.6);
+  const boom = tone(120, fire, 0.9, 0.2, "sine");
+  boom.frequency.setValueAtTime(120, start + fire);
+  boom.frequency.exponentialRampToValueAtTime(40, start + fire + 0.85);
   return nodes;
 }
 
-export function playBeam(): () => void {
-  if (!soundOn()) return () => {};
+export function playBeam(onStart: () => void): () => void {
+  if (!soundOn()) {
+    onStart();
+    return () => {};
+  }
   let stopped = false;
   let nodes: AudioScheduledSourceNode[] = [];
   const clip = new Audio(BEAM_CLIP);
   clip.volume = effectsVolume();
+  clip.addEventListener("playing", onStart, { once: true });
   clip.play().catch(() => {
     const ac = !stopped && audio();
     if (ac) nodes = beamSynth(ac);
+    onStart();
   });
   return () => {
     stopped = true;

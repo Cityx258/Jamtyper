@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   BEAT_SECONDS,
-  PHRASE_BEATS,
+  phraseBeats,
   SONGS,
   phrases,
   PITCHES,
@@ -83,7 +83,7 @@ describe("singer phrases", () => {
       expect(phrases(song).length).toBeGreaterThan(0);
       for (const p of phrases(song)) {
         expect(p.beats).toHaveLength(p.pitches.length);
-        expect(p.beats.reduce((sum, b) => sum + b, 0)).toBeCloseTo(PHRASE_BEATS, 9);
+        expect(p.beats.reduce((sum, b) => sum + b, 0)).toBeCloseTo(phraseBeats(song), 9);
       }
     }
   });
@@ -96,8 +96,15 @@ describe("singer phrases", () => {
 
   test("teto sings her song too", () => {
     const pitches = randomPitches("teto", () => 0);
-    expect(pitches.slice(0, SONGS.teto.pitches.length)).toEqual(SONGS.teto.pitches);
-    expect(pitches.length).toBeGreaterThan(SONGS.teto.pitches.length);
+    expect(pitches).toEqual(SONGS.teto.pitches.slice(0, pitches.length));
+  });
+
+  test("singers sing two bars and Leek Miku, the trophy, sings four", () => {
+    const length = (p: { beats: number[] }) => p.beats.reduce((sum, b) => sum + b, 0);
+    for (const singer of ["mikuMini", "mikuGuitar", "rin", "gumi", "teto"] as const) {
+      expect(phrases(SONGS[singer]).every((p) => Math.abs(length(p) - 8) < 1e-9)).toBe(true);
+    }
+    expect(phrases(SONGS.mikuLeek).every((p) => Math.abs(length(p) - 16) < 1e-9)).toBe(true);
   });
 
   test("a phrase saved before phrases were four bars still plays in the song's rhythm", () => {

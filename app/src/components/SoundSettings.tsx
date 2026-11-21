@@ -7,6 +7,7 @@ import {
   musicSource,
   musicVolume,
   pausesInRaces,
+  quietFor,
   setMusic,
   setRacePause,
   setSource,
@@ -34,6 +35,15 @@ import SlidingChoice from "@/components/SlidingChoice";
 type T = Dict["settings"]["sound"];
 
 let stopBeamTest: () => void = () => {};
+let testTimer: ReturnType<typeof setTimeout> | undefined;
+
+const BEAM_TEST_SECONDS = 6.8;
+
+function hushFor(seconds: number) {
+  clearTimeout(testTimer);
+  quietFor("test", true);
+  testTimer = setTimeout(() => quietFor("test", false), (seconds + 0.3) * 1000);
+}
 
 const SAMPLE: MelodyNote[] = [
   { pitches: [0, 2], note: "eighth" },
@@ -132,7 +142,7 @@ export default function SoundSettings({ t }: { t: T }) {
         <Slider value={melodyLevel} onChange={level("melody")} label={t.melodyVolume} disabled={!effects} />
         <button
           type="button"
-          onClick={() => playMelody(SAMPLE, true)}
+          onClick={() => hushFor(playMelody(SAMPLE, true))}
           className="rounded-full border border-line px-3 py-1 text-xs font-medium text-muted transition-colors hover:border-teal hover:text-ink"
         >
           {t.test}
@@ -145,6 +155,7 @@ export default function SoundSettings({ t }: { t: T }) {
           onClick={() => {
             stopBeamTest();
             stopBeamTest = playBeam(() => {}, true);
+            hushFor(BEAM_TEST_SECONDS);
           }}
           className="rounded-full border border-line px-3 py-1 text-xs font-medium text-muted transition-colors hover:border-teal hover:text-ink"
         >

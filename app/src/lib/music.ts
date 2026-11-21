@@ -4,7 +4,7 @@ import { addLink, addSongs, allSongs, removeSong, type AddResult, type LinkResul
 import type { Track } from "./track";
 
 export type MusicSource = "site" | "custom";
-export type Quiet = "race" | "melody";
+export type Quiet = "race" | "melody" | "test";
 
 const KEY = "jamtyper-music";
 const VOLUME_KEY = "jamtyper-music-volume";
@@ -334,7 +334,7 @@ export function pausesInRaces(): boolean {
 }
 
 function hushed(): boolean {
-  return quiet.size > 0 && pausesInRaces();
+  return quiet.has("test") || (quiet.size > 0 && pausesInRaces());
 }
 
 function settle() {

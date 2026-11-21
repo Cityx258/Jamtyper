@@ -3,6 +3,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import ProfileForm from "@/components/ProfileForm";
 import SoundSettings from "@/components/SoundSettings";
+import BeamSetting from "@/components/BeamSetting";
 import DeleteAccount from "@/components/DeleteAccount";
 import { setLocale, setTheme } from "@/app/actions";
 import SignInMethods from "@/components/SignInMethods";
@@ -95,6 +96,7 @@ export default async function SettingsPage(props: PageProps<"/settings">) {
                 ))}
               </SlidingChoice>
             </div>
+            <BeamSetting t={t.display} sound={t.sound} />
           </div>
         </section>
 

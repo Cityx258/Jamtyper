@@ -171,6 +171,92 @@ export function playKeystroke(inKey: boolean) {
   }
 }
 
+const BEAM_CLIP = "/sounds/miku-beam.mp3";
+
+function beamSynth(ac: AudioContext): AudioScheduledSourceNode[] {
+  const out = bus(ac, "effects");
+  const start = ac.currentTime + 0.02;
+  const nodes: AudioScheduledSourceNode[] = [];
+  const tone = (freq: number, at: number, length: number, level: number, type: OscillatorType = "triangle") => {
+    const osc = ac.createOscillator();
+    const amp = ac.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    amp.gain.setValueAtTime(0.0001, start + at);
+    amp.gain.exponentialRampToValueAtTime(level, start + at + 0.01);
+    amp.gain.exponentialRampToValueAtTime(0.0001, start + at + length);
+    osc.connect(amp).connect(out);
+    osc.start(start + at);
+    osc.stop(start + at + length + 0.02);
+    nodes.push(osc);
+    return osc;
+  };
+  [0, 0.5, 1].forEach((at, i) => tone([523.25, 587.33, 659.25][i], at, 0.12, 0.12));
+  tone(659.25, 1.5, 0.18, 0.1);
+  tone(783.99, 1.72, 0.22, 0.1);
+
+  const charge = ac.createOscillator();
+  const chargeAmp = ac.createGain();
+  const filter = ac.createBiquadFilter();
+  charge.type = "sawtooth";
+  filter.type = "lowpass";
+  filter.frequency.setValueAtTime(600, start + 2);
+  filter.frequency.exponentialRampToValueAtTime(5000, start + 2.75);
+  charge.frequency.setValueAtTime(160, start + 2);
+  charge.frequency.exponentialRampToValueAtTime(1400, start + 2.75);
+  chargeAmp.gain.setValueAtTime(0.0001, start + 2);
+  chargeAmp.gain.exponentialRampToValueAtTime(0.05, start + 2.7);
+  chargeAmp.gain.exponentialRampToValueAtTime(0.0001, start + 2.8);
+  charge.connect(filter).connect(chargeAmp).connect(out);
+  charge.start(start + 2);
+  charge.stop(start + 2.85);
+  nodes.push(charge);
+
+  const length = 1.1;
+  const noise = ac.createBuffer(1, Math.floor(ac.sampleRate * length), ac.sampleRate);
+  const data = noise.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  const burst = ac.createBufferSource();
+  const burstFilter = ac.createBiquadFilter();
+  const burstAmp = ac.createGain();
+  burst.buffer = noise;
+  burstFilter.type = "lowpass";
+  burstFilter.frequency.setValueAtTime(8000, start + 2.75);
+  burstFilter.frequency.exponentialRampToValueAtTime(300, start + 2.75 + length);
+  burstAmp.gain.setValueAtTime(0.0001, start + 2.75);
+  burstAmp.gain.exponentialRampToValueAtTime(0.16, start + 2.77);
+  burstAmp.gain.exponentialRampToValueAtTime(0.0001, start + 2.75 + length);
+  burst.connect(burstFilter).connect(burstAmp).connect(out);
+  burst.start(start + 2.75);
+  nodes.push(burst);
+
+  const boom = tone(120, 2.75, 0.9, 0.2, "sine");
+  boom.frequency.setValueAtTime(120, start + 2.75);
+  boom.frequency.exponentialRampToValueAtTime(40, start + 3.6);
+  return nodes;
+}
+
+export function playBeam(): () => void {
+  if (!soundOn()) return () => {};
+  let stopped = false;
+  let nodes: AudioScheduledSourceNode[] = [];
+  const clip = new Audio(BEAM_CLIP);
+  clip.volume = effectsVolume();
+  clip.play().catch(() => {
+    const ac = !stopped && audio();
+    if (ac) nodes = beamSynth(ac);
+  });
+  return () => {
+    stopped = true;
+    clip.pause();
+    for (const n of nodes) {
+      try {
+        n.stop();
+      } catch {}
+    }
+  };
+}
+
 export function countdownCue(seconds: number): Cue {
   return seconds > 0 ? "tick" : "go";
 }

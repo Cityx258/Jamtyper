@@ -13,6 +13,7 @@
   --line: rgb(57 197 187 / 0.26);
   --glow: rgb(57 197 187 / 0.13);
   --pink: #ff6fae;
+  --beam: #dffcf8;
   --staff-gap: 16px;
   color-scheme: dark;
 }
@@ -31,6 +32,7 @@
     --line: rgb(14 138 130 / 0.3);
     --glow: rgb(57 197 187 / 0.22);
     --pink: #d0256f;
+    --beam: #ffffff;
     color-scheme: light;
   }
 }
@@ -48,6 +50,7 @@
   --line: rgb(14 138 130 / 0.3);
   --glow: rgb(57 197 187 / 0.22);
   --pink: #d0256f;
+  --beam: #ffffff;
   color-scheme: light;
 }
 
@@ -63,6 +66,7 @@
   --color-on-teal: var(--on-teal);
   --color-danger: var(--danger);
   --color-pink: var(--pink);
+  --color-beam: var(--beam);
   --font-sans: var(--f-body);
   --font-display: var(--f-display);
   --font-mono: var(--f-mono);
@@ -476,10 +480,64 @@ body {
   animation: marquee 6s ease-in-out infinite alternate;
 }
 
+@keyframes beam-rise {
+  from {
+    transform: translateY(115%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.beam-rise {
+  animation: beam-rise 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+@keyframes beam-word {
+  0% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.beam-word {
+  animation: beam-word 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes beam-shake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-3px, 1px);
+  }
+  50% {
+    transform: translate(3px, -1px);
+  }
+  75% {
+    transform: translate(-2px, -1px);
+  }
+}
+
+.beam-shake {
+  animation: beam-shake 0.12s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .marquee,
   .winner-dance,
-  .winner-sway {
+  .winner-sway,
+  .beam-rise,
+  .beam-word,
+  .beam-shake {
     animation: none;
   }
 }

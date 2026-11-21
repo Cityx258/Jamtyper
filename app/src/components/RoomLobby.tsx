@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { setGuestName } from "@/app/guest-actions";
 import Avatar from "@/components/Avatar";
 import KickButton from "@/components/KickButton";
+import MikuBeam from "@/components/MikuBeam";
 import LobbyNotePicker from "@/components/LobbyNotePicker";
 import NoteIcon from "@/components/NoteIcon";
 import RaceResults from "@/components/RaceResults";
@@ -25,8 +26,11 @@ import {
   type InviteView,
   type RacerView,
   type RoomError,
+  type RoomStatus,
   type RoomView,
 } from "@/lib/room-protocol";
+import { beamOn, beamSinger } from "@/lib/beam";
+import type { Singer } from "@/lib/notes";
 import { botPlan } from "@/lib/bot-plan";
 import { cleanGuestName, DISPLAY_NAME_MAX } from "@/lib/username";
 import {
@@ -120,6 +124,14 @@ export default function RoomLobby({
   const [moved, setMoved] = useState(false);
   const [leaveOther, setLeaveOther] = useState(false);
   const inviteRef = useRef(invite);
+  const [seenStatus, setSeenStatus] = useState<RoomStatus | null>(null);
+  const [beam, setBeam] = useState<{ race: number; singer: Singer; swapped: boolean } | null>(null);
+  if (room && room.status !== seenStatus) {
+    setSeenStatus(room.status);
+    if ((seenStatus === "racing" || seenStatus === "finishing") && room.status === "results" && room.race && beamOn()) {
+      setBeam({ race: room.race.startsAt, singer: beamSinger(room.race.racers, room.race.startsAt), swapped: false });
+    }
+  }
 
   useEffect(() => {
     if (!code || !ready) return;
@@ -376,10 +388,20 @@ export default function RoomLobby({
   );
 
   if (room.race && room.status !== "lobby") {
+    const beaming = beam !== null && beam.race === room.race.startsAt ? beam : null;
     return (
       <div className="w-full">
         {banner}
-        {room.status === "results" ? (
+        {beaming && (
+          <MikuBeam
+            key={beaming.race}
+            singer={beaming.singer}
+            ready={t.beamReady}
+            onSwap={() => setBeam((b) => b && { ...b, swapped: true })}
+            onDone={() => setBeam(null)}
+          />
+        )}
+        {room.status === "results" && !(beaming && !beaming.swapped) ? (
           <RaceResults
             race={room.race}
             you={you}

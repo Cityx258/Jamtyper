@@ -260,6 +260,7 @@ const en = {
       fog: "Someone behind you used a boost: the text ahead is foggy for a moment.",
     },
     boostTags: { shortcut: "-3 words", extra: "+3 words", fog: "fog" },
+    beamReady: "Ready?",
     getReady: "Get ready",
     cancel: "Cancel",
     elapsed: "Time",
@@ -528,6 +529,8 @@ const en = {
     },
     display: {
       title: "Display",
+      beam: "Miku Miku Beam after races",
+      beamHint: "When a race ends, Miku counts to three and fires a beam that carries you to the podium. It flashes the screen bright once.",
       theme: "Theme",
       language: "Language",
       languages: { en: "English", fr: "Français" },

@@ -265,6 +265,7 @@ const fr: Dict = {
       fog: "Quelqu'un derrière toi a utilisé un bonus : le texte devant toi est brouillé un instant.",
     },
     boostTags: { shortcut: "-3 mots", extra: "+3 mots", fog: "brouillard" },
+    beamReady: "Prêts ?",
     getReady: "Prépare-toi",
     cancel: "Annuler",
     elapsed: "Temps",
@@ -533,6 +534,8 @@ const fr: Dict = {
     },
     display: {
       title: "Affichage",
+      beam: "Miku Miku Beam après les courses",
+      beamHint: "À la fin d'une course, Miku compte jusqu'à trois et lance un rayon qui t'emmène au podium. L'écran devient très clair une fois.",
       theme: "Thème",
       language: "Langue",
       languages: { en: "English", fr: "Français" },

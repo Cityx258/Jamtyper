@@ -38,7 +38,7 @@ const SAMPLE: MelodyNote[] = [
   { pitches: [7], note: "half" },
 ];
 
-function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+export function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
       <div className="min-w-0">
@@ -50,7 +50,7 @@ function Row({ label, hint, children }: { label: string; hint?: string; children
   );
 }
 
-function Switch({ on, onChange, label, t }: { on: boolean; onChange: (on: boolean) => void; label: string; t: T }) {
+export function Switch({ on, onChange, label, t }: { on: boolean; onChange: (on: boolean) => void; label: string; t: T }) {
   return (
     <button
       type="button"

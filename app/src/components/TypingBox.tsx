@@ -111,6 +111,28 @@ function Upcoming({ text, from, fogged }: { text: string; from: number; fogged?:
 
 const textClass = "select-none font-mono text-xl leading-relaxed sm:text-2xl";
 
+function TextWindow({ cursor, children }: { cursor: number; children: React.ReactNode }) {
+  const boxRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const box = boxRef.current;
+    const mark = box?.querySelector<HTMLElement>("[data-cursor]");
+    if (!box || !mark) return;
+    const line = parseFloat(getComputedStyle(box).lineHeight);
+    const top = Math.max(0, mark.offsetTop - line);
+    box.scrollTo({ top, behavior: "smooth" });
+  }, [cursor]);
+  return (
+    <div
+      ref={boxRef}
+      className={`${textClass} relative h-[4.875em] overflow-hidden`}
+      onCopy={block}
+      onCut={block}
+    >
+      <p>{children}</p>
+    </div>
+  );
+}
+
 function FixBox({ text, start, fogged, label, onProgress }: Props) {
   const [committed, setCommitted] = useState(start);
   const [input, setInput] = useState("");
@@ -143,16 +165,16 @@ function FixBox({ text, start, fogged, label, onProgress }: Props) {
 
   return (
     <div>
-      <p className={textClass} onCopy={block} onCut={block}>
+      <TextWindow cursor={cursor}>
         <span className="text-teal">{text.slice(0, position)}</span>
         <span className="bg-danger/25 text-danger">
           {text.slice(position, cursor)}
         </span>
-        <span className="underline decoration-teal decoration-2 underline-offset-4">
+        <span data-cursor className="underline decoration-teal decoration-2 underline-offset-4">
           {text.slice(cursor, cursor + 1)}
         </span>
         <Upcoming text={text} from={cursor + 1} fogged={fogged} />
-      </p>
+      </TextWindow>
       <Field value={input} done={done} invalid={wrong > 0} label={label} onChange={onChange} />
     </div>
   );
@@ -217,14 +239,14 @@ function ContinueBox({
 
   return (
     <div>
-      <p className={textClass} onCopy={block} onCut={block}>
+      <TextWindow cursor={position}>
         <span className="text-teal">{text.slice(0, origin)}</span>
         {typed}
-        <span className="underline decoration-teal decoration-2 underline-offset-4">
+        <span data-cursor className="underline decoration-teal decoration-2 underline-offset-4">
           {text.slice(position, position + 1)}
         </span>
         <Upcoming text={text} from={position + 1} fogged={fogged} />
-      </p>
+      </TextWindow>
       <Field
         value={input}
         done={done}

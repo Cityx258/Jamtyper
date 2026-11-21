@@ -7,6 +7,7 @@ import type { Dict } from "@/i18n/en";
 import { BEAT_SECONDS, melodyOrder, noteLengths, notesPerBeat, spell, type MelodyNote } from "@/lib/melody";
 import { NOTES, type ClassicNote } from "@/lib/notes";
 import type { RacerView } from "@/lib/room-protocol";
+import { quietFor } from "@/lib/music";
 import { playMelody, soundOn } from "@/lib/sound";
 
 type Props = {
@@ -234,6 +235,7 @@ export default function RaceMelody({ racers, you, raceKey, t }: Props) {
   function stop() {
     timers.current.forEach(clearTimeout);
     timers.current = [];
+    quietFor("melody", false);
   }
 
   function start(force: boolean) {
@@ -241,10 +243,16 @@ export default function RaceMelody({ racers, you, raceKey, t }: Props) {
     const notes: MelodyNote[] = ordered.map((r) => ({ pitches: r.pitches, note: r.note }));
     const total = playMelody(notes, force);
     if (!total) return;
+    quietFor("melody", true);
     times.forEach((at, i) => {
       timers.current.push(setTimeout(() => setActive(i), (at + 0.05) * 1000));
     });
-    timers.current.push(setTimeout(() => setActive(null), (total + 0.3) * 1000));
+    timers.current.push(
+      setTimeout(() => {
+        setActive(null);
+        quietFor("melody", false);
+      }, (total + 0.3) * 1000),
+    );
   }
 
   const startRef = useRef(start);
@@ -254,6 +262,7 @@ export default function RaceMelody({ racers, you, raceKey, t }: Props) {
   useEffect(() => {
     if (heard.has(raceKey) || !soundOn()) return;
     heard.add(raceKey);
+    quietFor("melody", true);
     const id = setTimeout(() => startRef.current(false), 600);
     return () => clearTimeout(id);
   }, [raceKey]);

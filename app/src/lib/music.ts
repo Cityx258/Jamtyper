@@ -4,6 +4,7 @@ import { addLink, addSongs, allSongs, removeSong, type AddResult, type LinkResul
 import type { Track } from "./track";
 
 export type MusicSource = "site" | "custom";
+export type Quiet = "race" | "melody";
 
 const KEY = "jamtyper-music";
 const VOLUME_KEY = "jamtyper-music-volume";
@@ -24,7 +25,7 @@ let history: Track[] = [];
 let current: Track | null = null;
 let playing = false;
 let held = false;
-let racing = false;
+const quiet = new Set<Quiet>();
 let racePause: boolean | null = null;
 let waiting = false;
 let failures = 0;
@@ -297,7 +298,7 @@ export function setSource(value: MusicSource) {
 
 export function playTrack(track: Track) {
   if (!playlist.includes(track)) return;
-  racing = false;
+  quiet.clear();
   held = false;
   queue = queue.filter((t) => t !== track);
   if (current) history = [...history, current].slice(-HISTORY);
@@ -323,7 +324,7 @@ export function pausesInRaces(): boolean {
 }
 
 function hushed(): boolean {
-  return racing && pausesInRaces();
+  return quiet.size > 0 && pausesInRaces();
 }
 
 function settle() {
@@ -340,14 +341,20 @@ export function setRacePause(on: boolean) {
   notify();
 }
 
-export function pauseForRace(on: boolean) {
-  racing = on;
-  settle();
+export function quietFor(reason: Quiet, on: boolean) {
+  if (on === quiet.has(reason)) return;
+  if (on) {
+    quiet.add(reason);
+    settle();
+  } else {
+    quiet.delete(reason);
+    queueMicrotask(settle);
+  }
 }
 
 export function togglePause() {
   if (playlist.length === 0) return;
-  racing = false;
+  quiet.clear();
   const audio = element();
   if (!audio.paused) {
     held = true;
@@ -361,14 +368,14 @@ export function togglePause() {
 
 export function skipTrack() {
   if (playlist.length === 0) return;
-  racing = false;
+  quiet.clear();
   held = false;
   next(element());
 }
 
 export function previousTrack() {
   if (playlist.length === 0) return;
-  racing = false;
+  quiet.clear();
   held = false;
   const audio = element();
   if (!audio.src) next(audio);

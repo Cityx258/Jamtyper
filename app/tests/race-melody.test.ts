@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { beams, layout, ties } from "../src/components/RaceMelody";
+import { beams, layout, shownAccidentals, ties } from "../src/components/RaceMelody";
 import { phrases, SONGS } from "../src/lib/melody";
 import type { RacerView } from "../src/lib/room-protocol";
 
@@ -140,4 +140,22 @@ test("Leek Miku's fast phrase is drawn as sixteenth notes", () => {
 test("classic notes keep one beam group per racer", () => {
   const { systems } = layout(racers, 1000);
   expect(beams(systems[0]).map((b) => b.notes.length)).toEqual([8, 2]);
+});
+
+test("an accidental is drawn once per bar and a natural cancels it", () => {
+  const part = (pitch: number, accidental: -1 | 0 | 1, start: number, first = true) => ({
+    pitch,
+    accidental,
+    note: "quarter" as const,
+    dotted: false,
+    start,
+    first,
+    tie: false,
+  });
+  const marks = new Map();
+  const signs = shownAccidentals(
+    [part(3, 1, 0), part(3, 1, 1), part(3, 0, 2), part(5, -1, 3), part(5, -1, 4), part(5, -1, 5, false), part(3, 0, 6)],
+    marks,
+  );
+  expect(signs).toEqual([1, null, 0, -1, -1, null, null]);
 });

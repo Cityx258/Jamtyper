@@ -24,7 +24,9 @@ export const BAR_BEATS = 4;
 export const PHRASE_BARS = 2;
 export const MAX_PHRASE_NOTES = 128;
 
-export type Song = { pitches: number[]; beats: number[]; bars?: number };
+export type Accidental = -1 | 0 | 1;
+
+export type Song = { pitches: number[]; beats: number[]; accidentals?: Accidental[]; bars?: number };
 
 export const SONGS: Record<Singer, Song> = {
   mikuMini: {
@@ -54,7 +56,7 @@ export const SONGS: Record<Singer, Song> = {
   },
 };
 
-export type Phrase = { pitches: number[]; beats: number[] };
+export type Phrase = { pitches: number[]; beats: number[]; accidentals: Accidental[] };
 
 export const phraseBeats = (song: Song) => (song.bars ?? PHRASE_BARS) * BAR_BEATS;
 
@@ -71,12 +73,13 @@ function fit(beats: number[], limit: number): number[] {
   return out;
 }
 
-function from(song: Song, start: number, count: number): Song {
+function from(song: Song, start: number, count: number): Phrase {
   const n = song.pitches.length;
   const at = (k: number) => (start + k) % n;
   return {
     pitches: Array.from({ length: count }, (_, k) => song.pitches[at(k)]),
     beats: Array.from({ length: count }, (_, k) => song.beats[at(k)]),
+    accidentals: Array.from({ length: count }, (_, k) => song.accidentals?.[at(k)] ?? 0),
   };
 }
 
@@ -86,7 +89,7 @@ function phraseFrom(song: Song, start: number): Phrase {
   const limit = phraseBeats(song);
   while (total < limit - EPS) total += song.beats[(start + count++) % song.beats.length];
   const run = from(song, start, count);
-  return { pitches: run.pitches, beats: fit(run.beats, limit) };
+  return { ...run, beats: fit(run.beats, limit) };
 }
 
 export function phrases(song: Song): Phrase[] {
@@ -100,13 +103,15 @@ export function phrases(song: Song): Phrase[] {
   return out;
 }
 
-function rhythm(song: Song, pitches: number[]): number[] | null {
+function matching(song: Song, pitches: number[]): Phrase | null {
   const n = song.pitches.length;
   if (pitches.length === 0 || n === 0) return null;
   const phrase = phrases(song).find((p) => p.pitches.length === pitches.length && p.pitches.every((v, k) => v === pitches[k]));
-  if (phrase) return phrase.beats;
+  if (phrase) return phrase;
   for (let start = 0; start < n; start++) {
-    if (pitches.every((p, k) => song.pitches[(start + k) % n] === p)) return fit(from(song, start, pitches.length).beats, phraseBeats(song));
+    if (!pitches.every((p, k) => song.pitches[(start + k) % n] === p)) continue;
+    const run = from(song, start, pitches.length);
+    return { ...run, beats: fit(run.beats, phraseBeats(song)) };
   }
   return null;
 }
@@ -119,7 +124,14 @@ export type ScheduledNote = { freq: number; at: number; length: number };
 export const isPitch = (v: unknown): v is number =>
   Number.isInteger(v) && (v as number) >= 0 && (v as number) < STAFF_STEPS;
 
-export const frequency = (pitch: number) => FREQUENCIES[pitch] ?? FREQUENCIES[0];
+export const frequency = (pitch: number, accidental: Accidental = 0) =>
+  (FREQUENCIES[pitch] ?? FREQUENCIES[0]) * 2 ** (accidental / 12);
+
+export function noteAccidentals(note: NoteKind, pitches: number[]): Accidental[] {
+  const played = pitches.slice(0, notesPerBeat(note));
+  const phrase = isSinger(note) ? matching(SONGS[note], played) : null;
+  return played.map((_, i) => phrase?.accidentals[i] ?? 0);
+}
 
 export const noteSeconds = (note: NoteKind) => BEATS[note] * BEAT_SECONDS;
 
@@ -141,8 +153,8 @@ export function randomPitches(note: NoteKind, random: () => number = Math.random
 export function noteLengths(note: NoteKind, pitches: number[]): number[] {
   const played = pitches.slice(0, notesPerBeat(note));
   if (isSinger(note)) {
-    const beats = rhythm(SONGS[note], played);
-    if (beats) return beats.map((b) => b * BEAT_SECONDS);
+    const phrase = matching(SONGS[note], played);
+    if (phrase) return phrase.beats.map((b) => b * BEAT_SECONDS);
   }
   return played.map(() => noteSeconds(note));
 }
@@ -182,8 +194,9 @@ export function schedule(notes: MelodyNote[]): ScheduledNote[] {
   const out: ScheduledNote[] = [];
   for (const { pitches, note } of notes) {
     const lengths = noteLengths(note, pitches);
+    const accidentals = noteAccidentals(note, pitches);
     pitches.slice(0, lengths.length).forEach((pitch, i) => {
-      out.push({ freq: frequency(pitch), at, length: lengths[i] });
+      out.push({ freq: frequency(pitch, accidentals[i]), at, length: lengths[i] });
       at += lengths[i];
     });
   }

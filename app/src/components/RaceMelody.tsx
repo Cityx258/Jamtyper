@@ -4,7 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import NoteIcon from "@/components/NoteIcon";
 import { secondaryButton } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
-import { BEAT_SECONDS, melodyOrder, noteLengths, notesPerBeat, spell, type MelodyNote } from "@/lib/melody";
+import {
+  BEAT_SECONDS,
+  melodyOrder,
+  noteAccidentals,
+  noteLengths,
+  notesPerBeat,
+  spell,
+  type Accidental,
+  type MelodyNote,
+} from "@/lib/melody";
 import { NOTES, type ClassicNote } from "@/lib/notes";
 import type { RacerView } from "@/lib/room-protocol";
 import { quietFor } from "@/lib/music";
@@ -35,6 +44,8 @@ const EXTRA: Record<ClassicNote, number> = {
   thirtySecond: 0,
 };
 const DOT = 7;
+const ACC = 11;
+const SIGNS: Record<Accidental, string> = { 1: "\u266F", [-1]: "\u266D", 0: "\u266E" };
 
 const heard = new Set<number>();
 
@@ -49,6 +60,7 @@ type Symbol = {
   index: number;
   tie: boolean;
   tied: boolean;
+  accidental: Accidental | null;
 };
 type Group = { racer: number; from: number; to: number };
 type System = { symbols: Symbol[]; bars: number[]; groups: Group[] };
@@ -119,19 +131,28 @@ export function beams(system: System): Beam[] {
   });
 }
 
-type Piece = { pitch: number; note: ClassicNote; dotted: boolean; start: number; first: boolean; tie: boolean };
+type Piece = {
+  pitch: number;
+  accidental: Accidental;
+  note: ClassicNote;
+  dotted: boolean;
+  start: number;
+  first: boolean;
+  tie: boolean;
+};
 
-function pieces(pitches: number[], beats: number[], from: number): Piece[] {
+function pieces(pitches: number[], beats: number[], accidentals: Accidental[], from: number): Piece[] {
   const out: Piece[] = [];
   let position = from;
   pitches.forEach((pitch, k) => {
+    const accidental = accidentals[k] ?? 0;
     let left = beats[k];
     let first = true;
     while (left > EPS) {
       const room = (Math.floor((position + EPS) / 4) + 1) * 4 - position;
       const take = Math.min(left, room);
       for (const part of spell(take)) {
-        out.push({ pitch, note: part.note, dotted: part.dotted, start: position, first, tie: true });
+        out.push({ pitch, accidental, note: part.note, dotted: part.dotted, start: position, first, tie: true });
         first = false;
         position += part.beats;
       }
@@ -144,6 +165,22 @@ function pieces(pitches: number[], beats: number[], from: number): Piece[] {
 
 const onBar = (position: number) => position > EPS && Math.abs(position / 4 - Math.round(position / 4)) < EPS;
 
+export function shownAccidentals(parts: Piece[], bar: Map<number, Map<number, Accidental>>): (Accidental | null)[] {
+  return parts.map((part) => {
+    if (!part.first) return null;
+    const measure = Math.floor((part.start + EPS) / 4);
+    let marks = bar.get(measure);
+    if (!marks) {
+      marks = new Map();
+      bar.clear();
+      bar.set(measure, marks);
+    }
+    const current = marks.get(part.pitch) ?? 0;
+    marks.set(part.pitch, part.accidental);
+    return part.accidental === current ? null : part.accidental;
+  });
+}
+
 export function layout(racers: RacerView[], width: number) {
   const systems: System[] = [];
   const times: number[] = [];
@@ -152,6 +189,7 @@ export function layout(racers: RacerView[], width: number) {
   let position = 0;
   let at = 0;
   let id = 0;
+  const marks = new Map<number, Map<number, Accidental>>();
   const newSystem = () => {
     systems.push(system);
     system = { symbols: [], bars: [], groups: [] };
@@ -160,8 +198,9 @@ export function layout(racers: RacerView[], width: number) {
   racers.forEach((r, i) => {
     const pitches = r.pitches.slice(0, notesPerBeat(r.note));
     const beats = noteLengths(r.note, pitches).map((l) => l / BEAT_SECONDS);
-    const parts = pieces(pitches, beats, position);
-    const steps = parts.map((n) => SLOT + EXTRA[n.note] + (n.dotted ? DOT : 0));
+    const parts = pieces(pitches, beats, noteAccidentals(r.note, pitches), position);
+    const signs = shownAccidentals(parts, marks);
+    const steps = parts.map((n, k) => SLOT + EXTRA[n.note] + (n.dotted ? DOT : 0) + (signs[k] !== null ? ACC : 0));
     const total = steps.reduce((sum, w) => sum + w, 0);
     let group: Group | null = null;
     let k = -1;
@@ -176,6 +215,7 @@ export function layout(racers: RacerView[], width: number) {
         newSystem();
         group = null;
       }
+      if (signs[n] !== null) x += ACC;
       group ??= { racer: i, from: x, to: x };
       if (part.first) {
         k++;
@@ -193,9 +233,10 @@ export function layout(racers: RacerView[], width: number) {
         index: times.length - 1,
         tie: part.tie,
         tied: !part.first,
+        accidental: signs[n],
       });
       group.to = x;
-      x += steps[n];
+      x += steps[n] - (signs[n] !== null ? ACC : 0);
     });
     position += beats.reduce((sum, b) => sum + b, 0);
     if (group) system.groups.push(group);
@@ -339,6 +380,19 @@ export default function RaceMelody({ racers, you, raceKey, held = false, t }: Pr
                       transformOrigin: `${headX}px ${headY}px`,
                     }}
                   >
+                    {s.accidental !== null && (
+                      <span
+                        className="absolute select-none font-music leading-none"
+                        style={{
+                          left: headX - 7 - ACC,
+                          top: headY,
+                          fontSize: GAP * 2.1,
+                          transform: `translateY(${s.accidental === -1 ? "-70%" : "-50%"})`,
+                        }}
+                      >
+                        {SIGNS[s.accidental]}
+                      </span>
+                    )}
                     <NoteIcon note={s.note} size={SIZE} stem={!beamed.has(s.id)} />
                     {s.dotted && (
                       <span

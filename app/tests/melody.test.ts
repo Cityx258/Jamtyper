@@ -7,6 +7,7 @@ import {
   PITCHES,
   STAFF_STEPS,
   frequency,
+  noteAccidentals,
   isPitch,
   melodyOrder,
   noteSeconds,
@@ -105,6 +106,12 @@ describe("singer phrases", () => {
       expect(phrases(SONGS[singer]).every((p) => Math.abs(length(p) - 8) < 1e-9)).toBe(true);
     }
     expect(phrases(SONGS.mikuLeek).every((p) => Math.abs(length(p) - 16) < 1e-9)).toBe(true);
+  });
+
+  test("a sharp plays a half step up and a flat a half step down", () => {
+    expect(frequency(3, 1) / frequency(3)).toBeCloseTo(2 ** (1 / 12), 9);
+    expect(frequency(3, -1) / frequency(3)).toBeCloseTo(2 ** (-1 / 12), 9);
+    expect(noteAccidentals("quarter", [3])).toEqual([0]);
   });
 
   test("a phrase saved before phrases were four bars still plays in the song's rhythm", () => {

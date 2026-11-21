@@ -50,6 +50,8 @@ export const avatarIdSchema = z.string().regex(/^[A-Za-z0-9_-]{1,64}$/);
 export const raceIdSchema = z.uuid();
 export const historyPageSchema = z.coerce.number().int().min(1).max(10_000).catch(1);
 
+export const leaderboardSortSchema = z.enum(["wpm", "wins"]).catch("wpm");
+
 export const usernameSchema = z.string().regex(/^[a-zA-Z0-9_.]{3,20}$/);
 export const passwordSchema = z.string().min(8).max(128);
 

@@ -149,7 +149,7 @@ function BigPlayer({ t, track }: { t: Dict["player"]; track: Track | null }) {
   return (
     <div
       id="big-player"
-      className="absolute bottom-12 right-0 flex max-h-[min(36rem,calc(100vh-6rem))] w-[min(20rem,calc(100vw-2rem))] flex-col rounded-3xl border border-line bg-raised p-3 shadow-xl shadow-black/15"
+      className="absolute bottom-12 left-1/2 -translate-x-1/2 flex max-h-[min(36rem,calc(100vh-6rem))] w-[min(20rem,calc(100vw-2rem))] flex-col rounded-3xl border border-line bg-raised p-3 shadow-xl shadow-black/15"
     >
       <Cover src={track?.src ?? null} note={64} className="aspect-square w-full rounded-2xl" />
       <div className="mt-3 min-w-0 px-1">
@@ -262,24 +262,9 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
           {shown === "playlist" ? <PlaylistPanel t={t} /> : <BigPlayer t={t} track={track} />}
         </div>
       )}
-      <button
-        type="button"
-        onClick={() => setPanel(panel === "playlist" ? null : "playlist")}
-        aria-expanded={panel === "playlist"}
-        aria-controls="playlist-panel"
-        aria-label={t.playlist}
-        title={t.playlist}
-        className={`${control} ${panel === "playlist" ? "bg-teal/10 text-ink" : ""}`}
-      >
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-          <path d="M4 6h11M4 12h11M4 18h7" />
-          <path d="M19 15V5l3 1" />
-          <circle cx="17" cy="16" r="2" fill="currentColor" />
-        </svg>
-      </button>
       <span
         title={name}
-        className="hidden min-w-0 max-w-44 items-center gap-2 pl-2.5 pr-1.5 text-xs sm:flex"
+        className="hidden min-w-0 max-w-44 items-center gap-2 pl-3 pr-2 text-xs sm:flex"
       >
         <span aria-hidden="true" className={`eq shrink-0 ${playing ? "" : "eq-paused"}`}>
           <i />
@@ -288,19 +273,6 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
         </span>
         <Marquee text={title} className={track ? "text-ink" : "text-muted"} />
       </span>
-      <button
-        type="button"
-        onClick={() => setPanel(panel === "big" ? null : "big")}
-        aria-expanded={panel === "big"}
-        aria-controls="big-player"
-        aria-label={panel === "big" ? t.collapse : t.expand}
-        title={panel === "big" ? t.collapse : t.expand}
-        className={`${control} ${panel === "big" ? "bg-teal/10 text-ink" : ""}`}
-      >
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          {panel === "big" ? <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7" /> : <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />}
-        </svg>
-      </button>
       <button type="button" onClick={previousTrack} aria-label={t.previous} title={t.previous} className={control}>
         <Icon>
           <path d="M6 5h2v14H6zM20 5v14L9 12z" />
@@ -319,6 +291,35 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
         <Icon>
           <path d="M16 5h2v14h-2zM4 5v14l11-7z" />
         </Icon>
+      </button>
+      <span aria-hidden="true" className="mx-1 h-5 w-px shrink-0 bg-line" />
+      <button
+        type="button"
+        onClick={() => setPanel(panel === "playlist" ? null : "playlist")}
+        aria-expanded={panel === "playlist"}
+        aria-controls="playlist-panel"
+        aria-label={t.playlist}
+        title={t.playlist}
+        className={`${control} ${panel === "playlist" ? "bg-teal/10 text-ink" : ""}`}
+      >
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+          <path d="M4 6h11M4 12h11M4 18h7" />
+          <path d="M19 15V5l3 1" />
+          <circle cx="17" cy="16" r="2" fill="currentColor" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        onClick={() => setPanel(panel === "big" ? null : "big")}
+        aria-expanded={panel === "big"}
+        aria-controls="big-player"
+        aria-label={panel === "big" ? t.collapse : t.expand}
+        title={panel === "big" ? t.collapse : t.expand}
+        className={`${control} ${panel === "big" ? "bg-teal/10 text-ink" : ""}`}
+      >
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          {panel === "big" ? <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7" /> : <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />}
+        </svg>
       </button>
       <span aria-hidden="true" className="mx-1 h-5 w-px shrink-0 bg-line" />
       <button

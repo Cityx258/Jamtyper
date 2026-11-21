@@ -84,7 +84,7 @@ export default function PlaylistPanel({ t }: { t: Dict["player"] }) {
   return (
     <div
       id="playlist-panel"
-      className="absolute bottom-12 right-0 flex max-h-[min(28rem,calc(100vh-6rem))] w-[min(20rem,calc(100vw-2rem))] flex-col rounded-3xl border border-line bg-raised p-3 shadow-xl shadow-black/15"
+      className="absolute bottom-12 left-1/2 -translate-x-1/2 flex max-h-[min(28rem,calc(100vh-6rem))] w-[min(20rem,calc(100vw-2rem))] flex-col rounded-3xl border border-line bg-raised p-3 shadow-xl shadow-black/15"
     >
       <SlidingChoice role="tablist" aria-label={t.playlist} indicator="rounded-full bg-teal" className="flex gap-1 rounded-full border border-line p-1">
         {tab("site", t.siteList)}

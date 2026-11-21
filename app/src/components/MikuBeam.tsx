@@ -6,7 +6,8 @@ import { peekSize, type Singer } from "@/lib/notes";
 import { CHARGE_AT, DONE_AT, FIRE_AT, SWAP_AT, WORD_AT } from "@/lib/beam";
 import { playBeam, stopMelodies } from "@/lib/sound";
 
-const MIKU_SIZE = 150;
+const MIKU_SIZE = 340;
+const MIKU_MAX_SCREEN = 0.5;
 const START_WAIT_MS = 1500;
 
 type Phase = "chant" | "charge" | "fire" | "fade";
@@ -21,6 +22,7 @@ type Props = {
 export default function MikuBeam({ singer, ready, onSwap, onDone }: Props) {
   const [step, setStep] = useState(-1);
   const [phase, setPhase] = useState<Phase>("chant");
+  const [size] = useState(() => Math.min(peekSize(singer, MIKU_SIZE), Math.round(window.innerHeight * MIKU_MAX_SCREEN)));
   const swap = useRef(onSwap);
   const done = useRef(onDone);
   useEffect(() => {
@@ -95,14 +97,14 @@ export default function MikuBeam({ singer, ready, onSwap, onDone }: Props) {
       >
         <div className="beam-rise">
           <div className={phase === "chant" ? "winner-dance" : "beam-shake"}>
-            <NoteIcon note={singer} size={peekSize(singer, MIKU_SIZE)} />
+            <NoteIcon note={singer} size={size} />
           </div>
         </div>
       </div>
       <div
         aria-hidden="true"
         className="pointer-events-none absolute left-1/2 h-10 w-10 -translate-x-1/2 translate-y-1/2 motion-reduce:hidden"
-        style={{ bottom: MIKU_SIZE * 0.55 }}
+        style={{ bottom: size * 0.55 }}
       >
         <div
           className="h-full w-full rounded-full bg-[radial-gradient(circle,var(--beam)_0%,var(--beam)_45%,var(--teal-bright)_60%,transparent_72%)] ease-in"

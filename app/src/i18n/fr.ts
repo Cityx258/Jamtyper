@@ -522,6 +522,8 @@ const fr: Dict = {
       melodyVolume: "Volume de la mélodie de course",
       melodyHint: "La mélodie que tous les coureurs jouent ensemble après une course.",
       test: "Tester",
+      beamVolume: "Volume du Miku Miku Beam",
+      beamVolumeHint: "Le décompte et le rayon qui emmènent tout le monde de la course au podium.",
       music: "Musique de fond",
       musicHint: "Joue pendant que tu navigues sur le site.",
       musicVolume: "Volume de la musique",

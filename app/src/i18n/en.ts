@@ -517,6 +517,8 @@ const en = {
       melodyVolume: "Race melody volume",
       melodyHint: "The melody every racer plays together after a race.",
       test: "Test",
+      beamVolume: "Miku Miku Beam volume",
+      beamVolumeHint: "The chant and the beam that carry everyone from the race to the podium.",
       music: "Background music",
       musicHint: "Plays while you browse the site.",
       musicVolume: "Music volume",

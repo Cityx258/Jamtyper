@@ -6,23 +6,26 @@ import { schedule, type MelodyNote } from "./melody";
 
 export type Cue = "tick" | "go" | "finish" | "out";
 
-export type SoundChannel = "effects" | "melody";
+export type SoundChannel = "effects" | "melody" | "beam";
 
 const KEY = "jamtyper-sound";
 const VOLUME_KEYS: Record<SoundChannel, string> = {
   effects: "jamtyper-effects-volume",
   melody: "jamtyper-melody-volume",
+  beam: "jamtyper-beam-volume",
 };
+const DEFAULT_VOLUMES: Record<SoundChannel, number> = { effects: 1, melody: 1, beam: 0.25 };
 const listeners = new Set<() => void>();
 let ctx: AudioContext | null = null;
-const volumes: Record<SoundChannel, number | null> = { effects: null, melody: null };
+const volumes: Record<SoundChannel, number | null> = { effects: null, melody: null, beam: null };
 const buses: Partial<Record<SoundChannel, GainNode>> = {};
 let keyStep: number | null = null;
+const melodyVoices = new Set<OscillatorNode>();
 
 function readVolume(channel: SoundChannel): number {
   const cached = volumes[channel];
   if (cached !== null) return cached;
-  let value = 1;
+  let value = DEFAULT_VOLUMES[channel];
   try {
     const saved = localStorage.getItem(VOLUME_KEYS[channel]);
     const n = Number(saved);
@@ -34,6 +37,7 @@ function readVolume(channel: SoundChannel): number {
 
 export const effectsVolume = () => readVolume("effects");
 export const melodyVolume = () => readVolume("melody");
+export const beamVolume = () => readVolume("beam");
 
 export function setSoundVolume(channel: SoundChannel, value: number) {
   const v = Math.min(1, Math.max(0, value));
@@ -115,10 +119,21 @@ export function playMelody(notes: MelodyNote[], force = false): number {
       osc.connect(amp).connect(bus(ac, "melody"));
       osc.start(from);
       osc.stop(from + ring + 0.02);
+      melodyVoices.add(osc);
+      osc.onended = () => melodyVoices.delete(osc);
     }
   }
   const last = timed[timed.length - 1];
   return last ? last.at + last.length : 0;
+}
+
+export function stopMelodies() {
+  for (const osc of melodyVoices) {
+    try {
+      osc.stop();
+    } catch {}
+  }
+  melodyVoices.clear();
 }
 
 export function play(cue: Cue, force = false) {
@@ -175,7 +190,7 @@ export function playKeystroke(inKey: boolean) {
 const BEAM_CLIP = "/sounds/miku-beam.mp3";
 
 function beamSynth(ac: AudioContext): AudioScheduledSourceNode[] {
-  const out = bus(ac, "effects");
+  const out = bus(ac, "beam");
   const start = ac.currentTime + 0.02;
   const [one, two, three, ready, miku, fire] = WORD_AT.map((ms) => ms / 1000);
   const nodes: AudioScheduledSourceNode[] = [];
@@ -238,15 +253,19 @@ function beamSynth(ac: AudioContext): AudioScheduledSourceNode[] {
   return nodes;
 }
 
-export function playBeam(onStart: () => void): () => void {
-  if (!soundOn()) {
+export function playBeam(onStart: () => void, force = false): () => void {
+  if (!force && !soundOn()) {
     onStart();
     return () => {};
   }
   let stopped = false;
   let nodes: AudioScheduledSourceNode[] = [];
   const clip = new Audio(BEAM_CLIP);
-  clip.volume = effectsVolume();
+  clip.volume = beamVolume();
+  const follow = () => {
+    clip.volume = beamVolume();
+  };
+  listeners.add(follow);
   clip.addEventListener("playing", onStart, { once: true });
   clip.play().catch(() => {
     const ac = !stopped && audio();
@@ -255,6 +274,7 @@ export function playBeam(onStart: () => void): () => void {
   });
   return () => {
     stopped = true;
+    listeners.delete(follow);
     clip.pause();
     for (const n of nodes) {
       try {

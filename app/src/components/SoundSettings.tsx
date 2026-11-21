@@ -15,9 +15,11 @@ import {
   type MusicSource,
 } from "@/lib/music";
 import {
+  beamVolume,
   effectsVolume,
   melodyVolume,
   play,
+  playBeam,
   playMelody,
   setSound,
   setSoundVolume,
@@ -30,6 +32,8 @@ import { panel } from "@/components/ui";
 import SlidingChoice from "@/components/SlidingChoice";
 
 type T = Dict["settings"]["sound"];
+
+let stopBeamTest: () => void = () => {};
 
 const SAMPLE: MelodyNote[] = [
   { pitches: [0, 2], note: "eighth" },
@@ -109,6 +113,7 @@ export default function SoundSettings({ t }: { t: T }) {
   const effects = useSyncExternalStore(subscribeSound, soundOn, () => false);
   const effectsLevel = useSyncExternalStore(subscribeSound, effectsVolume, () => 1);
   const melodyLevel = useSyncExternalStore(subscribeSound, melodyVolume, () => 1);
+  const beamLevel = useSyncExternalStore(subscribeSound, beamVolume, () => 0.25);
   const music = useSyncExternalStore(subscribeMusic, musicOn, () => false);
   const musicLevel = useSyncExternalStore(subscribeMusic, musicVolume, () => 0.25);
   const source = useSyncExternalStore(subscribeMusic, musicSource, () => "site" as MusicSource);
@@ -128,6 +133,19 @@ export default function SoundSettings({ t }: { t: T }) {
         <button
           type="button"
           onClick={() => playMelody(SAMPLE, true)}
+          className="rounded-full border border-line px-3 py-1 text-xs font-medium text-muted transition-colors hover:border-teal hover:text-ink"
+        >
+          {t.test}
+        </button>
+      </Row>
+      <Row label={t.beamVolume} hint={t.beamVolumeHint}>
+        <Slider value={beamLevel} onChange={level("beam")} label={t.beamVolume} disabled={!effects} />
+        <button
+          type="button"
+          onClick={() => {
+            stopBeamTest();
+            stopBeamTest = playBeam(() => {}, true);
+          }}
           className="rounded-full border border-line px-3 py-1 text-xs font-medium text-muted transition-colors hover:border-teal hover:text-ink"
         >
           {t.test}

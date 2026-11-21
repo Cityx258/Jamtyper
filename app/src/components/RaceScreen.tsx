@@ -65,7 +65,7 @@ export default function RaceScreen({
     me?.boost && me.boost.until > serverNow ? me.boost.kind : null;
   useCue(status === "countdown" ? secondsTo(race.startsAt) : 0, countdownCue);
   useCue(me?.outcome, (o) => (o === "eliminated" ? "out" : null));
-  useFinishNotes(race.racers);
+  useFinishNotes(race.racers, status === "results");
   const { row, moves, passed } = useOvertakes(
     race.racers.map((r) => r.id),
     you,

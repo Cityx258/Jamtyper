@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import NoteIcon from "@/components/NoteIcon";
 import { peekSize, type Singer } from "@/lib/notes";
 import { CHARGE_AT, DONE_AT, FIRE_AT, SWAP_AT, WORD_AT } from "@/lib/beam";
-import { playBeam } from "@/lib/sound";
+import { playBeam, stopMelodies } from "@/lib/sound";
 
 const MIKU_SIZE = 150;
 const START_WAIT_MS = 1500;
@@ -29,6 +29,7 @@ export default function MikuBeam({ singer, ready, onSwap, onDone }: Props) {
   });
   const chant = ["1", "2", "3", ready, "Miku Miku", "BEAM!"];
   useEffect(() => {
+    stopMelodies();
     const timers: ReturnType<typeof setTimeout>[] = [];
     let begun = false;
     const begin = () => {

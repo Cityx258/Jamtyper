@@ -106,6 +106,16 @@ export function currentTrack(): Track | null {
   return current;
 }
 
+export function musicTime(): number {
+  return player?.currentTime ?? 0;
+}
+
+export function seekMusic(seconds: number) {
+  if (!player?.src) return;
+  player.currentTime = Math.max(0, seconds);
+  if (player.paused && !held && !hushed()) void start(player);
+}
+
 export function upcoming(): Track[] {
   return queue;
 }

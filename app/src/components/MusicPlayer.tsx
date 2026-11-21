@@ -5,16 +5,19 @@ import NoteIcon from "@/components/NoteIcon";
 import PlaylistPanel from "@/components/PlaylistPanel";
 import { peekSize, type Singer } from "@/lib/notes";
 import type { Track } from "@/lib/track";
-import { coverFor } from "@/lib/cover";
+import { coverFor, lyricsFor } from "@/lib/cover";
+import { lineAt, type Lyrics } from "@/lib/lyrics";
 import type { Dict } from "@/i18n/en";
 import {
   currentTrack,
   isPlaying,
   loadCustomSongs,
   musicOn,
+  musicTime,
   musicVolume,
   playTrack,
   previousTrack,
+  seekMusic,
   setVolume,
   skipTrack,
   subscribeMusic,
@@ -22,7 +25,6 @@ import {
   togglePause,
   upcoming,
 } from "@/lib/music";
-
 
 const EMPTY: Track[] = [];
 const SHOWN = 8;
@@ -33,6 +35,8 @@ const CREW_DELAY_MS = 300;
 const STAGGER_MS = 90;
 const PANEL_MS = 300;
 const SCROLL_SPEED = 30;
+const LYRICS_KEY = "jamtyper-lyrics";
+const HAND_SCROLL_MS = 3000;
 
 type Panel = "playlist" | "big";
 
@@ -151,19 +155,138 @@ function Cover({ src, className, note }: { src: string | null; className: string
   );
 }
 
+function useLyrics(src: string | null): Lyrics | null {
+  const [found, setFound] = useState<{ src: string; lyrics: Lyrics | null } | null>(null);
+  useEffect(() => {
+    if (!src) return;
+    let live = true;
+    void lyricsFor(src).then((lyrics) => live && setFound({ src, lyrics }));
+    return () => {
+      live = false;
+    };
+  }, [src]);
+  return found && found.src === src ? found.lyrics : null;
+}
+
+function lyricsPreferred(): boolean {
+  try {
+    return localStorage.getItem(LYRICS_KEY) === "on";
+  } catch {
+    return false;
+  }
+}
+
+function preferLyrics(on: boolean) {
+  try {
+    localStorage.setItem(LYRICS_KEY, on ? "on" : "off");
+  } catch {}
+}
+
+function LyricsView({ lyrics, label, className }: { lyrics: Lyrics; label: string; className: string }) {
+  const box = useRef<HTMLDivElement>(null);
+  const handUntil = useRef(0);
+  const [active, setActive] = useState(-1);
+  useEffect(() => {
+    if (!lyrics.synced) return;
+    let frame = 0;
+    const tick = () => {
+      setActive(lineAt(lyrics.lines, musicTime()));
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [lyrics]);
+  useEffect(() => {
+    const el = box.current;
+    if (!el || active < 0 || Date.now() < handUntil.current) return;
+    const line = el.children[active] as HTMLElement | undefined;
+    if (!line) return;
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollTo({ top: line.offsetTop - (el.clientHeight - line.offsetHeight) / 2, behavior: calm ? "auto" : "smooth" });
+  }, [active]);
+  const hand = () => {
+    handUntil.current = Date.now() + HAND_SCROLL_MS;
+  };
+  return (
+    <div
+      ref={box}
+      role="region"
+      aria-label={label}
+      tabIndex={0}
+      onWheel={hand}
+      onTouchMove={hand}
+      onKeyDown={hand}
+      className={`relative overflow-y-auto overscroll-contain px-2 py-3 ${className}`}
+    >
+      {lyrics.synced
+        ? lyrics.lines.map((line, i) => (
+            <button
+              key={i}
+              type="button"
+              tabIndex={-1}
+              onClick={() => seekMusic(line.at)}
+              aria-current={i === active ? "true" : undefined}
+              className={`block w-full rounded-lg px-2 py-1 text-left text-base font-bold leading-snug transition-colors duration-300 hover:bg-teal/10 ${
+                i === active ? "text-ink" : "text-muted/70"
+              }`}
+            >
+              {line.text || "♪"}
+            </button>
+          ))
+        : lyrics.lines.map((line, i) =>
+            line ? (
+              <p key={i} className="px-2 text-sm leading-relaxed text-ink">
+                {line}
+              </p>
+            ) : (
+              <br key={i} />
+            ),
+          )}
+    </div>
+  );
+}
+
 function BigPlayer({ t, track, top }: { t: Dict["player"]; track: Track | null; top?: ReactNode }) {
   const queue = useSyncExternalStore(subscribeMusic, upcoming, () => EMPTY);
   const next = queue.slice(0, SHOWN);
+  const lyrics = useLyrics(track?.src ?? null);
+  const [wantLyrics, setWantLyrics] = useState(lyricsPreferred);
+  const showLyrics = wantLyrics && lyrics !== null;
+  const flip = () => {
+    setWantLyrics(!showLyrics);
+    preferLyrics(!showLyrics);
+  };
   return (
     <div
       id="big-player"
       className="absolute bottom-12 left-1/2 -translate-x-1/2 flex max-h-[min(36rem,calc(100vh-6rem))] w-[min(20rem,calc(100vw-2rem))] flex-col rounded-3xl border border-line bg-raised p-3 shadow-xl shadow-black/15"
     >
       {top}
-      <Cover src={track?.src ?? null} note={64} className="aspect-square w-full rounded-2xl" />
-      <div className="mt-3 min-w-0 px-1">
-        <Marquee text={track?.title ?? t.noSong} className={`text-sm font-bold ${track ? "text-ink" : "text-muted"}`} />
-        {track?.artist && <p className="truncate text-xs text-muted">{track.artist}</p>}
+      {showLyrics ? (
+        <LyricsView key={track?.src} lyrics={lyrics} label={t.lyrics} className="aspect-square w-full shrink-0 rounded-2xl bg-teal/10" />
+      ) : (
+        <Cover src={track?.src ?? null} note={64} className="aspect-square w-full rounded-2xl" />
+      )}
+      <div className="mt-3 flex min-w-0 items-center gap-2 px-1">
+        <div className="min-w-0 flex-1">
+          <Marquee text={track?.title ?? t.noSong} className={`text-sm font-bold ${track ? "text-ink" : "text-muted"}`} />
+          {track?.artist && <p className="truncate text-xs text-muted">{track.artist}</p>}
+        </div>
+        {lyrics && (
+          <button
+            type="button"
+            onClick={flip}
+            aria-pressed={showLyrics}
+            aria-label={showLyrics ? t.showCover : t.showLyrics}
+            title={showLyrics ? t.showCover : t.showLyrics}
+            className={`${control} ${showLyrics ? "bg-teal/10 text-ink" : ""}`}
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="9" y="2" width="6" height="12" rx="3" />
+              <path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8" />
+            </svg>
+          </button>
+        )}
       </div>
       {next.length > 0 && (
         <>

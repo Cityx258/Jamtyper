@@ -1,7 +1,8 @@
 import { expect, test } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { readCover, type Read } from "../src/lib/cover-tags";
+import { readCover, readLyrics, readTags, type Read } from "../src/lib/cover-tags";
+import { lineAt, parseLyrics } from "../src/lib/lyrics";
 
 const JPEG = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4]);
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 9, 9]);
@@ -80,4 +81,50 @@ test("every .m4a site song has a cover the player can show", async () => {
     if (!cover?.type.startsWith("image/")) missing.push(song);
   }
   expect(missing).toEqual([]);
+});
+
+test("MP4 lyrics are read from the ©lyr atom next to the cover", async () => {
+  const lyrBody = box("data", new Uint8Array([0, 0, 0, 1, 0, 0, 0, 0]), text("[00:01.50] hello\r\n[00:03.00] world"));
+  const lyr = cat(be32(lyrBody.length + 8), [0xa9], text("lyr"), lyrBody);
+  const meta = box("meta", new Uint8Array(4), box("hdlr", new Uint8Array(25)), box("ilst", lyr));
+  const file = cat(box("ftyp", text("M4A "), new Uint8Array(4)), box("moov", box("udta", meta)));
+  expect(await readTags(reader(file))).toEqual({ cover: null, lyrics: "[00:01.50] hello\n[00:03.00] world" });
+});
+
+test("ID3 USLT lyrics are read", async () => {
+  const body = cat([3], text("eng"), [0], text("la la la"));
+  const tag = cat(text("USLT"), be32(body.length), [0, 0], body, new Array(10).fill(0));
+  const file = cat(text("ID3"), [3, 0, 0], safe(tag.length), tag);
+  expect(await readLyrics(reader(file))).toBe("la la la");
+});
+
+test("synced lyrics are parsed, sorted and looked up by time", () => {
+  const lyrics = parseLyrics("[ar:Miku]\n[00:05.00][00:20.00] chorus\n[00:01.50] intro\n[00:10.00]\n[00:30.00]");
+  expect(lyrics).toEqual({
+    synced: true,
+    lines: [
+      { at: 1.5, text: "intro" },
+      { at: 5, text: "chorus" },
+      { at: 10, text: "" },
+      { at: 20, text: "chorus" },
+    ],
+  });
+  if (!lyrics?.synced) throw new Error("not synced");
+  expect(lineAt(lyrics.lines, 0)).toBe(-1);
+  expect(lineAt(lyrics.lines, 6)).toBe(1);
+  expect(lineAt(lyrics.lines, 99)).toBe(3);
+});
+
+test("plain lyrics stay plain", () => {
+  expect(parseLyrics("\nfirst\n\n\nsecond\n")).toEqual({ synced: false, lines: ["first", "", "second"] });
+  expect(parseLyrics("  \n")).toBeNull();
+});
+
+test("site songs with lyrics in their tags give the player lyrics", async () => {
+  const dir = join(import.meta.dir, "../public/music");
+  let found = 0;
+  for (const song of readdirSync(dir).filter((f) => f.endsWith(".m4a"))) {
+    if (parseLyrics(await readLyrics(reader(new Uint8Array(readFileSync(join(dir, song))))))) found++;
+  }
+  expect(found).toBeGreaterThan(0);
 });

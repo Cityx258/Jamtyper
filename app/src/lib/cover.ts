@@ -1,10 +1,15 @@
 "use client";
 
-import { readCover, type Read } from "./cover-tags";
+import { readTags, type Read } from "./cover-tags";
+import { parseLyrics, type Lyrics } from "./lyrics";
 
 const CHUNK = 256 * 1024;
 const KEEP = 24;
-const covers = new Map<string, Promise<string | null>>();
+
+type SongTags = { cover: string | null; lyrics: Lyrics | null };
+
+const EMPTY: SongTags = { cover: null, lyrics: null };
+const tags = new Map<string, Promise<SongTags>>();
 
 function blobReader(blob: Blob): Read {
   return async (offset, length) => new Uint8Array(await blob.slice(offset, offset + length).arrayBuffer());
@@ -60,29 +65,41 @@ function rangeReader(src: string): Read {
   };
 }
 
-async function load(src: string): Promise<string | null> {
+async function load(src: string): Promise<SongTags> {
   try {
     const read = src.startsWith("blob:") ? blobReader(await (await fetch(src)).blob()) : rangeReader(src);
-    const pic = await readCover(read);
-    return pic ? URL.createObjectURL(new Blob([pic.data as BlobPart], { type: pic.type })) : null;
+    const found = await readTags(read);
+    const pic = found.cover;
+    return {
+      cover: pic ? URL.createObjectURL(new Blob([pic.data as BlobPart], { type: pic.type })) : null,
+      lyrics: parseLyrics(found.lyrics),
+    };
   } catch {
-    return null;
+    return EMPTY;
   }
 }
 
-export function coverFor(src: string): Promise<string | null> {
-  let cover = covers.get(src);
-  if (cover) {
-    covers.delete(src);
-    covers.set(src, cover);
-    return cover;
+function tagsFor(src: string): Promise<SongTags> {
+  let found = tags.get(src);
+  if (found) {
+    tags.delete(src);
+    tags.set(src, found);
+    return found;
   }
-  cover = load(src);
-  covers.set(src, cover);
-  if (covers.size > KEEP) {
-    const [oldest, url] = covers.entries().next().value!;
-    covers.delete(oldest);
-    void url.then((u) => u && URL.revokeObjectURL(u));
+  found = load(src);
+  tags.set(src, found);
+  if (tags.size > KEEP) {
+    const [oldest, old] = tags.entries().next().value!;
+    tags.delete(oldest);
+    void old.then((t) => t.cover && URL.revokeObjectURL(t.cover));
   }
-  return cover;
+  return found;
+}
+
+export async function coverFor(src: string): Promise<string | null> {
+  return (await tagsFor(src)).cover;
+}
+
+export async function lyricsFor(src: string): Promise<Lyrics | null> {
+  return (await tagsFor(src)).lyrics;
 }

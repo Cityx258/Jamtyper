@@ -9,6 +9,8 @@ const SIZE = 64;
 const EDGE = 28;
 const DELAY_MS = 450;
 const LEAVE_MS = 500;
+const HEADROOM = 28;
+const SIDE = 10;
 
 type Peek = {
   id: number;
@@ -43,7 +45,7 @@ export default function CardPeek() {
         id,
         note,
         left: rect.left + window.scrollX + EDGE + Math.random() * room,
-        top: rect.top + window.scrollY - box + 1,
+        top: rect.top + window.scrollY - box - HEADROOM + 1,
         box,
         tilt: Math.random() * 16 - 8,
         up: false,
@@ -90,13 +92,15 @@ export default function CardPeek() {
     <div
       aria-hidden
       className="pointer-events-none absolute z-20 flex items-end justify-center overflow-hidden"
-      style={{ left: peek.left, top: peek.top, width: peek.box, height: peek.box }}
+      style={{ left: peek.left - SIDE, top: peek.top, width: peek.box + SIDE * 2, height: peek.box + HEADROOM }}
     >
       <div
         className="origin-bottom transition-transform duration-500 ease-[cubic-bezier(0.34,1.4,0.64,1)] motion-reduce:transition-none"
         style={{ transform: peek.up ? `translateY(0) rotate(${peek.tilt}deg)` : "translateY(110%)" }}
       >
-        <NoteIcon note={peek.note} size={SIZE} />
+        <div className={peek.up ? "winner-dance" : ""}>
+          <NoteIcon note={peek.note} size={SIZE} />
+        </div>
       </div>
     </div>,
     document.body,

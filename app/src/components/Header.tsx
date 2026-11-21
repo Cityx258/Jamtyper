@@ -3,7 +3,6 @@ import Link from "next/link";
 import { setLocale, setTheme } from "@/app/actions";
 import Avatar from "@/components/Avatar";
 import MusicToggle from "@/components/MusicToggle";
-import SignOutButton from "@/components/SignOutButton";
 import SoundToggle from "@/components/SoundToggle";
 import { getDict, getLocale, getTheme } from "@/i18n";
 import { auth } from "@/lib/auth";
@@ -141,9 +140,6 @@ export default async function Header() {
                 {session.user.displayUsername ?? session.user.name}
               </span>
             </Link>
-            <span className="hidden sm:block">
-              <SignOutButton label={t.header.signOut} />
-            </span>
           </>
         ) : (
           <Link

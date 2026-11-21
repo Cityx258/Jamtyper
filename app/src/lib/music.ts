@@ -8,6 +8,7 @@ export type MusicSource = "site" | "custom";
 const KEY = "jamtyper-music";
 const VOLUME_KEY = "jamtyper-music-volume";
 const SOURCE_KEY = "jamtyper-music-source";
+const RACE_PAUSE_KEY = "jamtyper-music-race-pause";
 const DEFAULT_VOLUME = 0.25;
 const HISTORY = 50;
 const RESTART_AFTER = 3;
@@ -24,6 +25,7 @@ let current: Track | null = null;
 let playing = false;
 let held = false;
 let racing = false;
+let racePause: boolean | null = null;
 let waiting = false;
 let failures = 0;
 let volume: number | null = null;
@@ -119,7 +121,7 @@ function load(audio: HTMLAudioElement, track: Track) {
   current = track;
   audio.src = track.src;
   notify();
-  if (!held && !racing) void start(audio);
+  if (!held && !hushed()) void start(audio);
 }
 
 function next(audio: HTMLAudioElement) {
@@ -136,7 +138,7 @@ function previous(audio: HTMLAudioElement) {
   if (!back || audio.currentTime > RESTART_AFTER) {
     if (back) history.push(back);
     audio.currentTime = 0;
-    if (!held && !racing) void start(audio);
+    if (!held && !hushed()) void start(audio);
     return;
   }
   if (current) queue = [current, ...queue];
@@ -173,7 +175,7 @@ function retryOnGesture(audio: HTMLAudioElement) {
     waiting = false;
     window.removeEventListener("pointerdown", resume, true);
     window.removeEventListener("keydown", resume, true);
-    if (musicOn() && !held && !racing && audio.paused) void start(audio);
+    if (musicOn() && !held && !hushed() && audio.paused) void start(audio);
   };
   window.addEventListener("pointerdown", resume, true);
   window.addEventListener("keydown", resume, true);
@@ -303,17 +305,44 @@ export function playTrack(track: Track) {
 }
 
 export function resumeMusic() {
-  if (!musicOn() || held || racing || playlist.length === 0) return;
+  if (!musicOn() || held || hushed() || playlist.length === 0) return;
   const audio = element();
   if (!audio.paused) return;
   if (audio.src) void start(audio);
   else next(audio);
 }
 
+export function pausesInRaces(): boolean {
+  if (racePause !== null) return racePause;
+  try {
+    racePause = localStorage.getItem(RACE_PAUSE_KEY) !== "off";
+  } catch {
+    racePause = true;
+  }
+  return racePause;
+}
+
+function hushed(): boolean {
+  return racing && pausesInRaces();
+}
+
+function settle() {
+  if (hushed()) player?.pause();
+  else resumeMusic();
+}
+
+export function setRacePause(on: boolean) {
+  racePause = on;
+  try {
+    localStorage.setItem(RACE_PAUSE_KEY, on ? "on" : "off");
+  } catch {}
+  settle();
+  notify();
+}
+
 export function pauseForRace(on: boolean) {
   racing = on;
-  if (on) player?.pause();
-  else resumeMusic();
+  settle();
 }
 
 export function togglePause() {

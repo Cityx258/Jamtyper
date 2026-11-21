@@ -2,7 +2,18 @@
 
 import { useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import type { Dict } from "@/i18n/en";
-import { musicOn, musicSource, musicVolume, setMusic, setSource, setVolume, subscribeMusic, type MusicSource } from "@/lib/music";
+import {
+  musicOn,
+  musicSource,
+  musicVolume,
+  pausesInRaces,
+  setMusic,
+  setRacePause,
+  setSource,
+  setVolume,
+  subscribeMusic,
+  type MusicSource,
+} from "@/lib/music";
 import {
   effectsVolume,
   melodyVolume,
@@ -101,6 +112,7 @@ export default function SoundSettings({ t }: { t: T }) {
   const music = useSyncExternalStore(subscribeMusic, musicOn, () => false);
   const musicLevel = useSyncExternalStore(subscribeMusic, musicVolume, () => 0.25);
   const source = useSyncExternalStore(subscribeMusic, musicSource, () => "site" as MusicSource);
+  const racePause = useSyncExternalStore(subscribeMusic, pausesInRaces, () => true);
   const level = (channel: SoundChannel) => (v: number) => setSoundVolume(channel, v);
 
   return (
@@ -126,6 +138,9 @@ export default function SoundSettings({ t }: { t: T }) {
       </Row>
       <Row label={t.musicVolume}>
         <Slider value={musicLevel} onChange={setVolume} label={t.musicVolume} disabled={!music} />
+      </Row>
+      <Row label={t.racePause} hint={t.racePauseHint}>
+        <Switch on={racePause} onChange={setRacePause} label={t.racePause} t={t} />
       </Row>
       <Row label={t.playlist} hint={t.playlistHint}>
         <SlidingChoice as="span" role="radiogroup" aria-label={t.playlist} indicator="rounded-full bg-teal" className="flex gap-1 rounded-full border border-line p-1">

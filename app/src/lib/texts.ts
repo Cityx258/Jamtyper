@@ -71,6 +71,10 @@ function weightedOrder<T>(items: T[], weight: (item: T) => number): T[] {
     .map((x) => x.item);
 }
 
+const bare = (word: string) => word.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+
+export const sameWord = (a: string, b: string) => bare(a) !== "" && bare(a) === bare(b);
+
 function randomWords(pool: string[], count: number, rules: CharRules): string[] {
   const weights = pool.map((w) => 1 + 3 * hits(w, rules.favored));
   const total = weights.reduce((a, b) => a + b, 0);
@@ -85,7 +89,7 @@ function randomWords(pool: string[], count: number, rules: CharRules): string[] 
   const words: string[] = [];
   while (words.length < count) {
     const word = pickOne();
-    if (pool.length === 1 || word !== words[words.length - 1]) words.push(word);
+    if (pool.length === 1 || !sameWord(word, words[words.length - 1] ?? "")) words.push(word);
   }
   return words;
 }
@@ -145,11 +149,13 @@ function harden(words: string[], rules: CharRules): string[] {
 const capitalize = (w: string) => w[0].toUpperCase() + w.slice(1);
 
 function addNumbers(words: string[], rules: CharRules): string[] {
-  return words.map((w) => {
-    if (randomInt(8) !== 0) return w;
+  const out: string[] = [];
+  words.forEach((w, i) => {
     const n = String(randomInt(10 ** (1 + randomInt(4))));
-    return allowed(n, rules) ? n : w;
+    const fits = randomInt(8) === 0 && allowed(n, rules) && !sameWord(n, out[i - 1] ?? "") && !sameWord(n, words[i + 1] ?? "");
+    out.push(fits ? n : w);
   });
+  return out;
 }
 
 function addCapitals(words: string[], rules: CharRules): string[] {

@@ -105,3 +105,18 @@ test("expired badges are cleared", () => {
   expect(applyBoosts(race([a, b]), NOW)).toBe(true);
   expect(a.boost).toBeNull();
 });
+
+test("+3 words never puts the same word twice in a row", () => {
+  for (const pick of [0, 0.3, 0.5, 0.99]) {
+    const leader = racer({ position: 60 });
+    const last = racer({ position: 10 });
+    const r = race([leader, last], {}, "alpha beta gamma delta alpha beta gamma delta alpha beta");
+    applyBoosts(r, NOW, (() => {
+      let n = 0;
+      return () => (n++ === 0 ? 0.5 : pick);
+    })());
+    const words = racerText(r, leader).split(" ");
+    expect(leader.extra.trim().split(" ")).toHaveLength(3);
+    for (let i = 1; i < words.length; i++) expect(words[i]).not.toBe(words[i - 1]);
+  }
+});

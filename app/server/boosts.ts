@@ -1,4 +1,5 @@
 import type { BoostKind } from "../src/lib/room-protocol";
+import { sameWord } from "../src/lib/texts";
 import { racerEnd, racerText, type Race, type Racer } from "./room-state";
 
 export const CHECKPOINTS = [0.25, 0.5, 0.75];
@@ -43,9 +44,16 @@ function shortcut(race: Race, racer: Racer): boolean {
 }
 
 function extraWords(race: Race, leader: Racer, rng: () => number): boolean {
-  const words = race.text.split(" ").filter(Boolean);
+  const words = [...new Set(race.text.split(" ").filter(Boolean))];
   if (words.length === 0) return false;
-  const added = Array.from({ length: BONUS_WORDS }, () => words[Math.floor(rng() * words.length)]);
+  let previous = racerText(race, leader).split(" ").at(-1) ?? "";
+  const added: string[] = [];
+  for (let i = 0; i < BONUS_WORDS; i++) {
+    const fresh = words.filter((w) => !sameWord(w, previous));
+    const options = fresh.length ? fresh : words;
+    previous = options[Math.floor(rng() * options.length)];
+    added.push(previous);
+  }
   leader.extra += ` ${added.join(" ")}`;
   return true;
 }

@@ -9,6 +9,23 @@ import {
 } from "../src/lib/race-settings";
 
 describe("mergeSettings", () => {
+  test("raises the time limit when a longer race would not fit in it", () => {
+    expect(mergeSettings(DEFAULT_SETTINGS, { length: 200 }).timeLimitSec).toBe(300);
+    expect(mergeSettings({ ...DEFAULT_SETTINGS, timeLimitSec: 30 }, { length: 100 }).timeLimitSec).toBe(180);
+    expect(mergeSettings(DEFAULT_SETTINGS, { length: 50 }).timeLimitSec).toBe(180);
+    expect(mergeSettings({ ...DEFAULT_SETTINGS, timeLimitSec: 0 }, { length: 200 }).timeLimitSec).toBe(0);
+  });
+
+  test("keeps a time limit the host picks, even a short one", () => {
+    const long = mergeSettings(DEFAULT_SETTINGS, { length: 200 });
+    expect(mergeSettings(long, { timeLimitSec: 60 }).timeLimitSec).toBe(60);
+  });
+
+  test("fits the time limit to a long custom text", () => {
+    const next = mergeSettings(DEFAULT_SETTINGS, { source: "custom", customText: "a ".repeat(500) });
+    expect(next.timeLimitSec).toBe(300);
+  });
+
   test("keeps the current value when the patch is not an object", () => {
     expect(mergeSettings(DEFAULT_SETTINGS, null)).toEqual(DEFAULT_SETTINGS);
     expect(mergeSettings(DEFAULT_SETTINGS, "boosts")).toEqual(DEFAULT_SETTINGS);

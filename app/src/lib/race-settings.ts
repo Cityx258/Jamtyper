@@ -135,7 +135,24 @@ export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettin
     const field = schema.safeParse(parsed.data[key]);
     if (field.success) next[key] = field.data;
   }
-  return next as unknown as RaceSettings;
+  const merged = next as unknown as RaceSettings;
+  const resized = ["length", "source", "customText"].some((k) => k in parsed.data);
+  if (!resized || "timeLimitSec" in parsed.data) return merged;
+  return { ...merged, timeLimitSec: fittingLimit(merged) };
+}
+
+export const PACE_WPM = 40;
+
+export function neededSec(settings: RaceSettings): number {
+  const words = settings.source === "custom" ? settings.customText.length / 5 : settings.length;
+  return Math.ceil((words / PACE_WPM) * 60);
+}
+
+function fittingLimit(settings: RaceSettings): number {
+  const limit = settings.timeLimitSec;
+  const need = neededSec(settings);
+  if (!limit || limit >= need) return limit;
+  return TIME_LIMITS.find((l) => l >= need) ?? 0;
 }
 
 export function settingsView(settings: RaceSettings): SettingsView {

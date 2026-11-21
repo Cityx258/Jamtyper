@@ -9,22 +9,6 @@ import {
 } from "../src/lib/race-settings";
 
 describe("mergeSettings", () => {
-  test("raises the time limit when a longer race would not fit in it", () => {
-    expect(mergeSettings(DEFAULT_SETTINGS, { length: 200 }).timeLimitSec).toBe(300);
-    expect(mergeSettings({ ...DEFAULT_SETTINGS, timeLimitSec: 30 }, { length: 100 }).timeLimitSec).toBe(180);
-    expect(mergeSettings(DEFAULT_SETTINGS, { length: 50 }).timeLimitSec).toBe(180);
-    expect(mergeSettings({ ...DEFAULT_SETTINGS, timeLimitSec: 0 }, { length: 200 }).timeLimitSec).toBe(0);
-  });
-
-  test("keeps a time limit the host picks, even a short one", () => {
-    const long = mergeSettings(DEFAULT_SETTINGS, { length: 200 });
-    expect(mergeSettings(long, { timeLimitSec: 60 }).timeLimitSec).toBe(60);
-  });
-
-  test("fits the time limit to a long custom text", () => {
-    const next = mergeSettings(DEFAULT_SETTINGS, { source: "custom", customText: "a ".repeat(500) });
-    expect(next.timeLimitSec).toBe(300);
-  });
 
   test("keeps the current value when the patch is not an object", () => {
     expect(mergeSettings(DEFAULT_SETTINGS, null)).toEqual(DEFAULT_SETTINGS);
@@ -34,7 +18,6 @@ describe("mergeSettings", () => {
   test("ignores values outside the allowed lists", () => {
     const next = mergeSettings(DEFAULT_SETTINGS, {
       language: "klingon",
-      timeLimitSec: 42,
       timeGoalSec: 50,
       botLevel: "godlike",
       bots: "yes",
@@ -45,13 +28,11 @@ describe("mergeSettings", () => {
   test("applies valid values", () => {
     const next = mergeSettings(DEFAULT_SETTINGS, {
       language: "fr",
-      timeLimitSec: 60,
       timeGoalSec: 45,
       instantDeath: true,
       teams: true,
     });
     expect(next.language).toBe("fr");
-    expect(next.timeLimitSec).toBe(60);
     expect(next.timeGoalSec).toBe(45);
     expect(next.instantDeath).toBe(true);
     expect(next.teams).toBe(true);

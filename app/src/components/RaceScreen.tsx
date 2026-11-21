@@ -91,11 +91,13 @@ export default function RaceScreen({
     <div className="w-full">
       <div className="flex flex-wrap items-baseline justify-between gap-4">
         <p className="font-mono text-sm text-muted">
-          {race.closesAt ? t.closesIn : t.timeLeft}{" "}
+          {race.closesAt ? t.closesIn : t.elapsed}{" "}
           <span className="text-ink">
-            {race.closesAt === null && race.endsAt === null
-              ? t.noTimeLimit
-              : clock(secondsTo(race.closesAt ?? race.endsAt ?? 0))}
+            {clock(
+              race.closesAt
+                ? secondsTo(race.closesAt)
+                : Math.max(0, Math.floor((serverNow - race.startsAt) / 1000)),
+            )}
           </span>
         </p>
         {race.timeGoalSec > 0 && (

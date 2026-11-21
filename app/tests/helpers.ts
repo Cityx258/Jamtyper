@@ -35,7 +35,6 @@ export function race(racers: Racer[], settings: Partial<RaceSettings> = {}, text
     by: null,
     settings: { ...DEFAULT_SETTINGS, ...settings },
     startsAt: Date.now(),
-    endsAt: Date.now() + 60_000,
     closesAt: null,
     endedAt: null,
     racers: new Map(racers.map((r) => [r.id, r])),

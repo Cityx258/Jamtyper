@@ -93,7 +93,6 @@ export async function getArchivedRace(
       teams: settings.teams === true,
       length: found.textBody.length,
       startsAt: found.startedAt.getTime(),
-      endsAt: found.endedAt?.getTime() ?? null,
       closesAt: null,
       serverNow: found.endedAt?.getTime() ?? found.startedAt.getTime(),
       racers,

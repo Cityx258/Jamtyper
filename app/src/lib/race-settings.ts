@@ -22,7 +22,6 @@ export const CUSTOM_MAX = 1000;
 export const CHARS_MAX = 30;
 export const LENGTH_MIN = 10;
 export const LENGTH_MAX = 200;
-export const TIME_LIMITS = [0, 30, 60, 120, 180, 300, 600] as const;
 export const TIME_GOALS = [0, 30, 45, 60, 90, 120] as const;
 export const BOTS_MAX = 9;
 export const CAPACITY_MIN = 2;
@@ -48,7 +47,6 @@ export interface RaceSettings {
   teams: boolean;
   customText: string;
   length: number;
-  timeLimitSec: number;
   timeGoalSec: number;
   capacity: number;
 }
@@ -77,7 +75,6 @@ export const DEFAULT_SETTINGS: RaceSettings = {
   teams: false,
   customText: "",
   length: 30,
-  timeLimitSec: 180,
   timeGoalSec: 0,
   capacity: 10,
 };
@@ -119,7 +116,6 @@ export const settingsFields = {
     .max(CUSTOM_MAX * 4)
     .transform((v) => typeable(v).slice(0, CUSTOM_MAX).trim()),
   length: clamped(LENGTH_MIN, LENGTH_MAX),
-  timeLimitSec: oneOf(TIME_LIMITS),
   timeGoalSec: oneOf(TIME_GOALS),
   capacity: clamped(CAPACITY_MIN, CAPACITY_MAX),
 } satisfies { [K in keyof RaceSettings]: z.ZodType<unknown, unknown> };
@@ -135,24 +131,7 @@ export function mergeSettings(current: RaceSettings, patch: unknown): RaceSettin
     const field = schema.safeParse(parsed.data[key]);
     if (field.success) next[key] = field.data;
   }
-  const merged = next as unknown as RaceSettings;
-  const resized = ["length", "source", "customText"].some((k) => k in parsed.data);
-  if (!resized || "timeLimitSec" in parsed.data) return merged;
-  return { ...merged, timeLimitSec: fittingLimit(merged) };
-}
-
-export const PACE_WPM = 40;
-
-export function neededSec(settings: RaceSettings): number {
-  const words = settings.source === "custom" ? settings.customText.length / 5 : settings.length;
-  return Math.ceil((words / PACE_WPM) * 60);
-}
-
-function fittingLimit(settings: RaceSettings): number {
-  const limit = settings.timeLimitSec;
-  const need = neededSec(settings);
-  if (!limit || limit >= need) return limit;
-  return TIME_LIMITS.find((l) => l >= need) ?? 0;
+  return next as unknown as RaceSettings;
 }
 
 export function settingsView(settings: RaceSettings): SettingsView {

@@ -95,7 +95,6 @@ export interface Race {
   by: string | null;
   settings: RaceSettings;
   startsAt: number;
-  endsAt: number | null;
   closesAt: number | null;
   endedAt: number | null;
   racers: Map<string, Racer>;
@@ -220,14 +219,14 @@ export function balanceTeams(room: Room) {
 
 export function racerWpm(race: Race, racer: Racer, now = Date.now()): number {
   const elapsed =
-    racer.doneAt ?? Math.min(race.endedAt ?? now, race.endsAt ?? Infinity) - race.startsAt;
+    racer.doneAt ?? (race.endedAt ?? now) - race.startsAt;
   if (elapsed <= 0) return 0;
   return Math.max(0, racer.position - racer.errors) / 5 / (elapsed / 60_000);
 }
 
 export function racerRawWpm(race: Race, racer: Racer, now = Date.now()): number {
   const elapsed =
-    racer.doneAt ?? Math.min(race.endedAt ?? now, race.endsAt ?? Infinity) - race.startsAt;
+    racer.doneAt ?? (race.endedAt ?? now) - race.startsAt;
   if (elapsed <= 0) return 0;
   return keystrokes(racer) / 5 / (elapsed / 60_000);
 }
@@ -289,7 +288,6 @@ function raceView(room: Room, race: Race): RaceView {
     teams: race.settings.teams,
     length: race.text.length,
     startsAt: race.startsAt,
-    endsAt: race.endsAt,
     closesAt: race.closesAt,
     serverNow: Date.now(),
     racers: racersView(race, room.status === "results"),

@@ -245,9 +245,10 @@ describe("final ranking", () => {
     expect(ranked.map((x) => x.id)).toEqual(["fast", "slow", "quit-far", "quit-near"]);
   });
 
-  test("a race with no time limit has no end time", () => {
-    setupRoom([member("host"), member("guest")], { bots: false, timeLimitSec: 0 });
+  test("a race only ends once someone finishes and the closing countdown runs out", () => {
+    setupRoom([member("host"), member("guest")], { bots: false });
     const r = startRacing();
-    expect(r.endsAt).toBeNull();
+    expect(r.closesAt).toBeNull();
+    expect("endsAt" in r).toBe(false);
   });
 });

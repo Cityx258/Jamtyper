@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent, type ReactNode } from "react";
 import NoteIcon from "@/components/NoteIcon";
 import PlaylistPanel from "@/components/PlaylistPanel";
 import type { Singer } from "@/lib/notes";
@@ -31,6 +31,41 @@ const BAND: Singer[] = ["rin", "gumi", "teto"];
 const CREW_SIZE = 44;
 const CREW_DELAY_MS = 300;
 const STAGGER_MS = 90;
+const PANEL_MS = 200;
+const SCROLL_SPEED = 30;
+
+type Panel = "playlist" | "big";
+
+function Marquee({ text, className }: { text: string; className: string }) {
+  const outer = useRef<HTMLSpanElement>(null);
+  const inner = useRef<HTMLSpanElement>(null);
+  const [shift, setShift] = useState(0);
+  useEffect(() => {
+    const a = outer.current;
+    const b = inner.current;
+    if (!a || !b) return;
+    const measure = () => setShift(Math.max(0, b.scrollWidth - a.clientWidth));
+    const watch = new ResizeObserver(measure);
+    watch.observe(a);
+    watch.observe(b);
+    return () => watch.disconnect();
+  }, []);
+  return (
+    <span ref={outer} className={`block min-w-0 overflow-hidden whitespace-nowrap ${className}`}>
+      <span
+        ref={inner}
+        className={`inline-block ${shift > 0 ? "marquee" : ""}`}
+        style={
+          shift > 0
+            ? ({ "--shift": `-${shift}px`, animationDuration: `${shift / SCROLL_SPEED + 3}s` } as CSSProperties)
+            : undefined
+        }
+      >
+        {text}
+      </span>
+    </span>
+  );
+}
 
 function pickCrew(): Singer[] {
   const miku = MIKUS[Math.floor(Math.random() * MIKUS.length)];
@@ -118,7 +153,7 @@ function BigPlayer({ t, track }: { t: Dict["player"]; track: Track | null }) {
     >
       <Cover src={track?.src ?? null} note={64} className="aspect-square w-full rounded-2xl" />
       <div className="mt-3 min-w-0 px-1">
-        <p className={`truncate text-sm font-bold ${track ? "text-ink" : "text-muted"}`}>{track?.title ?? t.noSong}</p>
+        <Marquee text={track?.title ?? t.noSong} className={`text-sm font-bold ${track ? "text-ink" : "text-muted"}`} />
         {track?.artist && <p className="truncate text-xs text-muted">{track.artist}</p>}
       </div>
       {next.length > 0 && (
@@ -152,13 +187,33 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
   const track = useSyncExternalStore(subscribeMusic, currentTrack, () => null);
   const playing = useSyncExternalStore(subscribeMusic, isPlaying, () => false);
   const volume = useSyncExternalStore(subscribeMusic, musicVolume, () => 0.25);
-  const [panel, setPanel] = useState<"playlist" | "big" | null>(null);
+  const [panel, setPanelState] = useState<Panel | null>(null);
+  const [shown, setShown] = useState<Panel | null>(null);
+  const [visible, setVisible] = useState(false);
+  const panelTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const open = panel !== null;
+  const setPanel = useCallback((next: Panel | null) => {
+    clearTimeout(panelTimer.current);
+    setPanelState(next);
+    setVisible(false);
+    if (next) {
+      setShown(next);
+      requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
+    } else {
+      panelTimer.current = setTimeout(() => setShown(null), PANEL_MS);
+    }
+  }, []);
   const box = useRef<HTMLElement>(null);
   const [crew, setCrew] = useState<Singer[] | null>(null);
   const [crewUp, setCrewUp] = useState(false);
   const crewTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  useEffect(() => () => clearTimeout(crewTimer.current), []);
+  useEffect(
+    () => () => {
+      clearTimeout(crewTimer.current);
+      clearTimeout(panelTimer.current);
+    },
+    [],
+  );
   useEffect(() => {
     void loadCustomSongs();
   }, []);
@@ -173,7 +228,7 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
       document.removeEventListener("pointerdown", close);
       document.removeEventListener("keydown", close);
     };
-  }, [open]);
+  }, [open, setPanel]);
   if (!on) return null;
   const crewIn = (e: PointerEvent) => {
     if (e.pointerType !== "mouse") return;
@@ -197,12 +252,20 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
       aria-label={t.player}
       className="fixed bottom-4 right-4 z-30 flex h-10 max-w-[calc(100vw-2rem)] items-center gap-0.5 rounded-full border border-line bg-raised/90 pl-1 pr-1 shadow-lg shadow-black/10 backdrop-blur"
     >
-      {crew && <Crew up={crewUp && !open} crew={crew} />}
-      {panel === "playlist" && <PlaylistPanel t={t} />}
-      {panel === "big" && <BigPlayer t={t} track={track} />}
+      {crew && <Crew up={crewUp && !shown} crew={crew} />}
+      {shown && (
+        <div
+          className={`pointer-events-none absolute inset-0 origin-bottom-right transition-[opacity,transform] ease-out motion-reduce:transition-none [&>*]:pointer-events-auto ${
+            visible ? "translate-y-0 scale-100 opacity-100" : "translate-y-2 scale-95 opacity-0"
+          }`}
+          style={{ transitionDuration: `${PANEL_MS}ms` }}
+        >
+          {shown === "playlist" ? <PlaylistPanel t={t} /> : <BigPlayer t={t} track={track} />}
+        </div>
+      )}
       <button
         type="button"
-        onClick={() => setPanel((p) => (p === "playlist" ? null : "playlist"))}
+        onClick={() => setPanel(panel === "playlist" ? null : "playlist")}
         aria-expanded={panel === "playlist"}
         aria-controls="playlist-panel"
         aria-label={t.playlist}
@@ -224,11 +287,11 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
           <i />
           <i />
         </span>
-        <span className={`truncate ${track ? "text-ink" : "text-muted"}`}>{title}</span>
+        <Marquee text={title} className={track ? "text-ink" : "text-muted"} />
       </span>
       <button
         type="button"
-        onClick={() => setPanel((p) => (p === "big" ? null : "big"))}
+        onClick={() => setPanel(panel === "big" ? null : "big")}
         aria-expanded={panel === "big"}
         aria-controls="big-player"
         aria-label={panel === "big" ? t.collapse : t.expand}

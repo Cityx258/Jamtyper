@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   BEAT_SECONDS,
-  PHRASE_LENGTH,
+  PHRASE_BEATS,
   SONGS,
   phrases,
   PITCHES,
@@ -81,18 +81,28 @@ describe("singer phrases", () => {
       expect(song.beats).toHaveLength(song.pitches.length);
       expect(song.beats.every((b) => b > 0 && Number.isInteger(b * 4))).toBe(true);
       expect(phrases(song).length).toBeGreaterThan(0);
-      expect(phrases(song).every((p) => p.pitches.length === PHRASE_LENGTH && p.beats.length === PHRASE_LENGTH)).toBe(true);
+      for (const p of phrases(song)) {
+        expect(p.beats).toHaveLength(p.pitches.length);
+        expect(p.beats.reduce((sum, b) => sum + b, 0)).toBeCloseTo(PHRASE_BEATS, 9);
+      }
     }
   });
 
   test("a singer plays one phrase of their song", () => {
     const pitches = randomPitches("mikuGuitar", () => 0);
-    expect(pitches).toEqual(SONGS.mikuGuitar.pitches.slice(0, PHRASE_LENGTH));
-    expect(notesPerBeat("mikuGuitar")).toBe(PHRASE_LENGTH);
+    expect(pitches).toEqual(phrases(SONGS.mikuGuitar)[0].pitches);
+    expect(pitches.slice(0, SONGS.mikuGuitar.pitches.length)).toEqual(SONGS.mikuGuitar.pitches.slice(0, pitches.length));
   });
 
   test("teto sings her song too", () => {
-    expect(randomPitches("teto", () => 0)).toEqual(SONGS.teto.pitches.slice(0, PHRASE_LENGTH));
+    const pitches = randomPitches("teto", () => 0);
+    expect(pitches.slice(0, SONGS.teto.pitches.length)).toEqual(SONGS.teto.pitches);
+    expect(pitches.length).toBeGreaterThan(SONGS.teto.pitches.length);
+  });
+
+  test("a phrase saved before phrases were four bars still plays in the song's rhythm", () => {
+    const old = SONGS.mikuMini.pitches.slice(8, 16);
+    expect(noteLengths("mikuMini", old)).toEqual(SONGS.mikuMini.beats.slice(8, 16).map((b) => b * BEAT_SECONDS));
   });
 
   test("a singer's phrase keeps the rhythm of the song", () => {

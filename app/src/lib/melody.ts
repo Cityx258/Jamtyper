@@ -20,7 +20,10 @@ const BEATS: Record<NoteKind, number> = {
   mikuLeek: 0.25,
 };
 
-export const PHRASE_LENGTH = 8;
+export const BAR_BEATS = 4;
+export const PHRASE_BARS = 4;
+export const PHRASE_BEATS = BAR_BEATS * PHRASE_BARS;
+export const MAX_PHRASE_NOTES = 128;
 
 export type Song = { pitches: number[]; beats: number[] };
 
@@ -53,12 +56,56 @@ export const SONGS: Record<Singer, Song> = {
 
 export type Phrase = Song;
 
-export function phrases(song: Song): Phrase[] {
-  const out: Phrase[] = [];
-  for (let i = 0; i + PHRASE_LENGTH <= song.pitches.length; i += PHRASE_LENGTH) {
-    out.push({ pitches: song.pitches.slice(i, i + PHRASE_LENGTH), beats: song.beats.slice(i, i + PHRASE_LENGTH) });
+const EPS = 1e-9;
+
+function fit(beats: number[]): number[] {
+  const out: number[] = [];
+  let total = 0;
+  for (const b of beats) {
+    if (total >= PHRASE_BEATS - EPS) break;
+    out.push(Math.min(b, PHRASE_BEATS - total));
+    total += b;
   }
   return out;
+}
+
+function from(song: Song, start: number, count: number): Song {
+  const n = song.pitches.length;
+  const at = (k: number) => (start + k) % n;
+  return {
+    pitches: Array.from({ length: count }, (_, k) => song.pitches[at(k)]),
+    beats: Array.from({ length: count }, (_, k) => song.beats[at(k)]),
+  };
+}
+
+function phraseFrom(song: Song, start: number): Phrase {
+  let count = 0;
+  let total = 0;
+  while (total < PHRASE_BEATS - EPS) total += song.beats[(start + count++) % song.beats.length];
+  const run = from(song, start, count);
+  return { pitches: run.pitches, beats: fit(run.beats) };
+}
+
+export function phrases(song: Song): Phrase[] {
+  if (song.pitches.length === 0) return [];
+  const out: Phrase[] = [];
+  let position = 0;
+  song.beats.forEach((b, i) => {
+    if (Math.abs(position / BAR_BEATS - Math.round(position / BAR_BEATS)) < EPS) out.push(phraseFrom(song, i));
+    position += b;
+  });
+  return out;
+}
+
+function rhythm(song: Song, pitches: number[]): number[] | null {
+  const n = song.pitches.length;
+  if (pitches.length === 0 || n === 0) return null;
+  const phrase = phrases(song).find((p) => p.pitches.length === pitches.length && p.pitches.every((v, k) => v === pitches[k]));
+  if (phrase) return phrase.beats;
+  for (let start = 0; start < n; start++) {
+    if (pitches.every((p, k) => song.pitches[(start + k) % n] === p)) return fit(from(song, start, pitches.length).beats);
+  }
+  return null;
 }
 
 export const BEAT_SECONDS = 0.5;
@@ -74,7 +121,7 @@ export const frequency = (pitch: number) => FREQUENCIES[pitch] ?? FREQUENCIES[0]
 export const noteSeconds = (note: NoteKind) => BEATS[note] * BEAT_SECONDS;
 
 export const notesPerBeat = (note: NoteKind) =>
-  isSinger(note) ? PHRASE_LENGTH : Math.max(1, Math.round(1 / BEATS[note]));
+  isSinger(note) ? MAX_PHRASE_NOTES : Math.max(1, Math.round(1 / BEATS[note]));
 
 export function randomPitch(random: () => number = Math.random): number {
   return PITCHES[Math.floor(random() * PITCHES.length)];
@@ -88,13 +135,11 @@ export function randomPitches(note: NoteKind, random: () => number = Math.random
   return Array.from({ length: notesPerBeat(note) }, () => randomPitch(random));
 }
 
-const same = (a: number[], b: number[]) => a.length === b.length && a.every((v, i) => v === b[i]);
-
 export function noteLengths(note: NoteKind, pitches: number[]): number[] {
   const played = pitches.slice(0, notesPerBeat(note));
   if (isSinger(note)) {
-    const phrase = phrases(SONGS[note]).find((p) => same(p.pitches, played));
-    if (phrase) return phrase.beats.map((b) => b * BEAT_SECONDS);
+    const beats = rhythm(SONGS[note], played);
+    if (beats) return beats.map((b) => b * BEAT_SECONDS);
   }
   return played.map(() => noteSeconds(note));
 }

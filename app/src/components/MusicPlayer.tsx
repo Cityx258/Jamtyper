@@ -31,7 +31,7 @@ const BAND: Singer[] = ["rin", "gumi", "teto"];
 const CREW_SIZE = 44;
 const CREW_DELAY_MS = 300;
 const STAGGER_MS = 90;
-const PANEL_MS = 200;
+const PANEL_MS = 300;
 const SCROLL_SPEED = 30;
 
 type Panel = "playlist" | "big";
@@ -255,10 +255,9 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
       {crew && <Crew up={crewUp && !shown} crew={crew} />}
       {shown && (
         <div
-          className={`pointer-events-none absolute inset-0 origin-bottom-right transition-[opacity,transform] ease-out motion-reduce:transition-none [&>*]:pointer-events-auto ${
-            visible ? "translate-y-0 scale-100 opacity-100" : "translate-y-2 scale-95 opacity-0"
+          className={`pointer-events-none absolute inset-0 [clip-path:inset(-100vh_-100vw_100%_-100vw)] [&>*]:pointer-events-auto [&>*]:transition-transform [&>*]:duration-300 [&>*]:ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:[&>*]:transition-none ${
+            visible ? "[&>*]:translate-y-0" : "[&>*]:translate-y-[calc(100%+3rem)]"
           }`}
-          style={{ transitionDuration: `${PANEL_MS}ms` }}
         >
           {shown === "playlist" ? <PlaylistPanel t={t} /> : <BigPlayer t={t} track={track} />}
         </div>

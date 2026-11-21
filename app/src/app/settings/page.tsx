@@ -3,6 +3,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import ProfileForm from "@/components/ProfileForm";
 import SoundSettings from "@/components/SoundSettings";
+import DeleteAccount from "@/components/DeleteAccount";
 import { setLocale, setTheme } from "@/app/actions";
 import SignInMethods from "@/components/SignInMethods";
 import { getDict, getLocale, getTheme } from "@/i18n";
@@ -134,6 +135,16 @@ export default async function SettingsPage(props: PageProps<"/settings">) {
                   t={t}
                   recoveryT={dict.login.recovery}
                 />
+              </div>
+            </section>
+
+            <section className="mt-16" aria-labelledby="delete-title">
+              <h2 id="delete-title" className="font-display text-3xl text-danger">
+                {t.deleteAccount.title}
+              </h2>
+              <p className="mt-2 max-w-xl text-muted">{t.deleteAccount.hint}</p>
+              <div className="mt-6">
+                <DeleteAccount t={t.deleteAccount} />
               </div>
             </section>
           </>

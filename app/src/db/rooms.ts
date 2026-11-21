@@ -18,9 +18,7 @@ export const room = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     code: text("code").notNull().unique(),
-    hostId: text("host_id")
-      .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+    hostId: text("host_id").references(() => user.id, { onDelete: "set null" }),
     visibility: text("visibility", {
       enum: ["public", "semi_public", "private"],
     })

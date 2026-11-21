@@ -1,9 +1,11 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq, isNull, ne } from "drizzle-orm";
 import { headers } from "next/headers";
 import { db } from "@/db";
+import { room, roomMember } from "@/db/rooms";
 import { user } from "@/db/schema";
+import { getDict } from "@/i18n";
 import { auth } from "@/lib/auth";
 import { hasPassword, issueRecoveryCode } from "@/lib/recovery";
 import { addPasswordSchema, passwordSchema, usernameSchema } from "@/lib/schemas";
@@ -64,4 +66,31 @@ export async function addPassword(
     return { ok: false, error: "generic" };
   }
   return { ok: true, code: await issueRecoveryCode(userId) };
+}
+
+export type DeleteAccountResult = { ok: true } | { ok: false; error: "confirm" | "inRoom" | "generic" };
+
+export async function deleteAccount(typed: unknown): Promise<DeleteAccountResult> {
+  const h = await headers();
+  const session = await auth.api.getSession({ headers: h });
+  if (!session) return { ok: false, error: "generic" };
+  const word = (await getDict()).settings.deleteAccount.word;
+  if (typeof typed !== "string" || typed.trim().toLowerCase() !== word.toLowerCase()) {
+    return { ok: false, error: "confirm" };
+  }
+  const userId = session.user.id;
+  const [inRoom] = await db
+    .select({ id: roomMember.id })
+    .from(roomMember)
+    .innerJoin(room, eq(room.id, roomMember.roomId))
+    .where(and(eq(roomMember.userId, userId), isNull(roomMember.leftAt), ne(room.status, "closed")))
+    .limit(1);
+  if (inRoom) return { ok: false, error: "inRoom" };
+  try {
+    await auth.api.signOut({ headers: h });
+    await db.delete(user).where(eq(user.id, userId));
+  } catch {
+    return { ok: false, error: "generic" };
+  }
+  return { ok: true };
 }

@@ -5,6 +5,8 @@ import { racerEnd, racerText, type Race, type Racer } from "./room-state";
 import { randomPitches } from "../src/lib/melody";
 import { rngInt, seededRng, type Rng } from "../src/lib/rng";
 
+const BOT_NOTES = CLASSIC_NOTES.filter((n) => n !== "thirtySecond");
+
 const NAMES = [
   "Allegro",
   "Staccato",
@@ -61,7 +63,7 @@ export function createBots(
     const name = names.length
       ? names.splice(rngInt(pickRng, names.length), 1)[0]
       : `Bot ${i + 1}`;
-    const note = CLASSIC_NOTES[rngInt(rng, CLASSIC_NOTES.length)];
+    const note = BOT_NOTES[rngInt(rng, BOT_NOTES.length)];
     return {
       id: `bot-${randomUUID()}`,
       userId: null,

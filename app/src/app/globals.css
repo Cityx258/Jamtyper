@@ -465,6 +465,27 @@ body {
   animation: winner-sway 1.1s ease-in-out infinite;
 }
 
+@keyframes waddle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-9deg);
+  }
+  25% {
+    transform: translateY(-4px) rotate(0);
+  }
+  50% {
+    transform: translateY(0) rotate(9deg);
+  }
+  75% {
+    transform: translateY(-4px) rotate(0);
+  }
+}
+
+.waddle {
+  transform-origin: 50% 90%;
+  animation: waddle 0.62s ease-in-out infinite;
+}
+
 @keyframes marquee {
   0%,
   20% {
@@ -533,6 +554,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .marquee,
+  .waddle,
   .winner-dance,
   .winner-sway,
   .beam-rise,

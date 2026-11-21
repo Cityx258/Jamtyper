@@ -12,6 +12,7 @@ type Props = {
   tone: Tone;
   label: string;
   move?: Move;
+  waddle?: boolean;
 };
 
 const GAP = 14;
@@ -33,13 +34,14 @@ const COLORS: Record<Tone, string> = {
 const track = (fraction: number) =>
   `calc(${CLEF}px + (100% - ${CLEF + END}px) * ${fraction})`;
 
-export default function StaffLane({ progress, length, note, pitch, tone, label, move }: Props) {
+export default function StaffLane({ progress, length, note, pitch, tone, label, move, waddle }: Props) {
   const fraction = length > 0 ? Math.min(1, progress / length) : 0;
   const singer = isSinger(note);
   const avatar = iconSize(note, AVATAR);
   const headX = singer ? avatar / 2 : (note === "whole" ? 14 : 9) * ((SIZE * 0.7) / 28);
   const headY = singer ? avatar / 2 : ((note === "whole" ? 27 : 33) * SIZE) / 40;
   const y = TOP + STAFF - (pitch * GAP) / 2;
+  const phase = [...label].reduce((sum, c) => sum + c.charCodeAt(0), 0) % 7;
 
   return (
     <div
@@ -82,7 +84,12 @@ export default function StaffLane({ progress, length, note, pitch, tone, label, 
         style={{ left: track(fraction), top: y - headY, marginLeft: -headX }}
       >
         <span key={move?.key} className={`block ${move ? `overtake-${move.dir}` : ""}`}>
-          <NoteIcon note={note} size={singer ? AVATAR : SIZE} />
+          <span
+            className={`block ${waddle ? "waddle" : ""}`}
+            style={{ animationDelay: `${-phase * 0.09}s` }}
+          >
+            <NoteIcon note={note} size={singer ? AVATAR : SIZE} />
+          </span>
         </span>
       </span>
     </div>

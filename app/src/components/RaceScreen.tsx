@@ -245,6 +245,7 @@ export default function RaceScreen({
               }
               label={r.name}
               move={moves[r.id]}
+              waddle={r.outcome === "racing"}
             />
           </li>
         ))}

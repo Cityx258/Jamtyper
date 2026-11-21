@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import PlaylistPanel from "@/components/PlaylistPanel";
+import type { Track } from "@/lib/track";
 import { coverFor } from "@/lib/cover";
 import type { Dict } from "@/i18n/en";
 import {
@@ -10,14 +11,19 @@ import {
   loadCustomSongs,
   musicOn,
   musicVolume,
+  playTrack,
   previousTrack,
   setVolume,
   skipTrack,
   subscribeMusic,
   toggleMute,
   togglePause,
+  upcoming,
 } from "@/lib/music";
 
+
+const EMPTY: Track[] = [];
+const SHOWN = 8;
 
 const control =
   "grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-teal/10 hover:text-ink";
@@ -30,7 +36,7 @@ function Icon({ children }: { children: ReactNode }) {
   );
 }
 
-function Cover({ src }: { src: string | null }) {
+function Cover({ src, className, note }: { src: string | null; className: string; note: number }) {
   const [cover, setCover] = useState<{ src: string; url: string | null } | null>(null);
   const [broken, setBroken] = useState<string | null>(null);
   useEffect(() => {
@@ -43,12 +49,12 @@ function Cover({ src }: { src: string | null }) {
   }, [src]);
   const url = cover && cover.src === src && cover.url !== broken ? cover.url : null;
   return (
-    <span aria-hidden="true" className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-lg bg-teal/10 text-teal">
+    <span aria-hidden="true" className={`grid shrink-0 place-items-center overflow-hidden bg-teal/10 text-teal ${className}`}>
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={url} alt="" onError={() => setBroken(url)} className="h-full w-full object-cover" />
       ) : (
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg viewBox="0 0 24 24" width={note} height={note} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 18V5l11-2v13" />
           <circle cx="6.5" cy="18" r="2.5" fill="currentColor" />
           <circle cx="17.5" cy="16" r="2.5" fill="currentColor" />
@@ -58,12 +64,52 @@ function Cover({ src }: { src: string | null }) {
   );
 }
 
+function BigPlayer({ t, track }: { t: Dict["player"]; track: Track | null }) {
+  const queue = useSyncExternalStore(subscribeMusic, upcoming, () => EMPTY);
+  const next = queue.slice(0, SHOWN);
+  return (
+    <div
+      id="big-player"
+      className="absolute bottom-12 right-0 flex max-h-[min(36rem,calc(100vh-6rem))] w-[min(20rem,calc(100vw-2rem))] flex-col rounded-3xl border border-line bg-raised p-3 shadow-xl shadow-black/15"
+    >
+      <Cover src={track?.src ?? null} note={64} className="aspect-square w-full rounded-2xl" />
+      <div className="mt-3 min-w-0 px-1">
+        <p className={`truncate text-sm font-bold ${track ? "text-ink" : "text-muted"}`}>{track?.title ?? t.noSong}</p>
+        {track?.artist && <p className="truncate text-xs text-muted">{track.artist}</p>}
+      </div>
+      {next.length > 0 && (
+        <>
+          <h2 className="mt-3 px-1 text-xs font-bold uppercase tracking-wide text-muted">{t.upNext}</h2>
+          <ul className="mt-1 min-h-0 flex-1 overflow-y-auto">
+            {next.map((song) => (
+              <li key={song.src}>
+                <button
+                  type="button"
+                  onClick={() => playTrack(song)}
+                  className="flex w-full min-w-0 items-center gap-2.5 rounded-2xl px-1.5 py-1.5 text-left transition-colors hover:bg-teal/10"
+                >
+                  <Cover src={song.src} note={14} className="h-9 w-9 rounded-lg" />
+                  <span className="flex min-w-0 flex-col">
+                    <span className="truncate text-sm text-ink">{song.title}</span>
+                    {song.artist && <span className="truncate text-xs text-muted">{song.artist}</span>}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function MusicPlayer({ t }: { t: Dict["player"] }) {
   const on = useSyncExternalStore(subscribeMusic, musicOn, () => false);
   const track = useSyncExternalStore(subscribeMusic, currentTrack, () => null);
   const playing = useSyncExternalStore(subscribeMusic, isPlaying, () => false);
   const volume = useSyncExternalStore(subscribeMusic, musicVolume, () => 0.25);
-  const [open, setOpen] = useState(false);
+  const [panel, setPanel] = useState<"playlist" | "big" | null>(null);
+  const open = panel !== null;
   const box = useRef<HTMLElement>(null);
   useEffect(() => {
     void loadCustomSongs();
@@ -71,7 +117,7 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
   useEffect(() => {
     if (!open) return;
     const close = (e: Event) => {
-      if (e instanceof KeyboardEvent ? e.key === "Escape" : !box.current?.contains(e.target as Node)) setOpen(false);
+      if (e instanceof KeyboardEvent ? e.key === "Escape" : !box.current?.contains(e.target as Node)) setPanel(null);
     };
     document.addEventListener("pointerdown", close);
     document.addEventListener("keydown", close);
@@ -89,15 +135,16 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
       aria-label={t.player}
       className="fixed bottom-4 right-4 z-30 flex h-10 max-w-[calc(100vw-2rem)] items-center gap-0.5 rounded-full border border-line bg-raised/90 pl-1 pr-1 shadow-lg shadow-black/10 backdrop-blur"
     >
-      {open && <PlaylistPanel t={t} />}
+      {panel === "playlist" && <PlaylistPanel t={t} />}
+      {panel === "big" && <BigPlayer t={t} track={track} />}
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
+        onClick={() => setPanel((p) => (p === "playlist" ? null : "playlist"))}
+        aria-expanded={panel === "playlist"}
         aria-controls="playlist-panel"
         aria-label={t.playlist}
         title={t.playlist}
-        className={`${control} ${open ? "bg-teal/10 text-ink" : ""}`}
+        className={`${control} ${panel === "playlist" ? "bg-teal/10 text-ink" : ""}`}
       >
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
           <path d="M4 6h11M4 12h11M4 18h7" />
@@ -107,9 +154,8 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
       </button>
       <span
         title={name}
-        className="hidden min-w-0 max-w-52 items-center gap-2 pl-1.5 pr-1.5 text-xs sm:flex"
+        className="hidden min-w-0 max-w-44 items-center gap-2 pl-2.5 pr-1.5 text-xs sm:flex"
       >
-        <Cover src={track?.src ?? null} />
         <span aria-hidden="true" className={`eq shrink-0 ${playing ? "" : "eq-paused"}`}>
           <i />
           <i />
@@ -117,6 +163,19 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
         </span>
         <span className={`truncate ${track ? "text-ink" : "text-muted"}`}>{title}</span>
       </span>
+      <button
+        type="button"
+        onClick={() => setPanel((p) => (p === "big" ? null : "big"))}
+        aria-expanded={panel === "big"}
+        aria-controls="big-player"
+        aria-label={panel === "big" ? t.collapse : t.expand}
+        title={panel === "big" ? t.collapse : t.expand}
+        className={`${control} ${panel === "big" ? "bg-teal/10 text-ink" : ""}`}
+      >
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          {panel === "big" ? <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7" /> : <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />}
+        </svg>
+      </button>
       <button type="button" onClick={previousTrack} aria-label={t.previous} title={t.previous} className={control}>
         <Icon>
           <path d="M6 5h2v14H6zM20 5v14L9 12z" />

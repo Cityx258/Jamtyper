@@ -102,6 +102,10 @@ export function currentTrack(): Track | null {
   return current;
 }
 
+export function upcoming(): Track[] {
+  return queue;
+}
+
 export function isPlaying(): boolean {
   return playing;
 }
@@ -119,8 +123,9 @@ function load(audio: HTMLAudioElement, track: Track) {
 
 function next(audio: HTMLAudioElement) {
   if (queue.length === 0) queue = shuffle(playlist);
-  const track = queue.shift();
+  const [track, ...rest] = queue;
   if (!track) return;
+  queue = rest;
   if (current) history = [...history, current].slice(-HISTORY);
   load(audio, track);
 }
@@ -133,7 +138,7 @@ function previous(audio: HTMLAudioElement) {
     if (!held) void start(audio);
     return;
   }
-  if (current) queue.unshift(current);
+  if (current) queue = [current, ...queue];
   load(audio, back);
 }
 

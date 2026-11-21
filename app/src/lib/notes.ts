@@ -29,9 +29,11 @@ export const AVATARS: Record<Singer, string> = {
 
 export const WINS_PER_NOTE = 5;
 
-// Leek Miku is the trophy for pro typers: she takes far more wins and draws bigger than the rest.
 const TROPHY_WINS: Partial<Record<NoteKind, number>> = { mikuLeek: 100 };
 const SINGER_SCALE: Partial<Record<Singer, number>> = { mikuLeek: 1.3 };
+const PEEK_SCALE: Partial<Record<Singer, number>> = { mikuLeek: 1.35 };
+
+export const peekSize = (singer: Singer, size: number) => Math.round(size * (PEEK_SCALE[singer] ?? 1));
 
 export const iconSize = (note: NoteKind, size: number) =>
   isSinger(note) ? Math.round(size * (SINGER_SCALE[note] ?? 1)) : size;

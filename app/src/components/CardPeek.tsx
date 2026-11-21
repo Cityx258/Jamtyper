@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import NoteIcon from "@/components/NoteIcon";
-import { iconSize, SINGERS, type Singer } from "@/lib/notes";
+import { iconSize, peekSize, SINGERS, type Singer } from "@/lib/notes";
 
 const SIZE = 64;
 const EDGE = 28;
@@ -38,7 +38,7 @@ export default function CardPeek() {
       const choices = SINGERS.filter((s) => s !== last.current);
       const note = choices[Math.floor(Math.random() * choices.length)];
       last.current = note;
-      const box = Math.round(iconSize(note, SIZE) * 1.3);
+      const box = Math.round(iconSize(note, peekSize(note, SIZE)) * 1.3);
       const room = Math.max(0, rect.width - box - EDGE * 2);
       const id = ++count.current;
       setPeek({
@@ -99,7 +99,7 @@ export default function CardPeek() {
         style={{ transform: peek.up ? `translateY(0) rotate(${peek.tilt}deg)` : "translateY(110%)" }}
       >
         <div className={peek.up ? "winner-dance" : ""}>
-          <NoteIcon note={peek.note} size={SIZE} />
+          <NoteIcon note={peek.note} size={peekSize(peek.note, SIZE)} />
         </div>
       </div>
     </div>,

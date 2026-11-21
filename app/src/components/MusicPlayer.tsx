@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent, type ReactNode } from "react";
 import NoteIcon from "@/components/NoteIcon";
 import PlaylistPanel from "@/components/PlaylistPanel";
-import type { Singer } from "@/lib/notes";
+import { peekSize, type Singer } from "@/lib/notes";
 import type { Track } from "@/lib/track";
 import { coverFor } from "@/lib/cover";
 import type { Dict } from "@/i18n/en";
@@ -104,7 +104,7 @@ function Crew({ up: wanted, crew }: { up: boolean; crew: Singer[] }) {
             className={up ? "winner-dance" : ""}
             style={{ animationDelay: `${-i * 0.45}s`, animationDuration: `${1.6 + (i % 2) * 0.3}s` }}
           >
-            <NoteIcon note={singer} size={CREW_SIZE} />
+            <NoteIcon note={singer} size={peekSize(singer, CREW_SIZE)} />
           </div>
         </div>
       ))}

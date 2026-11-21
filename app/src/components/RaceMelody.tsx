@@ -14,6 +14,7 @@ type Props = {
   racers: RacerView[];
   you: string | null;
   raceKey: number;
+  held?: boolean;
   t: Dict["room"]["melody"];
 };
 
@@ -217,7 +218,7 @@ export function ties(system: System): { id: number; racer: number; x0: number; x
   return out;
 }
 
-export default function RaceMelody({ racers, you, raceKey, t }: Props) {
+export default function RaceMelody({ racers, you, raceKey, held = false, t }: Props) {
   const ordered = melodyOrder(racers);
   const [width, setWidth] = useState(640);
   const box = useRef<HTMLDivElement>(null);
@@ -261,11 +262,12 @@ export default function RaceMelody({ racers, you, raceKey, t }: Props) {
   });
   useEffect(() => {
     if (heard.has(raceKey) || !soundOn()) return;
-    heard.add(raceKey);
     quietFor("melody", true);
+    if (held) return;
+    heard.add(raceKey);
     const id = setTimeout(() => startRef.current(false), 600);
     return () => clearTimeout(id);
-  }, [raceKey]);
+  }, [raceKey, held]);
   useEffect(() => stop, []);
 
   return (

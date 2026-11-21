@@ -409,6 +409,7 @@ export default function RoomLobby({
             t={t}
             heatmapT={heatmapT}
             noteNames={noteNames}
+            melodyHeld={beaming !== null}
             onAgain={() => act("race:again")}
             onClose={() => act("room:close")}
           />

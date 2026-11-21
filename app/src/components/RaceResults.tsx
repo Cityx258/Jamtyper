@@ -21,6 +21,7 @@ type Props = {
   heatmapT: Dict["profile"]["heatmap"];
   noteNames: Dict["profile"]["notes"]["names"];
   title?: string;
+  melodyHeld?: boolean;
   onAgain?: () => void;
   onClose?: () => void;
 };
@@ -33,6 +34,7 @@ export default function RaceResults({
   heatmapT,
   noteNames,
   title,
+  melodyHeld,
   onAgain,
   onClose,
 }: Props) {
@@ -79,7 +81,7 @@ export default function RaceResults({
         </p>
       )}
       <Podium racers={race.racers} you={you} t={t} />
-      <RaceMelody racers={race.racers} you={you} raceKey={race.startsAt} t={t.melody} />
+      <RaceMelody racers={race.racers} you={you} raceKey={race.startsAt} held={melodyHeld} t={t.melody} />
 
       {goalMs > 0 && (
         <p className="mt-3 text-muted">

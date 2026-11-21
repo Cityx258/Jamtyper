@@ -443,7 +443,7 @@ export default function RoomLobby({
       </p>
       <div className="relative mt-4">
         <h1
-          className="relative font-display text-5xl tracking-[0.18em] sm:text-7xl"
+          className="relative font-display text-4xl tracking-[0.18em] min-[400px]:text-5xl sm:text-7xl"
           aria-label={room.code.split("").join(" ")}
         >
           {room.code}
@@ -477,11 +477,13 @@ export default function RoomLobby({
               className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3"
             >
               <span
-                className={`flex min-w-0 flex-1 items-center gap-3 ${m.connected ? "" : "opacity-50"}`}
+                className={`flex min-w-0 flex-1 basis-36 items-center gap-3 sm:flex-initial sm:basis-auto ${m.connected ? "" : "opacity-50"}`}
               >
                 <Avatar name={m.name} image={m.image} size={28} alt="" />
                 <NoteIcon note={m.note} className="text-teal" label={noteNames[m.note]} />
                 <span className="min-w-0 truncate font-medium">{m.name}</span>
+              </span>
+              <span className={`flex flex-wrap items-center gap-2 sm:flex-1 ${m.connected ? "" : "opacity-50"}`}>
                 {teams && <Tag>{t.teamNames[m.team]}</Tag>}
                 {m.isHost && <Tag>{t.host}</Tag>}
                 {m.id === you && <Tag>{t.you}</Tag>}

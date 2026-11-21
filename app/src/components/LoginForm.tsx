@@ -174,7 +174,7 @@ export default function LoginForm({
             role="tab"
             aria-selected={mode === id}
             onClick={() => switchMode(id)}
-            className={`flex-1 rounded-full px-4 py-2 font-display text-base transition-colors ${
+            className={`flex-1 whitespace-nowrap rounded-full px-2 py-2 font-display text-sm transition-colors min-[400px]:px-4 min-[400px]:text-base ${
               mode === id
                 ? "text-on-teal"
                 : "text-muted hover:text-ink"

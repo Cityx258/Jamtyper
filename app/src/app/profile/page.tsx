@@ -61,7 +61,7 @@ export default async function ProfilePage() {
         <p className={kicker}>
           {t.kicker}
         </p>
-        <div className="relative mt-4 flex items-center gap-5">
+        <div className="relative mt-4 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-5">
           <Avatar
             name={name}
             image={session.user.image ?? null}
@@ -69,7 +69,7 @@ export default async function ProfilePage() {
             alt={dict.settings.profile.photoAlt.replace("{name}", name)}
             className="relative"
           />
-          <h1 className="relative break-all font-display text-4xl sm:text-7xl">
+          <h1 className="relative min-w-0 max-w-full font-display text-4xl [overflow-wrap:anywhere] sm:text-7xl">
             {name}
           </h1>
         </div>

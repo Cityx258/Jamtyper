@@ -5,7 +5,7 @@ import { panel } from "@/components/ui";
 
 export default async function Footer() {
   const t = (await getDict()).footer;
-  const link = "text-muted transition-colors hover:text-ink";
+  const link = "inline-block py-1.5 text-muted transition-colors hover:text-ink";
   return (
     <>
       <div className="mx-auto w-full max-w-6xl px-5 sm:px-8">
@@ -20,7 +20,7 @@ export default async function Footer() {
             </abbr>
           </p>
           <nav aria-label={t.nav}>
-            <ul className="flex flex-wrap gap-x-5 gap-y-2">
+            <ul className="-my-1.5 flex flex-wrap gap-x-5">
               <li>
                 <Link href="/" className={link}>
                   {t.home}

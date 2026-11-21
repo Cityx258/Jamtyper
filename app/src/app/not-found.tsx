@@ -15,7 +15,7 @@ export default async function NotFound() {
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 pb-16 pt-8 sm:px-8 sm:pt-14">
         <p className={kicker}>404</p>
         <div className="relative mt-4">
-          <h1 className="relative font-display text-5xl sm:text-7xl">{t.heading}</h1>
+          <h1 className="relative font-display text-[clamp(2rem,10vw,3rem)] leading-tight sm:text-7xl">{t.heading}</h1>
         </div>
         <span aria-hidden="true" className="ribbon mt-5" />
         <p className="mt-8 max-w-xl text-lg text-muted">{t.text}</p>

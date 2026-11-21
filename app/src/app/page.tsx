@@ -31,13 +31,13 @@ export default async function Home() {
           </p>
         )}
         <section className="pt-10 sm:pt-16">
-          <div className="relative">
+          <div className="relative max-[479px]:[--staff-gap:11px]">
             <div className="staff absolute inset-x-0 top-[calc(var(--staff-gap)*1.5)]" />
-            <div className="relative flex items-start gap-4 sm:gap-8">
+            <div className="relative flex items-start gap-3 min-[480px]:gap-4 sm:gap-8">
               <Clef className="-mt-[calc(var(--staff-gap)*1.7)] shrink-0" />
               <div className="pt-1">
                 <p className={kicker}>{t.kicker}</p>
-                <h1 className="mt-3 max-w-2xl font-display text-4xl leading-[1.08] sm:text-6xl">
+                <h1 className="mt-3 max-w-2xl font-display text-[2rem] leading-[1.08] min-[400px]:text-4xl sm:text-6xl">
                   {t.headingA}
                   <br />
                   <span className="text-teal">{t.headingB}</span>

@@ -123,12 +123,12 @@ export default function RaceResults({
               <th className="py-2 pr-3 sm:pr-4 font-normal">{t.place}</th>
               <th className="py-2 pr-3 sm:pr-4 font-normal">{t.player}</th>
               <th className="py-2 pr-3 sm:pr-4 text-right font-normal">{t.wpm}</th>
-              <th className="py-2 pr-3 sm:pr-4 text-right font-normal">{t.rawWpm}</th>
-              <th className="py-2 pr-3 sm:pr-4 text-right font-normal">{t.accuracy}</th>
-              <th className="py-2 pr-3 sm:pr-4 text-right font-normal">{t.errorCount}</th>
-              <th className="py-2 pr-3 sm:pr-4 text-right font-normal">{t.time}</th>
-              <th className="py-2 pr-3 sm:pr-4 font-normal">{t.status}</th>
-              <th className="py-2 text-right font-normal">{t.boostsReceived}</th>
+              <th className="hidden py-2 pr-3 sm:table-cell sm:pr-4 text-right font-normal">{t.rawWpm}</th>
+              <th className="py-2 pr-4 text-right font-normal">{t.accuracy}</th>
+              <th className="hidden py-2 pr-3 sm:table-cell sm:pr-4 text-right font-normal">{t.errorCount}</th>
+              <th className="hidden py-2 pr-3 sm:table-cell sm:pr-4 text-right font-normal">{t.time}</th>
+              <th className="hidden py-2 pr-3 sm:table-cell sm:pr-4 font-normal">{t.status}</th>
+              <th className="hidden py-2 text-right font-normal sm:table-cell">{t.boostsReceived}</th>
             </tr>
           </thead>
           <tbody>
@@ -139,6 +139,11 @@ export default function RaceResults({
                   <NoteIcon note={r.note} size={16} className="mr-2 inline-block align-[-2px] text-teal" />
                   {r.name}
                   {r.isBot && <span className="text-muted"> ({t.bot})</span>}
+                  {r.outcome !== "finished" && (
+                    <span className="block font-mono text-xs font-normal uppercase text-muted sm:hidden">
+                      {t.outcomes[r.outcome]}
+                    </span>
+                  )}
                   {r.team !== null && (
                     <span className="ml-2 font-mono text-xs uppercase tracking-wider text-muted">
                       {t.teamNames[r.team]}
@@ -153,12 +158,12 @@ export default function RaceResults({
                     </span>
                   )}
                 </td>
-                <td className="py-3 pr-3 sm:pr-4 text-right font-mono text-muted">{r.rawWpm}</td>
-                <td className="py-3 pr-3 sm:pr-4 text-right font-mono">
+                <td className="hidden py-3 pr-3 sm:table-cell sm:pr-4 text-right font-mono text-muted">{r.rawWpm}</td>
+                <td className="py-3 pr-4 text-right font-mono max-sm:rounded-r-full">
                   {Math.round(r.accuracy * 100)}%
                 </td>
-                <td className="py-3 pr-3 sm:pr-4 text-right font-mono">{r.mistakes}</td>
-                <td className="whitespace-nowrap py-3 pr-3 sm:pr-4 text-right font-mono">
+                <td className="hidden py-3 pr-3 sm:table-cell sm:pr-4 text-right font-mono">{r.mistakes}</td>
+                <td className="hidden whitespace-nowrap py-3 pr-3 sm:table-cell sm:pr-4 text-right font-mono">
                   {r.timeMs === null ? "-" : seconds(r.timeMs)}
                   {goalMs > 0 && metGoal(r) && (
                     <span className="ml-2 text-teal" title={t.goalMet}>
@@ -166,10 +171,10 @@ export default function RaceResults({
                     </span>
                   )}
                 </td>
-                <td className="py-3 pr-3 sm:pr-4 font-mono text-xs uppercase text-muted">
+                <td className="hidden py-3 pr-3 sm:table-cell sm:pr-4 font-mono text-xs uppercase text-muted">
                   {t.outcomes[r.outcome]}
                 </td>
-                <td className="py-3 text-right font-mono">{r.bonuses}</td>
+                <td className="hidden py-3 text-right font-mono sm:table-cell">{r.bonuses}</td>
               </tr>
             ))}
           </tbody>

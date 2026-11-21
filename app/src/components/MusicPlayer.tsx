@@ -493,7 +493,7 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
         aria-label={t.volume}
         aria-valuetext={`${Math.round(volume * 100)}%`}
         title={`${t.volume}: ${Math.round(volume * 100)}%`}
-        className="volume mr-2 w-16 shrink-0"
+        className="volume mr-2 hidden w-16 shrink-0 sm:block"
         style={{ "--level": `${volume * 100}%` } as CSSProperties}
       />
     </section>

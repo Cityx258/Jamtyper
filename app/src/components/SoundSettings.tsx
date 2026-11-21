@@ -59,7 +59,7 @@ export function Row({ label, hint, children }: { label: string; hint?: string; c
         <p className="font-medium text-ink">{label}</p>
         {hint && <p className="mt-1 text-sm text-muted">{hint}</p>}
       </div>
-      <div className="flex shrink-0 items-center gap-3">{children}</div>
+      <div className="flex w-full items-center gap-3 sm:w-auto sm:shrink-0">{children}</div>
     </div>
   );
 }
@@ -99,7 +99,7 @@ function Slider({
 }) {
   const pct = Math.round(value * 100);
   return (
-    <span className={`flex items-center gap-3 ${disabled ? "opacity-50" : ""}`}>
+    <span className={`flex min-w-0 flex-1 items-center gap-3 sm:flex-none ${disabled ? "opacity-50" : ""}`}>
       <input
         type="range"
         min={0}
@@ -111,10 +111,10 @@ function Slider({
         onChange={(e) => onChange(Number(e.target.value) / 100)}
         onPointerUp={onCommit}
         onKeyUp={onCommit}
-        className="volume w-40 sm:w-48"
+        className="volume min-w-0 flex-1 sm:w-48 sm:flex-none"
         style={{ "--level": `${pct}%` } as CSSProperties}
       />
-      <span className="w-10 text-right font-mono text-xs text-muted">{pct}%</span>
+      <span className="w-10 shrink-0 text-right font-mono text-xs text-muted">{pct}%</span>
     </span>
   );
 }
@@ -143,7 +143,7 @@ export default function SoundSettings({ t }: { t: T }) {
         <button
           type="button"
           onClick={() => hushFor(playMelody(SAMPLE, true))}
-          className="rounded-full border border-line px-3 py-1 text-xs font-medium text-muted transition-colors hover:border-teal hover:text-ink"
+          className="shrink-0 rounded-full border border-line px-3 py-1 text-xs font-medium text-muted transition-colors hover:border-teal hover:text-ink"
         >
           {t.test}
         </button>
@@ -157,7 +157,7 @@ export default function SoundSettings({ t }: { t: T }) {
             stopBeamTest = playBeam(() => {}, true);
             hushFor(BEAM_TEST_SECONDS);
           }}
-          className="rounded-full border border-line px-3 py-1 text-xs font-medium text-muted transition-colors hover:border-teal hover:text-ink"
+          className="shrink-0 rounded-full border border-line px-3 py-1 text-xs font-medium text-muted transition-colors hover:border-teal hover:text-ink"
         >
           {t.test}
         </button>

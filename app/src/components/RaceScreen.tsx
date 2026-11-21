@@ -10,6 +10,7 @@ import { dangerButton, secondaryButton, kicker } from "@/components/ui";
 import type { Dict } from "@/i18n/en";
 import type { MemberView, RaceView, RoomStatus } from "@/lib/room-protocol";
 import { sendProgress } from "@/lib/socket";
+import { pauseForRace } from "@/lib/music";
 import { countdownCue } from "@/lib/sound";
 import { useCue } from "@/lib/use-cue";
 import { useFinishNotes } from "@/lib/use-finish-notes";
@@ -45,6 +46,11 @@ export default function RaceScreen({
   onKick,
 }: Props) {
   const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    pauseForRace(true);
+    return () => pauseForRace(false);
+  }, []);
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 200);

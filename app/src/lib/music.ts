@@ -23,6 +23,7 @@ let history: Track[] = [];
 let current: Track | null = null;
 let playing = false;
 let held = false;
+let racing = false;
 let waiting = false;
 let failures = 0;
 let volume: number | null = null;
@@ -118,7 +119,7 @@ function load(audio: HTMLAudioElement, track: Track) {
   current = track;
   audio.src = track.src;
   notify();
-  if (!held) void start(audio);
+  if (!held && !racing) void start(audio);
 }
 
 function next(audio: HTMLAudioElement) {
@@ -135,7 +136,7 @@ function previous(audio: HTMLAudioElement) {
   if (!back || audio.currentTime > RESTART_AFTER) {
     if (back) history.push(back);
     audio.currentTime = 0;
-    if (!held) void start(audio);
+    if (!held && !racing) void start(audio);
     return;
   }
   if (current) queue = [current, ...queue];
@@ -172,7 +173,7 @@ function retryOnGesture(audio: HTMLAudioElement) {
     waiting = false;
     window.removeEventListener("pointerdown", resume, true);
     window.removeEventListener("keydown", resume, true);
-    if (musicOn() && !held && audio.paused) void start(audio);
+    if (musicOn() && !held && !racing && audio.paused) void start(audio);
   };
   window.addEventListener("pointerdown", resume, true);
   window.addEventListener("keydown", resume, true);
@@ -294,6 +295,7 @@ export function setSource(value: MusicSource) {
 
 export function playTrack(track: Track) {
   if (!playlist.includes(track)) return;
+  racing = false;
   held = false;
   queue = queue.filter((t) => t !== track);
   if (current) history = [...history, current].slice(-HISTORY);
@@ -301,15 +303,22 @@ export function playTrack(track: Track) {
 }
 
 export function resumeMusic() {
-  if (!musicOn() || held || playlist.length === 0) return;
+  if (!musicOn() || held || racing || playlist.length === 0) return;
   const audio = element();
   if (!audio.paused) return;
   if (audio.src) void start(audio);
   else next(audio);
 }
 
+export function pauseForRace(on: boolean) {
+  racing = on;
+  if (on) player?.pause();
+  else resumeMusic();
+}
+
 export function togglePause() {
   if (playlist.length === 0) return;
+  racing = false;
   const audio = element();
   if (!audio.paused) {
     held = true;
@@ -323,12 +332,14 @@ export function togglePause() {
 
 export function skipTrack() {
   if (playlist.length === 0) return;
+  racing = false;
   held = false;
   next(element());
 }
 
 export function previousTrack() {
   if (playlist.length === 0) return;
+  racing = false;
   held = false;
   const audio = element();
   if (!audio.src) next(audio);

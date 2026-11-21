@@ -1,4 +1,5 @@
 import NoteIcon from "@/components/NoteIcon";
+import { isSinger } from "@/lib/notes";
 import type { Dict } from "@/i18n/en";
 import type { RacerView } from "@/lib/room-protocol";
 
@@ -40,11 +41,17 @@ export default function Podium({
           >
             {r && (
               <>
-                <NoteIcon
-                  note={r.note}
-                  size={place === 1 ? 48 : 36}
-                  className="text-teal"
-                />
+                <span
+                  className={`inline-flex origin-bottom ${
+                    place === 1 ? (isSinger(r.note) ? "winner-dance" : "winner-sway") : ""
+                  }`}
+                >
+                  <NoteIcon
+                    note={r.note}
+                    size={place === 1 ? 48 : 36}
+                    className="text-teal"
+                  />
+                </span>
                 <p
                   className={`mt-2 w-full truncate text-center font-medium ${r.id === you ? "text-teal" : ""}`}
                 >

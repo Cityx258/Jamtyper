@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { setLocale, setTheme } from "@/app/actions";
 import Avatar from "@/components/Avatar";
+import MobileMenu from "@/components/MobileMenu";
 import MusicToggle from "@/components/MusicToggle";
 import SoundToggle from "@/components/SoundToggle";
 import { getDict, getLocale, getTheme } from "@/i18n";
@@ -21,6 +22,57 @@ export default async function Header() {
   ]);
   const nextLocale = locale === "en" ? "fr" : "en";
   const nextTheme = theme === "system" ? "light" : theme === "light" ? "dark" : "system";
+
+  const toggles = (
+    <>
+      <form action={setLocale.bind(null, nextLocale)}>
+        <button
+          type="submit"
+          lang={nextLocale}
+          aria-label={t.header.switchLanguage}
+          className={iconButton}
+        >
+          {t.header.languageShort}
+        </button>
+      </form>
+      <form action={setTheme.bind(null, nextTheme)}>
+        <button
+          type="submit"
+          aria-label={t.header.themeLabel
+            .replace("{current}", t.header.themes[theme])
+            .replace("{next}", t.header.themes[nextTheme])}
+          title={t.header.themes[theme]}
+          className={iconButton}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            {theme === "system" ? (
+              <>
+                <rect x="3" y="4" width="18" height="12" rx="2" />
+                <path d="M8 20h8M12 16v4" />
+              </>
+            ) : theme === "light" ? (
+              <>
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+              </>
+            ) : (
+              <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+            )}
+          </svg>
+        </button>
+      </form>
+    </>
+  );
 
   return (
     <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-5 sm:px-8">
@@ -56,52 +108,7 @@ export default async function Header() {
         >
           {t.header.leaderboard}
         </Link>
-        <form action={setLocale.bind(null, nextLocale)}>
-          <button
-            type="submit"
-            lang={nextLocale}
-            aria-label={t.header.switchLanguage}
-            className={iconButton}
-          >
-            {t.header.languageShort}
-          </button>
-        </form>
-        <form action={setTheme.bind(null, nextTheme)}>
-          <button
-            type="submit"
-            aria-label={t.header.themeLabel
-              .replace("{current}", t.header.themes[theme])
-              .replace("{next}", t.header.themes[nextTheme])}
-            title={t.header.themes[theme]}
-            className={iconButton}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              width="18"
-              height="18"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              {theme === "system" ? (
-                <>
-                  <rect x="3" y="4" width="18" height="12" rx="2" />
-                  <path d="M8 20h8M12 16v4" />
-                </>
-              ) : theme === "light" ? (
-                <>
-                  <circle cx="12" cy="12" r="4" />
-                  <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-                </>
-              ) : (
-                <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
-              )}
-            </svg>
-          </button>
-        </form>
+        <div className="flex gap-1.5 max-md:hidden sm:gap-2">{toggles}</div>
         <MusicToggle
           tracks={tracks}
           className={iconButton}
@@ -113,7 +120,23 @@ export default async function Header() {
           onLabel={t.header.soundOn}
           offLabel={t.header.soundOff}
         />
-        <Link href="/settings" aria-label={t.header.settings} title={t.header.settings} className={iconButton}>
+        <MobileMenu
+          label={t.header.menu}
+          className={iconButton}
+          items={[
+            { href: "/rooms", label: t.header.rooms },
+            { href: "/leaderboard", label: t.header.leaderboard },
+            { href: "/settings", label: t.header.settings },
+          ]}
+        >
+          {toggles}
+        </MobileMenu>
+        <Link
+          href="/settings"
+          aria-label={t.header.settings}
+          title={t.header.settings}
+          className={`${iconButton} max-md:hidden`}
+        >
           <svg
             viewBox="0 0 24 24"
             width="18"

@@ -4,6 +4,7 @@ const en = {
     loginTitle: "Sign in",
   },
   header: {
+    menu: "Menu",
     rooms: "Rooms",
     leaderboard: "Leaderboard",
     signIn: "Sign in",

@@ -6,6 +6,7 @@ const fr: Dict = {
     loginTitle: "Connexion",
   },
   header: {
+    menu: "Menu",
     rooms: "Salles",
     leaderboard: "Classement",
     signIn: "Connexion",

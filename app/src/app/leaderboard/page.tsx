@@ -67,35 +67,35 @@ export default async function LeaderboardPage(props: PageProps<"/leaderboard">) 
               </caption>
               <thead className="font-mono text-xs uppercase tracking-wider text-muted">
                 <tr>
-                  <th scope="col" className="w-12 py-2 pr-4 font-normal">{t.rank}</th>
-                  <th scope="col" className="py-2 pr-4 font-normal">{t.player}</th>
-                  <th scope="col" className={`py-2 pr-4 text-right font-normal ${by === "wpm" ? "text-teal" : ""}`}>
+                  <th scope="col" className="w-8 py-2 pr-2 font-normal sm:w-12 sm:pr-4">{t.rank}</th>
+                  <th scope="col" className="py-2 pr-2 font-normal sm:pr-4">{t.player}</th>
+                  <th scope="col" className={`py-2 pr-2 text-right font-normal sm:pr-4 ${by === "wpm" ? "text-teal" : ""}`}>
                     {t.bestWpm}
                   </th>
                   <th scope="col" className={`py-2 pr-4 text-right font-normal ${by === "wins" ? "text-teal" : ""}`}>
                     {t.wins}
                   </th>
-                  <th scope="col" className="py-2 pr-4 text-right font-normal">{t.races}</th>
-                  <th scope="col" className="py-2 text-right font-normal">{t.accuracy}</th>
+                  <th scope="col" className="hidden py-2 pr-4 text-right font-normal sm:table-cell">{t.races}</th>
+                  <th scope="col" className="hidden py-2 text-right font-normal sm:table-cell">{t.accuracy}</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((r, i) => (
                   <tr key={r.id} aria-current={r.id === me ? "true" : undefined} className={r.id === me ? "!bg-teal/15" : ""}>
-                    <td className={`py-3 pr-4 font-mono ${i < 3 ? "text-teal" : "text-muted"}`}>{i + 1}</td>
-                    <td className="py-3 pr-4">
-                      <span className="flex min-w-0 items-center gap-3">
+                    <td className={`py-3 pr-2 font-mono sm:pr-4 ${i < 3 ? "text-teal" : "text-muted"}`}>{i + 1}</td>
+                    <td className="py-3 pr-2 sm:pr-4">
+                      <span className="flex min-w-0 items-center gap-2 sm:gap-3">
                         <Avatar name={r.name} image={r.image} size={28} alt="" />
-                        <span className="truncate font-medium">{r.name}</span>
+                        <span className="max-w-[7.5rem] truncate font-medium sm:max-w-none">{r.name}</span>
                         {r.id === me && <span className="text-muted">({t.you})</span>}
                       </span>
                     </td>
-                    <td className="py-3 pr-4 text-right font-mono">
+                    <td className="py-3 pr-2 text-right font-mono sm:pr-4">
                       {r.bestWpm === null ? "—" : number.format(Math.round(r.bestWpm))}
                     </td>
-                    <td className="py-3 pr-4 text-right font-mono">{number.format(r.wins)}</td>
-                    <td className="py-3 pr-4 text-right font-mono">{number.format(r.races)}</td>
-                    <td className="py-3 text-right font-mono">
+                    <td className="py-3 text-right font-mono max-sm:rounded-r-full max-sm:pr-4 sm:pr-4">{number.format(r.wins)}</td>
+                    <td className="hidden py-3 pr-4 text-right font-mono sm:table-cell">{number.format(r.races)}</td>
+                    <td className="hidden py-3 text-right font-mono sm:table-cell">
                       {r.accuracy === null ? "—" : percent.format(r.accuracy)}
                     </td>
                   </tr>

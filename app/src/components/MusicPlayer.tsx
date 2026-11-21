@@ -264,14 +264,14 @@ export default function MusicPlayer({ t }: { t: Dict["player"] }) {
       )}
       <span
         title={name}
-        className="hidden min-w-0 max-w-44 items-center gap-2 pl-3 pr-2 text-xs sm:flex"
+        className="hidden w-44 shrink-0 items-center gap-2 pl-3 pr-2 text-xs sm:flex"
       >
         <span aria-hidden="true" className={`eq shrink-0 ${playing ? "" : "eq-paused"}`}>
           <i />
           <i />
           <i />
         </span>
-        <Marquee text={title} className={track ? "text-ink" : "text-muted"} />
+        <Marquee text={title} className={`flex-1 ${track ? "text-ink" : "text-muted"}`} />
       </span>
       <button type="button" onClick={previousTrack} aria-label={t.previous} title={t.previous} className={control}>
         <Icon>
